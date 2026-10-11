@@ -1,0 +1,33 @@
+# Rust
+/target/
+/target_build/
+**/*.rs.bk
+
+# Node & Frontend
+ui/node_modules/
+ui/dist/
+ui/.vite/
+ui/dist-ssr/
+
+# Runtime Logs
+*.log
+api.log
+build.log
+ui/ui.log
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*~
+
+# Environment & Credentials
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
