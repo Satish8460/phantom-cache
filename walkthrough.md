@@ -1,3 +1,7 @@
+> Notice (2026-10-30): Undated note from the simulation-era "V3 flagship demo". It is historical and not a description of the current gateway. In particular, "gathered and sorted at each 100ms interval" for percentiles describes the old demo path; the serving hit path no longer sorts ([CORR-M2-03 in CORRECTIONS.md](CORRECTIONS.md), `src/intel/telemetry.rs`). Current status: [docs/STATUS.md](docs/STATUS.md).
+>
+> Original text below is unchanged.
+
 # Walkthrough of Hardening Changes
 
 This walkthrough describes the realism enhancements implemented for the Phantom Cache V3 Flagship Demo.

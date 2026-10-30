@@ -1,3 +1,7 @@
+> Notice (2026-10-30): Historical audit of the simulation-era flagship demo. Numbers, "realism" and "validation" statements describe that demo (simulated data), not measurements of the current gateway, and its test counts are superseded (current baseline: [docs/STATUS.md](../STATUS.md)). Any absolute `file:///d:/...` links in the text below are unchanged and work only on the original machine. This file is not the current test strategy; see [docs/testing/strategy.md](strategy.md).
+>
+> Original text below is unchanged.
+
 # V3 FLAGSHIP REALISM AUDIT REPORT
 
 This document confirms the elimination of synthetic latency percentile multipliers in the Phantom Cache Flagship Demo.
