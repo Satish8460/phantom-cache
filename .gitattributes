@@ -1,0 +1,6 @@
+# Hash-pinned frozen files: never convert line endings (DEC-006, owner-approved 2026-10-30; Option B).
+# Exactly these four files. No repository-wide line-ending normalisation.
+/Cargo.toml -text
+/src/lib.rs -text
+/src/lab/eval.rs -text
+/tests/integration/m6_research_evaluation_tests.rs -text
