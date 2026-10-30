@@ -1,0 +1,77 @@
+{
+  "_comment": "docs-lint configuration. Report-only tool: it never modifies files. Classification: first matching entry in 'classify' wins; unmatched paths use 'defaultMode'. Modes: current (all rules), historical (links, secret, size, notice only), archived (links, secret, size, status must be Archived/Superseded), frozen (secret-adjacent rule only). Every entry needs a reason and an expiry (YYYY-MM-DD); expired entries still apply but raise an allowlist-expired warning.",
+  "version": 1,
+  "defaultMode": "current",
+  "scanExclude": [".git/**", "**/node_modules/**", "**/target/**", "**/dist/**", "**/build/**"],
+  "maxSizeKB": 60,
+  "statusVocabulary": ["Draft", "Proposed", "Active", "Verified", "Superseded", "Archived"],
+  "historicalNoticeMarkers": ["Notice (", "Historical"],
+  "indexFiles": ["README.md", "**/README.md", "docs/STATUS.md", "docs/INDEX.md", "**/index.md", "docs/handoff/00_START_HERE.md"],
+  "orphanHops": 1,
+  "dupBasenameIgnore": ["README.md", "index.md"],
+  "filenameConventions": [
+    { "dir": "docs/research/adr/", "regex": "^ADR-\\d{3}-[a-z0-9-]+\\.md$", "label": "ADR-NNN-kebab" },
+    { "dir": "docs/research/", "convention": "lower_snake" },
+    { "dir": "docs/security/", "convention": "lower-kebab" },
+    { "dir": "docs/demo-lab/", "convention": "lower-kebab" },
+    { "dir": "docs/demo/", "convention": "lower_snake" },
+    { "dir": "docs/design/", "convention": "lower_snake" },
+    { "dir": "docs/release/", "convention": "lower_snake" },
+    { "dir": "docs/user/", "convention": "lower_snake" }
+  ],
+  "classify": [
+    { "glob": ".local/**", "mode": "frozen", "reason": "local snapshots of earlier documents, not documentation", "expires": "2027-01-31" },
+    { "glob": "lab-results/**", "mode": "frozen", "reason": "sealed or recorded experiment results", "expires": "2027-01-31" },
+    { "glob": "bench-results/**", "mode": "frozen", "reason": "recorded benchmark results", "expires": "2027-01-31" },
+    { "glob": "docs/demo/browser_verification/**", "mode": "frozen", "reason": "recorded browser verification evidence", "expires": "2027-01-31" },
+    { "glob": "docs/demo/scenario_b_verification/**", "mode": "frozen", "reason": "recorded Scenario B verification evidence", "expires": "2027-01-31" },
+    { "glob": "docs/research/preregistration_m6_*", "mode": "frozen", "reason": "preregistration; must not be edited after freeze", "expires": "2027-01-31" },
+    { "glob": "**/*freeze*", "mode": "frozen", "reason": "freeze records; must not be edited", "expires": "2027-01-31" },
+    { "glob": "docs/research/progress_ledger.md", "mode": "historical", "reason": "append-only ledger; old text is a record", "expires": "2027-01-31" },
+    { "glob": "docs/research/phase_*_progress*", "mode": "historical", "reason": "phase progress record", "expires": "2027-01-31" },
+    { "glob": "docs/research/phase_*_completion*", "mode": "historical", "reason": "phase completion record", "expires": "2027-01-31" },
+    { "glob": "docs/research/phase_*_execution*", "mode": "historical", "reason": "phase execution package record", "expires": "2027-01-31" },
+    { "glob": "docs/research/phase_*_patch*", "mode": "historical", "reason": "phase patch record", "expires": "2027-01-31" },
+    { "glob": "docs/research/storage_cleanup_2026-10-30.md", "mode": "historical", "reason": "storage cleanup record that names deleted directories", "expires": "2027-01-31" },
+    { "glob": "docs/handoff/**", "mode": "historical", "reason": "handoff bodies are a record until reconciled", "expires": "2027-01-31" },
+    { "glob": "docs/security/phase-*", "mode": "historical", "reason": "security phase records", "expires": "2027-01-31" },
+    { "glob": "docs/security/stage-*", "mode": "historical", "reason": "security stage records", "expires": "2027-01-31" },
+    { "glob": "docs/research/vision/**", "mode": "historical", "reason": "vision-phase working outputs", "expires": "2027-01-31" },
+    { "glob": "docs/research/doc_audit/**", "mode": "historical", "reason": "documentation audit outputs quote broken and absolute paths on purpose", "expires": "2027-01-31" }
+  ],
+  "ignoreAbsPatterns": [
+    { "pattern": "_m3_target", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "_m3_target_base", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "_ttl_target", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "_m7_target_g2b", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "_m7_target_before", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "_m7_target_cpl", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "_m7_target_scratch", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "_m7_target", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "CargoTarget\\m7_clean", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" },
+    { "pattern": "phantom-cache\\target", "reason": "deleted 2026-10-30 (storage cleanup record)", "expires": "2027-01-31" }
+  ],
+  "secretWords": ["salt", "secret", "key", "password", "passwd"],
+  "secretHexMinLength": 64,
+  "pathRefPrefixes": ["src/", "tests/", "docs/", "scripts/", "ui/", "benches/", "packaging/", "bench-results/", "lab-results/"],
+  "facts": {
+    "test_baseline": {
+      "_comment": "Canonical value per docs/STATUS.md (once it exists). Stale numbers in current docs are reported as fact-drift (warn). A line carrying the marker <!-- fact:test_baseline --> is exempt.",
+      "source": "docs/STATUS.md",
+      "passed": 851,
+      "failed": 0,
+      "ignored": 8,
+      "targets": 75,
+      "level": "warn",
+      "patterns": [
+        { "re": "\\b(\\d{3,4})\\s+(?:tests?\\s+)?passed\\b", "field": "passed" },
+        { "re": "\\b(\\d{3,4})\\s+tests\\b", "field": "passed" },
+        { "re": "\\b(\\d{3,4})/\\1\\b", "field": "passed" },
+        { "re": "\\b(\\d{2,3})\\s+(?:test\\s+)?targets\\b", "field": "targets" },
+        { "re": "\\b(\\d{1,3})\\s+ignored\\b", "field": "ignored" }
+      ]
+    },
+    "claim_status": { "level": "info", "_comment": "Claim and SEC id statuses: reported as multi-status spread across files, informational only." },
+    "sec_status": { "level": "info" }
+  }
+}
