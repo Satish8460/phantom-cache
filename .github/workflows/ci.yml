@@ -1,0 +1,61 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  rust-ci:
+    name: Rust Backend Quality & Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Rust dependency cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Verify code formatting
+        run: cargo fmt --all -- --check
+
+      - name: Compile and check targets
+        run: cargo check --all-targets --all-features
+
+      - name: Strict static code analysis (Clippy)
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run automated test suites
+        run: cargo test --all-targets --all-features
+
+  frontend-ci:
+    name: Frontend React Web App Verification
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ui
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies (clean install)
+        run: npm ci
+
+      - name: Compile production web bundle (Vite)
+        run: npm run build
