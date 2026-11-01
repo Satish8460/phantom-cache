@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 760" width="900" height="760" role="img" aria-labelledby="t5 d5">
+<title id="t5">DELETE with cluster fan-out</title>
+<desc id="d5">The gateway purges its own cache first, then asks the router to invalidate the key. The router sends an invalidation frame to the rendezvous-hash primary and waits up to 150 ms for the acknowledgement. After the acknowledgement it queues the other live members in the background and records unreachable members as owed in an in-memory repair ledger. The client receives 204 only after the primary acknowledged.</desc>
+<defs>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111}
+.h{font-size:13px;font-weight:bold}
+.s{font-size:13px;fill:#333;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.sb{font-size:13px;fill:#333}
+.n{fill:#f2f2f2;stroke:#222;stroke-width:1.2}
+.pb{fill:#e4e4e4;stroke:#222;stroke-width:1.5}
+.pd{fill:#fff;stroke:#222;stroke-width:1.5;stroke-dasharray:6 4}
+.l{stroke:#555;stroke-width:1.2;stroke-dasharray:3 4}
+.a{stroke:#222;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+.r{stroke:#222;stroke-width:1.6;fill:none;stroke-dasharray:7 4;marker-end:url(#ar)}
+.as{stroke:#222;stroke-width:2.4;fill:none;marker-end:url(#ar)}
+.c{fill:#222}
+.w{fill:#fff;font-weight:bold;font-size:12px}
+</style>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker>
+</defs>
+<rect width="900" height="760" fill="#fff"/>
+<rect class="pb" x="5" y="10" width="90" height="42" rx="4"/><text x="50" y="35" text-anchor="middle" class="h">Client</text>
+<rect class="pb" x="120" y="10" width="100" height="42" rx="4"/><text x="170" y="29" text-anchor="middle" class="h">Gateway</text><text x="170" y="45" text-anchor="middle" class="h">handler</text>
+<rect class="pb" x="245" y="10" width="100" height="42" rx="4"/><text x="295" y="29" text-anchor="middle" class="h">Local</text><text x="295" y="45" text-anchor="middle" class="h">cache</text>
+<rect class="pb" x="375" y="10" width="110" height="42" rx="4"/><text x="430" y="29" text-anchor="middle" class="h">Rendezvous</text><text x="430" y="45" text-anchor="middle" class="h">router</text>
+<rect class="pd" x="515" y="10" width="110" height="42" rx="4"/><text x="570" y="29" text-anchor="middle" class="h">Primary node</text><text x="570" y="45" text-anchor="middle" class="h">(hash winner)</text>
+<rect class="pd" x="655" y="10" width="100" height="42" rx="4"/><text x="705" y="29" text-anchor="middle" class="h">Other live</text><text x="705" y="45" text-anchor="middle" class="h">members</text>
+<rect class="pb" x="785" y="10" width="105" height="42" rx="4"/><text x="837" y="29" text-anchor="middle" class="h">Repair ledger</text><text x="837" y="45" text-anchor="middle" class="h">(memory)</text>
+<line class="l" x1="50" y1="52" x2="50" y2="675"/><line class="l" x1="170" y1="52" x2="170" y2="675"/><line class="l" x1="295" y1="52" x2="295" y2="675"/><line class="l" x1="430" y1="52" x2="430" y2="675"/><line class="l" x1="570" y1="52" x2="570" y2="675"/><line class="l" x1="705" y1="52" x2="705" y2="675"/><line class="l" x1="837" y1="52" x2="837" y2="675"/>
+
+<path class="a" d="M50 108 L170 108"/><circle class="c" cx="66" cy="108" r="10"/><text x="66" y="112" text-anchor="middle" class="w">1</text><text x="111" y="72" text-anchor="middle" class="s">DELETE</text><text x="111" y="85" text-anchor="middle" class="s">/api/v1/cache/item</text>
+<path class="a" d="M170 148 L295 148"/><circle class="c" cx="186" cy="148" r="10"/><text x="186" y="152" text-anchor="middle" class="w">2</text><text x="233" y="138" text-anchor="middle" class="s">cache.delete(key)</text>
+<rect class="n" x="303" y="158" width="260" height="36" rx="3"/><text x="311" y="173" class="sb">entry removed, generation + 1,</text><text x="311" y="188" class="sb">in-flight fetch detached (local first)</text>
+<path class="a" d="M170 240 L430 240"/><circle class="c" cx="186" cy="240" r="10"/><text x="186" y="244" text-anchor="middle" class="w">3</text><text x="318" y="230" text-anchor="middle" class="s">invalidate_key_across_cluster(key)</text>
+<path class="as" d="M430 306 L570 306"/><circle class="c" cx="446" cy="306" r="10"/><text x="446" y="310" text-anchor="middle" class="w">4</text><text x="500" y="296" text-anchor="middle" class="s">InvalidateRequest</text>
+<text x="440" y="324" class="s">route_key; mTLS;</text><text x="440" y="338" class="s">150 ms deadline</text>
+<path class="r" d="M570 392 L430 392"/><circle class="c" cx="554" cy="392" r="10"/><text x="554" y="396" text-anchor="middle" class="w">5</text><text x="500" y="382" text-anchor="middle" class="s">InvalidateAck</text>
+<text x="440" y="410" class="s">responder id,</text><text x="440" y="424" class="s">membership epoch</text><text x="440" y="438" class="s">checked</text>
+<path class="r" d="M430 484 L705 484"/><circle class="c" cx="446" cy="484" r="10"/><text x="446" y="488" text-anchor="middle" class="w">6</text><text x="567" y="474" text-anchor="middle" class="s">fan-out, asynchronous, per-peer queue</text>
+<path class="r" d="M430 544 L837 544"/><circle class="c" cx="446" cy="544" r="10"/><text x="446" y="548" text-anchor="middle" class="w">7</text><text x="633" y="534" text-anchor="middle" class="s">unreachable or suspect: record as owed</text>
+<path class="r" d="M430 604 L170 604"/><circle class="c" cx="414" cy="604" r="10"/><text x="414" y="608" text-anchor="middle" class="w">8</text><text x="300" y="594" text-anchor="middle" class="s">Ok or Err(DistError)</text>
+<path class="r" d="M170 660 L50 660"/><circle class="c" cx="154" cy="660" r="10"/><text x="154" y="664" text-anchor="middle" class="w">9</text>
+<text x="20" y="700" class="s">204 after the primary acked (X-Cache-Warning: PrimaryFailover if a replica acted)</text>
+<text x="20" y="718" class="s">504 PrimaryInvalidationTimeout when no ack in time; 503 or 500 for rejections</text>
+<text x="20" y="744" class="s">The local purge (step 2) happens in every case, including 504.</text>
+</svg>

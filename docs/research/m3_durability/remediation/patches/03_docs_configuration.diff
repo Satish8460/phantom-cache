@@ -1,0 +1,13 @@
+diff --git a/docs/user/configuration.md b/docs/user/configuration.md
+--- a/docs/user/configuration.md
++++ b/docs/user/configuration.md
+@@ -45,6 +45,9 @@
+ | `PHANTOM_MAX_STALE_MS` | ms, 1..31536000000 | `86400000` | applied by main | medium: hard stale-serving cap (24 h); caps only the stale window, not the freshness lifetime an origin sets with `s-maxage`/`max-age`/`Expires` (no gateway ceiling) |
+ | `PHANTOM_SWEEPER_BATCH_SIZE` | shards per tick, 1..1024 | `32` | applied by main | low: above 32 warns |
+ | `PHANTOM_SWEEPER_INTERVAL_MS` | ms, 1..3600000 | `100` | applied by main | low |
++| `PHANTOM_INVALIDATION_LOG_PATH` | file path | unset (off) | applied by main | medium: PROPOSED (M3). Opt-in durable log of invalidations that were accepted (DELETE answered 204) but are not yet acknowledged by every peer; replayed after a restart. Unset = off: such invalidations are lost if this gateway dies and a peer can keep serving the stale entry until it expires. Contains cache keys: keep the directory private |
++| `PHANTOM_INVALIDATION_LOG_FSYNC` | `always`, `interval`, `never` | `always` | applied by main | low: PROPOSED (M3). `always` fsyncs before the DELETE is answered (survives power loss); `interval` (100 ms) and `never` survive a process crash only. Ignored unless the log path is set |
++| `PHANTOM_SHUTDOWN_DRAIN_MS` | ms, 0..60000 | `2000` | applied by main | low: PROPOSED (M3). On SIGINT/SIGTERM (Ctrl-C / Ctrl-Break on Windows) keep delivering invalidations that peers have not acknowledged for at most this long; 0 = exit immediately (previous behaviour) |
+ | `ORIGIN_URL` | http(s) URL | unset | env (exported) | high: checked against the SSRF policy at startup |
+ | `PHANTOM_ORIGIN_ALLOWLIST` | comma-separated URLs | unset | env (exported) | high: when set, the origin must match |
+ | `PHANTOM_ENFORCE_UPSTREAM_TLS` | bool | `false` | env (exported) | high: reject http origins |

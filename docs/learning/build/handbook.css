@@ -1,0 +1,50 @@
+/* PhantomCache handbook print stylesheet (A4, screen-readable). Plain CSS, system fonts, no external resources. */
+@page { size: A4; margin: 20mm 17mm 20mm 17mm;
+  @bottom-center { content: counter(page); font: 9pt "Segoe UI", Arial, sans-serif; color: #666; }
+  @top-right { content: "PhantomCache Engineering Handbook"; font: 8pt "Segoe UI", Arial, sans-serif; color: #888; } }
+@page :first { @top-right { content: none; } @bottom-center { content: none; } }
+:root { --ink:#1b1f24; --muted:#5b6470; --rule:#d5d9df; --blue:#1d5fbf; --amber:#b7791f; --red:#b3261e; --green:#2f7d4f; --paper:#fbfaf7; }
+html { font-size: 10pt; }
+body { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: var(--ink); line-height: 1.5; max-width: none; margin: 0; background: #fff; }
+@media screen { body { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; } }
+h1, h2, h3, h4 { font-family: "Segoe UI Semibold", "Segoe UI", Arial, sans-serif; line-height: 1.25; color: #10151c; break-after: avoid; }
+h1 { font-size: 22pt; margin: 0 0 0.6em; padding-top: 0.2em; border-bottom: 2px solid var(--ink); padding-bottom: .2em; break-before: page; }
+h1.title, header#title-block-header h1 { break-before: auto; border: none; font-size: 30pt; }
+h2 { font-size: 15pt; margin: 1.6em 0 .5em; border-bottom: 1px solid var(--rule); padding-bottom: .15em; }
+h3 { font-size: 12pt; margin: 1.3em 0 .4em; }
+h4 { font-size: 10.5pt; margin: 1em 0 .3em; color: var(--muted); }
+p, li { orphans: 3; widows: 3; }
+p { margin: .5em 0; }
+a { color: var(--blue); text-decoration: none; }
+code { font-family: Consolas, "Cascadia Mono", monospace; font-size: .88em; background: #f1f2f4; padding: 0 .25em; border-radius: 3px;  overflow-wrap: anywhere; }
+pre { background: #f6f7f9; border: 1px solid var(--rule); border-radius: 4px; padding: .6em .8em; overflow-x: auto; font-size: 8.6pt; line-height: 1.4; break-inside: avoid; white-space: pre-wrap; word-break: break-word; }
+pre code { background: none; padding: 0; font-size: inherit; }
+table { border-collapse: collapse; width: 100%; max-width: 100%; margin: .8em 0; font-size: 8.5pt; break-inside: auto; }
+th, td { border: 1px solid var(--rule); padding: .3em .5em; vertical-align: top; text-align: left; }
+th { background: #eef0f3; font-weight: 600; }
+tr { break-inside: avoid; }
+blockquote { margin: .8em 0; padding: .1em 1em; border-left: 3px solid var(--rule); color: var(--muted); }
+figure { margin: 1em 0; break-inside: avoid; text-align: center; }
+figure img { max-width: 100%; height: auto; }
+figcaption { font-size: 9pt; color: var(--muted); margin-top: .3em; }
+img { max-width: 100%; }
+.judge, .concept, .example, .caution, .answers { margin: 1em 0; padding: .6em .9em; border-radius: 4px; border: 1px solid var(--rule); break-inside: avoid; }
+.judge { border-left: 5px solid var(--amber); background: #fff8ea; }
+.judge > p:first-child { margin-top: 0; }
+.concept { border-left: 5px solid var(--blue); background: #eef4fd; }
+.example { border-left: 5px solid var(--green); background: #f0f8f3; }
+.caution { border-left: 5px solid var(--red); background: #fdf0ef; }
+.answers { background: #f6f7f9; font-size: 9pt; }
+.judge, .concept, .example, .caution { font-size: 10pt; }
+#TOC, nav#TOC { break-after: page; font-size: 10pt; }
+#TOC ul { list-style: none; padding-left: 1.1em; }
+#TOC > ul { padding-left: 0; }
+#TOC a { color: var(--ink); }
+header#title-block-header { margin-bottom: 2em; }
+.subtitle { color: var(--muted); font-size: 13pt; }
+hr { border: none; border-top: 1px solid var(--rule); margin: 1.2em 0; }
+
+/* Long unbreakable tokens (paths, identifiers) must wrap, otherwise one wide table makes Chrome shrink every printed page (first build rendered at about 0.65 of the intended size). */
+table, th, td, p, li, pre, blockquote, .judge, .concept, .example, .caution, .answers { overflow-wrap: anywhere; }
+thead { display: table-header-group; }
+pre { font-size: 8pt; }

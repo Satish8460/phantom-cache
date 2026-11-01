@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 860" width="900" height="860" font-family="Arial, Helvetica, sans-serif">
+  <title>Failure timelines: receiver down, partition, issuer crash</title>
+  <desc>Three timelines for one invalidated key. Panel A: a receiver node crashes and restarts; its cache is empty so nothing stale remains. Panel B: a link from the issuer to one receiver is cut; the receiver serves the old value until the link heals and the repair worker delivers the owed invalidation. Panel C: the issuer crashes after answering 204 before the receiver acknowledged; the owed invalidation is lost and the receiver stays stale until the entry expires.</desc>
+  <rect x="0" y="0" width="900" height="860" fill="#ffffff"/>
+
+  <!-- Panel A -->
+  <rect x="10" y="10" width="880" height="250" fill="#f6f6f6" stroke="#111" stroke-width="2"/>
+  <text x="24" y="34" font-size="15" font-weight="bold" fill="#111">A. Receiver B crashes (node down), then restarts.  Status: TESTED in parts (see text)</text>
+  <line x1="40" y1="120" x2="870" y2="120" stroke="#111" stroke-width="3"/>
+  <circle cx="80" cy="120" r="8" fill="#111"/><text x="80" y="100" font-size="13" text-anchor="middle" fill="#111">B dies</text>
+  <text x="80" y="146" font-size="13" text-anchor="middle" fill="#111">cache lost</text>
+  <circle cx="230" cy="120" r="8" fill="#111"/><text x="230" y="100" font-size="13" text-anchor="middle" fill="#111">DELETE k at G</text>
+  <text x="230" y="146" font-size="13" text-anchor="middle" fill="#111">204 from primary</text>
+  <rect x="300" y="108" width="190" height="24" fill="#9a9a9a" stroke="#111"/><text x="395" y="125" font-size="13" text-anchor="middle" fill="#000">4 attempts fail, 1.4 s max</text>
+  <circle cx="530" cy="120" r="8" fill="#111"/><text x="530" y="100" font-size="13" text-anchor="middle" fill="#111">B = Suspect</text>
+  <text x="530" y="146" font-size="13" text-anchor="middle" fill="#111">debt in G ledger</text>
+  <circle cx="650" cy="120" r="8" fill="#111"/><text x="650" y="100" font-size="13" text-anchor="middle" fill="#111">B restarts</text>
+  <text x="650" y="146" font-size="13" text-anchor="middle" fill="#111">EMPTY cache</text>
+  <circle cx="800" cy="120" r="8" fill="#111"/><text x="800" y="100" font-size="13" text-anchor="middle" fill="#111">ledger drains</text>
+  <text x="800" y="146" font-size="13" text-anchor="middle" fill="#111">Recovering, then Active</text>
+  <text x="24" y="190" font-size="13" fill="#111">Nothing stale survives because B's cache is in memory. Risk is for a B that is ALIVE but cut off (panel B).</text>
+  <text x="24" y="210" font-size="13" fill="#111">Debts are bounded per peer; on overflow they collapse to a tenant flush, then to a full flush of B.</text>
+  <text x="24" y="230" font-size="13" fill="#111">If G's ledger is empty because G also died, B has no stale data to lose anyway.</text>
+  <text x="24" y="250" font-size="13" fill="#111">Heartbeats do not trigger Suspect: only a failed data-path call or /api/control changes the state.</text>
+
+  <!-- Panel B -->
+  <rect x="10" y="275" width="880" height="285" fill="#f6f6f6" stroke="#111" stroke-width="2"/>
+  <text x="24" y="299" font-size="15" font-weight="bold" fill="#111">B. Link G to B is cut, B stays alive and serving.  Status: TESTED (loopback fault proxy, debug build)</text>
+  <line x1="40" y1="385" x2="870" y2="385" stroke="#111" stroke-width="3"/>
+  <circle cx="80" cy="385" r="8" fill="#111"/><text x="80" y="365" font-size="13" text-anchor="middle" fill="#111">B caches k=v1</text>
+  <circle cx="190" cy="385" r="8" fill="#111"/><text x="190" y="365" font-size="13" text-anchor="middle" fill="#111">origin: v2</text>
+  <text x="190" y="411" font-size="13" text-anchor="middle" fill="#111">link G-B cut</text>
+  <circle cx="300" cy="385" r="8" fill="#111"/><text x="300" y="365" font-size="13" text-anchor="middle" fill="#111">DELETE at G: 204</text>
+  <text x="300" y="411" font-size="13" text-anchor="middle" fill="#111">C purged, B not</text>
+  <rect x="330" y="373" width="330" height="24" fill="#9a9a9a" stroke="#111" stroke-width="2"/><text x="495" y="390" font-size="13" text-anchor="middle" fill="#000">B answers HIT v1 (stale)</text>
+  <circle cx="700" cy="385" r="8" fill="#111"/><text x="700" y="365" font-size="13" text-anchor="middle" fill="#111">link heals</text>
+  <circle cx="820" cy="385" r="8" fill="#111"/><text x="820" y="365" font-size="13" text-anchor="middle" fill="#111">B serves v2</text>
+  <text x="760" y="411" font-size="13" text-anchor="middle" fill="#111">repair tick</text>
+  <text x="24" y="448" font-size="13" fill="#111">Test test_m3_04a_missed_fanout_repaired_by_antientropy_within_bound held the fault 2000 ms; B stayed HIT v1.</text>
+  <text x="24" y="468" font-size="13" fill="#111">After healing it asserted convergence within 250 + 300 + 250 = 800 ms (interval + delivery budget + margin).</text>
+  <text x="24" y="488" font-size="13" fill="#111">The 800 ms is a test-derived bound for one key, 3 gateways, loopback, a debug build. It is not a product guarantee.</text>
+  <text x="24" y="508" font-size="13" fill="#111">With a PERMANENT cut there is no bound except the entry's own freshness lifetime (60 s only if the origin gave none).</text>
+  <text x="24" y="528" font-size="13" fill="#111">No leader and no quorum exist, so no split brain; instead the two sides simply diverge until repair.</text>
+  <text x="24" y="548" font-size="13" fill="#111">The HTTP GET path never looks at the node state, so a Suspect B keeps serving HITs.</text>
+
+  <!-- Panel C -->
+  <rect x="10" y="575" width="880" height="275" fill="#f6f6f6" stroke="#111" stroke-width="2"/>
+  <text x="24" y="599" font-size="15" font-weight="bold" fill="#111">C. Issuer G crashes with owed invalidations.  Status: REPRODUCED in a sandbox; fix NOT integrated</text>
+  <line x1="40" y1="685" x2="870" y2="685" stroke="#111" stroke-width="3"/>
+  <circle cx="80" cy="685" r="8" fill="#111"/><text x="80" y="665" font-size="13" text-anchor="middle" fill="#111">DELETE at G</text>
+  <text x="80" y="711" font-size="13" text-anchor="middle" fill="#111">204 in about 1 ms</text>
+  <rect x="110" y="673" width="150" height="24" fill="#9a9a9a" stroke="#111"/><text x="185" y="690" font-size="13" text-anchor="middle" fill="#000">B ack pending</text>
+  <circle cx="300" cy="685" r="8" fill="#111"/><text x="300" y="665" font-size="13" text-anchor="middle" fill="#111">G killed</text>
+  <text x="300" y="711" font-size="13" text-anchor="middle" fill="#111">queue, ledger, ring gone</text>
+  <circle cx="440" cy="685" r="8" fill="#111"/><text x="440" y="665" font-size="13" text-anchor="middle" fill="#111">G restarts</text>
+  <text x="440" y="711" font-size="13" text-anchor="middle" fill="#111">ledger EMPTY</text>
+  <rect x="470" y="673" width="380" height="24" fill="#9a9a9a" stroke="#111" stroke-width="2"/><text x="660" y="690" font-size="13" text-anchor="middle" fill="#000">B keeps answering HIT v1 (stale) ...</text>
+  <text x="860" y="660" font-size="13" text-anchor="end" fill="#111">until entry expires</text>
+  <text x="24" y="748" font-size="13" fill="#111">Sandbox run (docs/research/m3_durability, debug, loopback, Windows): B never converged in 10 s (89 to 91 stale polls); origin max-age=120.</text>
+  <text x="24" y="768" font-size="13" fill="#111">Negative control (G not killed) converged in 231 to 337 ms. Receiver B cannot detect that G lost anything.</text>
+  <text x="24" y="788" font-size="13" fill="#111">Bound on staleness: the entry's freshness lifetime. That is 60 s only when the origin sends no freshness data, and</text>
+  <text x="24" y="808" font-size="13" fill="#111">PHANTOM_DEFAULT_TTL_MS is not wired; an origin max-age of hours has no gateway ceiling. No test in the main tree covers this.</text>
+  <text x="24" y="830" font-size="13" fill="#111">Source: m3_durability/reproduction_report.md; router.rs; main.rs shutdown path (no router stop or drain call).</text>
+</svg>

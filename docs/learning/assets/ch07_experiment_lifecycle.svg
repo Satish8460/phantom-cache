@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" font-family="Arial, Helvetica, sans-serif" font-size="13">
+<title>Experiment lifecycle and evidence pipeline</title>
+<desc>Left column: a library or API run from RunSpec to validated seeds, matrix execution, cells.csv and manifest. Right column: the M6 registered path with preregistration, freeze record, run-once marker, sealed run, re-read of raw cells, BCa bootstrap, sign-flip test, Holm correction, mechanical verdict.</desc>
+<defs><marker id="c" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#222"/></marker></defs>
+<rect width="900" height="560" fill="#fff"/>
+<text x="450" y="24" text-anchor="middle" font-size="16" font-weight="bold">From question to retained evidence</text>
+<text x="220" y="52" text-anchor="middle" font-weight="bold">Exploratory run (runner.rs::execute)</text>
+<text x="680" y="52" text-anchor="middle" font-weight="bold">Registered M6 path (m6_pipeline.rs)</text>
+<g stroke="#222" stroke-width="2">
+<rect x="40" y="64" width="360" height="52" fill="#eee"/>
+<rect x="40" y="136" width="360" height="52" fill="#eee"/>
+<rect x="40" y="208" width="360" height="62" fill="#d9d9d9"/>
+<rect x="40" y="290" width="360" height="62" fill="#eee"/>
+<rect x="40" y="372" width="360" height="62" fill="#eee"/>
+<rect x="500" y="64" width="360" height="52" fill="#eee"/>
+<rect x="500" y="136" width="360" height="52" fill="#eee"/>
+<rect x="500" y="208" width="360" height="62" fill="#d9d9d9"/>
+<rect x="500" y="290" width="360" height="62" fill="#eee"/>
+<rect x="500" y="372" width="360" height="62" fill="#bdbdbd"/>
+</g>
+<g text-anchor="middle">
+<text x="220" y="86">RunSpec (scenarios, families, arms,</text><text x="220" y="104">seed set T or D, n_seeds, profile)</text>
+<text x="220" y="158">validate(): refuses seed set S and</text><text x="220" y="176">family W-SF; checks ids and counts</text>
+<text x="220" y="230">run_matrix: seed, scenario, family,</text><text x="220" y="248">arms rotated; one run_cell each</text><text x="220" y="264" font-size="12">(a panic becomes a recorded defect cell)</text>
+<text x="220" y="312">write cells.csv (+ requests.csv,</text><text x="220" y="330">fetches.csv if --raw)</text>
+<text x="220" y="394">manifest.json: sha256 of outputs and</text><text x="220" y="412">of source files, git head, seeds, host</text>
+<text x="680" y="86">Preregistration v2 / v2.1 / v2.2 text:</text><text x="680" y="104">hypotheses, endpoints, rule fixed first</text>
+<text x="680" y="158">Freeze record: sha256 of 56 frozen files</text><text x="680" y="176">+ salt commitment; verify_freeze()</text>
+<text x="680" y="230">run-once marker, then 12,000 cells on</text><text x="680" y="248">30 sealed seeds (labels S00..; values</text><text x="680" y="264" font-size="12">never written)</text>
+<text x="680" y="312">re-read raw cells.csv from disk;</text><text x="680" y="330">completeness checks</text>
+<text x="680" y="394">paired r_i, BCa 95% CI, sign-flip p,</text><text x="680" y="412">Holm; verdict.json by mechanical rule</text>
+</g>
+<g stroke="#222" stroke-width="2" fill="none" marker-end="url(#c)">
+<line x1="220" y1="116" x2="220" y2="134"/><line x1="220" y1="188" x2="220" y2="206"/><line x1="220" y1="270" x2="220" y2="288"/><line x1="220" y1="352" x2="220" y2="370"/>
+<line x1="680" y1="116" x2="680" y2="134"/><line x1="680" y1="188" x2="680" y2="206"/><line x1="680" y1="270" x2="680" y2="288"/><line x1="680" y1="352" x2="680" y2="370"/>
+</g>
+<rect x="40" y="456" width="820" height="84" fill="#f5f5f5" stroke="#222" stroke-width="2"/>
+<text x="450" y="478" text-anchor="middle" font-weight="bold">Reproduce a retained result</text>
+<text x="450" y="498" text-anchor="middle">read manifest.json; check out the recorded source; rebuild in release; run the same RunSpec or test; compare cells.csv bytes / sha256.</text>
+<text x="450" y="516" text-anchor="middle">T2 (Scenario B) is real time: re-running gives a new sample, not the same bytes. Re-derivation uses the retained raw CSVs.</text>
+<text x="450" y="532" text-anchor="middle" font-size="12">Sealed seeds cannot be regenerated without the secret salt; only the retained cells and their analysis can be rechecked.</text>
+</svg>

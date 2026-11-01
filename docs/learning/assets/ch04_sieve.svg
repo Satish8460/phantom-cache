@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600" role="img" aria-labelledby="t4 d4">
+  <title id="t4">SIEVE eviction structure and a worked example</title>
+  <desc id="d4">A circular doubly linked list with a sentinel. New keys go at the head. A hand starts at the tail and moves toward the head, clearing visited bits, and evicts the first unvisited unpinned key. Two eviction calls are shown on five keys.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; font-size: 14px; fill: #111; }
+    .s { font-size: 13px; }
+    .b { font-weight: bold; }
+    .n0 { fill: #fff; stroke: #111; stroke-width: 1.5; }
+    .n1 { fill: #bdbdbd; stroke: #111; stroke-width: 1.5; }
+    .gone { fill: #fff; stroke: #111; stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .box { fill: #fff; stroke: #111; stroke-width: 1.5; }
+    .arr { stroke: #111; stroke-width: 1.8; fill: none; marker-end: url(#a); }
+    .hand { stroke: #111; stroke-width: 3; fill: none; marker-end: url(#a); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="600" fill="#fff"/>
+  <text x="20" y="26" class="b" style="font-size:16px">Figure 4.5: FaithfulSieve, one list per shard (nodes in a Vec, links are indexes)</text>
+
+  <text x="20" y="48" class="s">Sentinel at index 0: sentinel.next = head (newest), sentinel.prev = tail (oldest). Grey node = visited bit set.</text>
+  <text x="20" y="66" class="s">The hand moves along the prev links, from the tail toward the head, and wraps back to the tail.</text>
+
+  <!-- Stage 0 -->
+  <text x="20" y="90" class="b">Start: keys inserted A, B, C, D, E. A, C were hit since insert.</text>
+  <text x="20" y="112" class="s">head (newest)</text>
+  <text x="790" y="112" class="s">tail (oldest)</text>
+  <rect class="n0" x="20"  y="120" width="100" height="44"/><text x="48" y="147" class="b">E  v=0</text>
+  <rect class="n0" x="190" y="120" width="100" height="44"/><text x="218" y="147" class="b">D  v=0</text>
+  <rect class="n1" x="360" y="120" width="100" height="44"/><text x="388" y="147" class="b">C  v=1</text>
+  <rect class="n0" x="530" y="120" width="100" height="44"/><text x="558" y="147" class="b">B  v=0</text>
+  <rect class="n1" x="700" y="120" width="100" height="44"/><text x="728" y="147" class="b">A  v=1</text>
+  <path class="arr" d="M190,142 L122,142"/><path class="arr" d="M360,142 L292,142"/><path class="arr" d="M530,142 L462,142"/><path class="arr" d="M700,142 L632,142"/>
+  <text x="140" y="136" class="s">prev</text>
+  <path class="hand" d="M750,215 L750,168"/>
+  <text x="690" y="236" class="b">hand = tail (A)</text>
+
+  <!-- Call 1 -->
+  <text x="20" y="276" class="b">Eviction call 1 (memory full):</text>
+  <text x="20" y="298" class="s">Hand at A: visited, so clear it and step to B. B is unvisited and unpinned: victim. Hand moves to C.</text>
+  <rect class="n0" x="20"  y="312" width="100" height="44"/><text x="48" y="339" class="b">E  v=0</text>
+  <rect class="n0" x="190" y="312" width="100" height="44"/><text x="218" y="339" class="b">D  v=0</text>
+  <rect class="n1" x="360" y="312" width="100" height="44"/><text x="388" y="339" class="b">C  v=1</text>
+  <rect class="gone" x="530" y="312" width="100" height="44"/><text x="552" y="328" class="b">B evicted</text>
+  <rect class="n0" x="700" y="312" width="100" height="44"/><text x="728" y="339" class="b">A  v=0</text>
+  <path class="arr" d="M190,334 L122,334"/><path class="arr" d="M360,334 L292,334"/><path class="arr" d="M700,334 L462,334"/>
+  <path class="hand" d="M410,405 L410,360"/>
+  <text x="340" y="426" class="b">hand = C</text>
+
+  <!-- Call 2 -->
+  <text x="20" y="466" class="b">Eviction call 2 (a new key F was inserted at the head meanwhile):</text>
+  <text x="20" y="488" class="s">Hand at C: visited, so clear it and step to D. D is unvisited: victim. A survives; the hand has not reached it.</text>
+  <rect class="n0" x="20"  y="502" width="90" height="44"/><text x="42" y="529" class="b">F v=0</text>
+  <rect class="n0" x="150" y="502" width="90" height="44"/><text x="172" y="529" class="b">E v=0</text>
+  <rect class="gone" x="280" y="502" width="110" height="44"/><text x="298" y="518" class="b">D evicted</text>
+  <rect class="n0" x="430" y="502" width="90" height="44"/><text x="452" y="529" class="b">C v=0</text>
+  <rect class="n0" x="560" y="502" width="90" height="44"/><text x="582" y="529" class="b">A v=0</text>
+  <path class="arr" d="M150,524 L112,524"/><path class="arr" d="M430,524 L242,524"/><path class="arr" d="M560,524 L522,524"/>
+  <text x="680" y="520" class="s">Cost: each call visits</text>
+  <text x="680" y="538" class="s">a bounded number of nodes</text>
+  <text x="680" y="556" class="s">(at most 2n + 2 in code)</text>
+
+  <text x="20" y="582" class="s">Hit sets one bit. Insert links at the head. Remove unlinks by index. Pinned keys are skipped; their bit is not cleared.</text>
+</svg>

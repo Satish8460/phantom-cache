@@ -1,0 +1,57 @@
+# commit_lists_v2/B05_learning_handbook.txt
+# Engineering and technical-defence handbook (docs/learning)
+# Generated 2026-10-30 16:41 IST from git status --short -uall (4644 entries). One repo-relative path per line; lines starting with # are comments.
+# Use: GIT_LITERAL_PATHSPECS=1 git add --pathspec-from-file=<this file> after stripping comment lines (see g5_batch_plan_v2.md section 6).
+docs/learning/assets/ch01_request_outcomes.svg
+docs/learning/assets/ch01_stampede.svg
+docs/learning/assets/ch01_three_pillars.svg
+docs/learning/assets/ch02_components.svg
+docs/learning/assets/ch02_lab_ui.svg
+docs/learning/assets/ch02_origin_failure.svg
+docs/learning/assets/ch02_seq_delete.svg
+docs/learning/assets/ch02_seq_hit.svg
+docs/learning/assets/ch02_seq_miss.svg
+docs/learning/assets/ch03_concurrency_model.svg
+docs/learning/assets/ch03_lock_vs_await.svg
+docs/learning/assets/ch03_stack_layers.svg
+docs/learning/assets/ch04_coalescing.svg
+docs/learning/assets/ch04_epoch_race.svg
+docs/learning/assets/ch04_lifecycle.svg
+docs/learning/assets/ch04_shards.svg
+docs/learning/assets/ch04_sieve.svg
+docs/learning/assets/ch05_cluster_topology.svg
+docs/learning/assets/ch05_failure_timelines.svg
+docs/learning/assets/ch05_intelligence_loop.svg
+docs/learning/assets/ch05_invalidation_fanout.svg
+docs/learning/assets/ch05_mtls_handshake.svg
+docs/learning/assets/ch05_rendezvous_example.svg
+docs/learning/assets/ch06_lost_invalidation_flow.svg
+docs/learning/assets/ch06_request_path_protections.svg
+docs/learning/assets/ch06_trust_boundaries.svg
+docs/learning/assets/ch07_comparison_table.svg
+docs/learning/assets/ch07_experiment_lifecycle.svg
+docs/learning/assets/ch07_lab_architecture.svg
+docs/learning/assets/ch07_sim_event_loop.svg
+docs/learning/assets/ch08_roadmap_stages.svg
+docs/learning/assets/ch08_three_pillar_status.svg
+docs/learning/build/build_handbook.mjs
+docs/learning/build/handbook.css
+docs/learning/evidence/ch01_evidence.md
+docs/learning/evidence/ch02_evidence.md
+docs/learning/evidence/ch03_evidence.md
+docs/learning/evidence/ch04_evidence.md
+docs/learning/evidence/ch05_evidence.md
+docs/learning/evidence/ch06_evidence.md
+docs/learning/evidence/ch07_evidence.md
+docs/learning/evidence/ch08_evidence.md
+docs/learning/src/00_CHAPTER_SPECS.md
+docs/learning/src/00_FRONT.md
+docs/learning/src/00_STYLE_AND_RULES.md
+docs/learning/src/ch01_problem_and_vision.md
+docs/learning/src/ch02_architecture.md
+docs/learning/src/ch03_technology_and_decisions.md
+docs/learning/src/ch04_cache_engine_and_algorithms.md
+docs/learning/src/ch05_distributed_and_intelligence.md
+docs/learning/src/ch06_security_reliability_performance.md
+docs/learning/src/ch07_lab_and_innovation.md
+docs/learning/src/ch08_limitations_roadmap_defence.md

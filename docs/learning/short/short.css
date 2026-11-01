@@ -1,0 +1,12 @@
+/* Extra rules for the short guide; loaded after ../build/handbook.css. */
+@page { @top-right { content: "PhantomCache Short Guide"; font: 8pt "Segoe UI", Arial, sans-serif; color: #888; } }
+@page :first { @top-right { content: none; } @bottom-center { content: none; } }
+h1 { break-before: auto; font-size: 15pt; border-bottom: 1px solid var(--ink); margin: 1.1em 0 .4em; padding-top: 0; }
+h1.title, header#title-block-header h1 { font-size: 26pt; border: none; margin: 0 0 .1em; }
+header#title-block-header { margin-bottom: .8em; }
+.subtitle { font-size: 12pt; }
+figure { margin: .5em 0; }
+.concept, .example, .caution { margin: .6em 0; padding: .4em .8em; }
+p { margin: .4em 0; }
+table { margin: .5em 0; }
+h3 { font-size: 11pt; margin: .9em 0 .3em; }

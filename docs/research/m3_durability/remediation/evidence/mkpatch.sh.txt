@@ -1,0 +1,28 @@
+#!/bin/bash
+# Builds the remediation patch set: unified diffs of sbx_m3 (final) against sbx_m3_orig (= CURRENT main tree files).
+O=/d/Temp/sbx_m3_orig
+N=/d/Temp/sbx_m3
+OUT=/d/Personal/phantom-cache/docs/research/m3_durability/remediation/patches
+mkdir -p "$OUT"
+one() { # file
+  f="$1"
+  if [ -f "$O/$f" ]; then
+    diff -u --label "a/$f" --label "b/$f" "$O/$f" "$N/$f"
+  else
+    diff -u --label /dev/null --label "b/$f" /dev/null "$N/$f"
+  fi
+}
+part() { # outfile files...
+  out="$1"; shift
+  : > "$OUT/$out"
+  for f in "$@"; do
+    { echo "diff --git a/$f b/$f"; one "$f"; } >> "$OUT/$out"
+  done
+}
+part 00_cargo_toml_features_and_test_registration.diff Cargo.toml
+part 01_tests_harness_and_crash_point_tests.diff tests/support/cluster_harness.rs tests/integration/m3_invalidation_durability_tests.rs tests/integration/cluster_harness_controls_tests.rs tests/integration/m3_crash_point_tests.rs
+part 02_src_durable_log_ledger_hooks_drain_detached_leg.diff src/lib.rs src/config.rs src/main.rs src/api/server.rs src/dist/router.rs src/dist/durable_log.rs
+part 03_docs_configuration.diff docs/user/configuration.md
+part 04_m7_config_tests_matrix.diff tests/integration/m7_config_tests.rs
+cat "$OUT"/0[0-4]_*.diff > "$OUT/m3_remediation_combined.diff"
+wc -l "$OUT"/*.diff

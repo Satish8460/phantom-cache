@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-labelledby="t d" font-family="Arial, Helvetica, sans-serif">
+<title id="t">The three pillars of PhantomCache and their honest status</title>
+<desc id="d">Three columns. Pillar 1, distributed systems engineering: single-node engine implemented and tested; invalidation cluster experimental, loopback-tested; peer reads, durability and multi-host evidence absent. Pillar 2, workload intelligence: origin concurrency gate is the only part on the serving path; the rest is a library; the sealed simulated evaluation found no benefit. Pillar 3, product excellence: Phantom Lab, scenario runs and UI implemented; no human design or security review; visual quality not approved.</desc>
+<rect width="900" height="520" fill="#ffffff"/>
+<text x="450" y="28" font-size="18" font-weight="bold" text-anchor="middle" fill="#111">Three pillars: what exists, what is proven, what is not</text>
+
+<!-- Pillar 1 -->
+<rect x="15" y="45" width="280" height="42" fill="#333333" stroke="#000" stroke-width="2"/>
+<text x="155" y="63" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">1. Distributed systems</text>
+<text x="155" y="80" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">engineering</text>
+<rect x="15" y="87" width="280" height="395" fill="#f5f5f5" stroke="#000" stroke-width="2"/>
+<rect x="25" y="97" width="260" height="92" fill="#ffffff" stroke="#000" stroke-width="3"/>
+<text x="35" y="116" font-size="13" font-weight="bold" fill="#111">IMPLEMENTED, TESTED</text>
+<text x="35" y="134" font-size="12" fill="#111">Sharded, byte-bounded, fenced</text>
+<text x="35" y="150" font-size="12" fill="#111">single-node engine; single-flight;</text>
+<text x="35" y="166" font-size="12" fill="#111">freshness; invalidation by key</text>
+<text x="35" y="182" font-size="12" fill="#111">(debug build, one host)</text>
+<rect x="25" y="199" width="260" height="104" fill="#dcdcdc" stroke="#000" stroke-width="3" stroke-dasharray="8 4"/>
+<text x="35" y="218" font-size="13" font-weight="bold" fill="#111">PARTIAL / experimental</text>
+<text x="35" y="236" font-size="12" fill="#111">mTLS cluster that fans out DELETE</text>
+<text x="35" y="252" font-size="12" fill="#111">to peers, with repair and</text>
+<text x="35" y="268" font-size="12" fill="#111">anti-entropy; static membership;</text>
+<text x="35" y="284" font-size="12" fill="#111">loopback tests only</text>
+<rect x="25" y="313" width="260" height="159" fill="#ffffff" stroke="#000" stroke-width="3" stroke-dasharray="2 4"/>
+<text x="35" y="332" font-size="13" font-weight="bold" fill="#111">NOT PRESENT / UNVERIFIED</text>
+<text x="35" y="350" font-size="12" fill="#111">GET served from the local cache</text>
+<text x="35" y="366" font-size="12" fill="#111">only; no peer reads, no pooled</text>
+<text x="35" y="382" font-size="12" fill="#111">capacity; owed invalidations held</text>
+<text x="35" y="398" font-size="12" fill="#111">in memory only (lost on issuer</text>
+<text x="35" y="414" font-size="12" fill="#111">crash); no multi-host, Linux or</text>
+<text x="35" y="430" font-size="12" fill="#111">release-profile suite; no human</text>
+<text x="35" y="446" font-size="12" fill="#111">independent review</text>
+
+<!-- Pillar 2 -->
+<rect x="310" y="45" width="280" height="42" fill="#333333" stroke="#000" stroke-width="2"/>
+<text x="450" y="63" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">2. Workload</text>
+<text x="450" y="80" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">intelligence</text>
+<rect x="310" y="87" width="280" height="395" fill="#f5f5f5" stroke="#000" stroke-width="2"/>
+<rect x="320" y="97" width="260" height="92" fill="#ffffff" stroke="#000" stroke-width="3"/>
+<text x="330" y="116" font-size="13" font-weight="bold" fill="#111">IMPLEMENTED, on serving path</text>
+<text x="330" y="134" font-size="12" fill="#111">Mode switch (default off) and an</text>
+<text x="330" y="150" font-size="12" fill="#111">origin concurrency cap, enforced</text>
+<text x="330" y="166" font-size="12" fill="#111">only in canary or active mode;</text>
+<text x="330" y="182" font-size="12" fill="#111">telemetry counters</text>
+<rect x="320" y="199" width="260" height="104" fill="#dcdcdc" stroke="#000" stroke-width="3" stroke-dasharray="8 4"/>
+<text x="330" y="218" font-size="13" font-weight="bold" fill="#111">PROTOTYPE ONLY (library)</text>
+<text x="330" y="236" font-size="12" fill="#111">Signals, shadow evaluator,</text>
+<text x="330" y="252" font-size="12" fill="#111">decision engine, candidates:</text>
+<text x="330" y="268" font-size="12" fill="#111">unit-tested, no production</text>
+<text x="330" y="284" font-size="12" fill="#111">caller; pie field is None</text>
+<rect x="320" y="313" width="260" height="159" fill="#ffffff" stroke="#000" stroke-width="3" stroke-dasharray="2 4"/>
+<text x="330" y="332" font-size="13" font-weight="bold" fill="#111">BENEFIT NOT ESTABLISHED</text>
+<text x="330" y="350" font-size="12" fill="#111">Sealed simulated evaluation (M6):</text>
+<text x="330" y="366" font-size="12" fill="#111">hypothesis H1 NOT_SUPPORTED.</text>
+<text x="330" y="382" font-size="12" fill="#111">Scenario B (real loopback):</text>
+<text x="330" y="398" font-size="12" fill="#111">a static cap, no adaptive merit</text>
+<text x="330" y="414" font-size="12" fill="#111">shown. Hot-key detection,</text>
+<text x="330" y="430" font-size="12" fill="#111">forecasting, pre-warming: not on</text>
+<text x="330" y="446" font-size="12" fill="#111">the serving path</text>
+
+<!-- Pillar 3 -->
+<rect x="605" y="45" width="280" height="42" fill="#333333" stroke="#000" stroke-width="2"/>
+<text x="745" y="63" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">3. Product excellence</text>
+<text x="745" y="80" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">and demonstrability</text>
+<rect x="605" y="87" width="280" height="395" fill="#f5f5f5" stroke="#000" stroke-width="2"/>
+<rect x="615" y="97" width="260" height="92" fill="#ffffff" stroke="#000" stroke-width="3"/>
+<text x="625" y="116" font-size="13" font-weight="bold" fill="#111">IMPLEMENTED, TESTED</text>
+<text x="625" y="134" font-size="12" fill="#111">Config reference with wiring</text>
+<text x="625" y="150" font-size="12" fill="#111">status, JWT roles and tenant</text>
+<text x="625" y="166" font-size="12" fill="#111">keys, health routes, Lab API,</text>
+<text x="625" y="182" font-size="12" fill="#111">Scenario B runner, React UI</text>
+<rect x="615" y="199" width="260" height="104" fill="#dcdcdc" stroke="#000" stroke-width="3" stroke-dasharray="8 4"/>
+<text x="625" y="218" font-size="13" font-weight="bold" fill="#111">PARTIAL</text>
+<text x="625" y="236" font-size="12" fill="#111">Cluster and intelligence screens</text>
+<text x="625" y="252" font-size="12" fill="#111">are placeholders; legacy</text>
+<text x="625" y="268" font-size="12" fill="#111">simulation screen shows synthetic</text>
+<text x="625" y="284" font-size="12" fill="#111">data (labelling not checked here)</text>
+<rect x="615" y="313" width="260" height="159" fill="#ffffff" stroke="#000" stroke-width="3" stroke-dasharray="2 4"/>
+<text x="625" y="332" font-size="13" font-weight="bold" fill="#111">NOT YET ESTABLISHED</text>
+<text x="625" y="350" font-size="12" fill="#111">No human design, usability or</text>
+<text x="625" y="366" font-size="12" fill="#111">security review (AI second looks</text>
+<text x="625" y="382" font-size="12" fill="#111">only); visual quality not</text>
+<text x="625" y="398" font-size="12" fill="#111">approved by the owner; no</text>
+<text x="625" y="414" font-size="12" fill="#111">release-grade performance</text>
+<text x="625" y="430" font-size="12" fill="#111">numbers; no container image,</text>
+<text x="625" y="446" font-size="12" fill="#111">SBOM or advisory scan</text>
+
+<text x="450" y="506" font-size="12" text-anchor="middle" fill="#111">Status as read from the working tree and STATUS.md on 2026-10-30. Solid border = exists; dashed = partial; dotted = absent or unproven.</text>
+</svg>

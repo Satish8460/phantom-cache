@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 910" width="900" height="910" role="img" aria-labelledby="t1 d1" font-family="Arial, Helvetica, sans-serif">
+  <title id="t1">PhantomCache trust boundaries and attack surface map</title>
+  <desc id="d1">Five trust zones: untrusted clients, the gateway process with its ingress routes, the operator-configured origin, cluster peers behind mutual TLS, and local operator tooling. Numbered boundaries B1 to B5 mark where checks happen. Markers show which checks are implemented and which findings remain open.</desc>
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#222"/></marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="910" fill="#ffffff"/>
+<text x="450" y="24" font-size="17" font-weight="bold" text-anchor="middle" fill="#111">Figure 6.1 Trust boundaries and attack surface (current code)</text>
+
+<!-- Z1 -->
+<rect x="14" y="44" width="210" height="308" fill="#eeeeee" stroke="#222" stroke-width="2"/>
+<text x="119" y="66" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Z1 CLIENTS (untrusted)</text>
+<rect x="26" y="78" width="186" height="50" fill="#fff" stroke="#222"/><text x="119" y="99" font-size="14" text-anchor="middle" fill="#111">Anonymous caller</text><text x="119" y="118" font-size="14" text-anchor="middle" fill="#111">any network host</text>
+<rect x="26" y="138" width="186" height="50" fill="#fff" stroke="#222"/><text x="119" y="159" font-size="14" text-anchor="middle" fill="#111">Token holder</text><text x="119" y="178" font-size="14" text-anchor="middle" fill="#111">roles + tenant_id claim</text>
+<rect x="26" y="198" width="186" height="66" fill="#fff" stroke="#222"/><text x="119" y="219" font-size="14" text-anchor="middle" fill="#111">Browser UI</text><text x="119" y="238" font-size="14" text-anchor="middle" fill="#111">token kept in memory;</text><text x="119" y="257" font-size="14" text-anchor="middle" fill="#111">no EventSource auth</text>
+<rect x="26" y="274" width="186" height="66" fill="#fff" stroke="#222" stroke-dasharray="5,3"/><text x="119" y="295" font-size="14" text-anchor="middle" fill="#111">Malicious tenant</text><text x="119" y="314" font-size="14" text-anchor="middle" fill="#111">valid token, hostile</text><text x="119" y="333" font-size="14" text-anchor="middle" fill="#111">keys, bypass, floods</text>
+
+<!-- Z2 -->
+<rect x="270" y="44" width="616" height="440" fill="#f7f7f7" stroke="#222" stroke-width="2"/>
+<text x="578" y="66" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Z2 GATEWAY PROCESS</text>
+<rect x="282" y="76" width="592" height="166" fill="#fff" stroke="#222"/>
+<text x="578" y="96" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Ingress listener (HTTP, optional TLS)</text>
+<text x="294" y="118" font-size="14" fill="#111">GET/DELETE /api/v1/cache/*key (JWT cache:read / cache:invalidate)</text>
+<text x="294" y="137" font-size="14" fill="#111">POST /api/control (scenario:operate; mutates router nodes)</text>
+<text x="294" y="156" font-size="14" fill="#111">GET /api/events SSE (telemetry:read; no stream cap)</text>
+<text x="294" y="175" font-size="14" fill="#111">GET /api/v1/metrics, diagnostics, intelligence (telemetry:read)</text>
+<text x="294" y="194" font-size="14" fill="#111">/health, /health/live, /health/ready (public, status only)</text>
+<text x="294" y="213" font-size="14" fill="#111">/api/v1/lab/* only if PHANTOM_LAB_ENABLED (own guards)</text>
+<text x="294" y="232" font-size="14" fill="#111">No JWT secret: all of the above anonymous (loopback)</text>
+<rect x="282" y="254" width="374" height="84" fill="#fff" stroke="#222"/>
+<text x="469" y="274" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Cache core</text><text x="469" y="294" font-size="14" text-anchor="middle" fill="#111">tenant:path:?query keys</text>
+<text x="469" y="313" font-size="14" text-anchor="middle" fill="#111">epochs, fencing, byte</text>
+<text x="469" y="332" font-size="14" text-anchor="middle" fill="#111">budget (256 MiB default)</text>
+<rect x="282" y="348" width="374" height="123" fill="#fff" stroke="#222"/>
+<text x="469" y="368" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Cluster listener + router</text><text x="469" y="385" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">(only with mTLS cluster config)</text>
+<text x="294" y="406" font-size="14" fill="#111">TLS 1.3, client cert, one DNS SAN, fingerprint pin</text>
+<text x="294" y="425" font-size="14" fill="#111">Invalidate: ExactKey/Tenant/FullCache, any member</text>
+<text x="294" y="444" font-size="14" fill="#111">GetRequest stub writes val_node_N (DR-029)</text>
+<text x="294" y="463" font-size="14" fill="#111">Membership read once; repair ledger in memory</text>
+<rect x="666" y="254" width="208" height="217" fill="#fff" stroke="#222"/>
+<text x="770" y="340" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Origin client</text><text x="770" y="364" font-size="14" text-anchor="middle" fill="#111">UpstreamPolicy, IP filter,</text>
+<text x="770" y="383" font-size="14" text-anchor="middle" fill="#111">pinned address, 5 s timeouts,</text>
+<text x="770" y="402" font-size="14" text-anchor="middle" fill="#111">2 MiB body cap</text>
+
+<!-- Z4 peers -->
+<rect x="270" y="510" width="386" height="194" fill="#eeeeee" stroke="#222" stroke-width="2"/>
+<text x="463" y="532" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Z4 CLUSTER PEERS</text><text x="463" y="550" font-size="14" text-anchor="middle" fill="#111">(trusted by certificate)</text>
+<rect x="282" y="562" width="362" height="130" fill="#fff" stroke="#222"/>
+<text x="463" y="584" font-size="14" text-anchor="middle" fill="#111">Other gateways with a CA-signed certificate.</text>
+<text x="463" y="603" font-size="14" text-anchor="middle" fill="#111">Trust is all-or-nothing: an admitted member</text>
+<text x="463" y="622" font-size="14" text-anchor="middle" fill="#111">can flush any tenant (DR-027)</text>
+<text x="463" y="641" font-size="14" text-anchor="middle" fill="#111">threat model undecided</text>
+
+<!-- Z3 origin -->
+<rect x="666" y="510" width="220" height="194" fill="#eeeeee" stroke="#222" stroke-width="2"/>
+<text x="776" y="532" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Z3 ORIGIN</text><text x="776" y="550" font-size="14" text-anchor="middle" fill="#111">(operator-configured)</text>
+<rect x="678" y="562" width="196" height="130" fill="#fff" stroke="#222"/>
+<text x="776" y="584" font-size="14" text-anchor="middle" fill="#111">One ORIGIN_URL. Clients</text>
+<text x="776" y="603" font-size="14" text-anchor="middle" fill="#111">choose only path and</text>
+<text x="776" y="622" font-size="14" text-anchor="middle" fill="#111">query, not the host.</text>
+<text x="776" y="641" font-size="14" text-anchor="middle" fill="#111">Response is untrusted</text>
+<text x="776" y="660" font-size="14" text-anchor="middle" fill="#111">input: parsed strictly,</text>
+<text x="776" y="679" font-size="14" text-anchor="middle" fill="#111">no redirects followed</text>
+
+<!-- Z5 -->
+<rect x="14" y="372" width="210" height="160" fill="#eeeeee" stroke="#222" stroke-width="2"/>
+<text x="119" y="394" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Z5 LOCAL HOST / OPERATOR</text>
+<rect x="26" y="406" width="186" height="112" fill="#fff" stroke="#222"/>
+<text x="119" y="428" font-size="14" text-anchor="middle" fill="#111">env vars (JWT secret</text>
+<text x="119" y="447" font-size="14" text-anchor="middle" fill="#111">visible to same OS user),</text>
+<text x="119" y="466" font-size="14" text-anchor="middle" fill="#111">key files, members JSON,</text>
+<text x="119" y="485" font-size="14" text-anchor="middle" fill="#111">lab-results/, token issuer</text>
+<text x="119" y="504" font-size="14" text-anchor="middle" fill="#111">is NOT in this repository</text>
+
+<!-- boundaries -->
+<line x1="224" y1="150" x2="268" y2="150" stroke="#222" stroke-width="2.5" marker-end="url(#ar)"/>
+<circle cx="246" cy="126" r="14" fill="#111"/><text x="246" y="131" font-size="13" font-weight="bold" text-anchor="middle" fill="#fff">B1</text>
+<line x1="770" y1="471" x2="770" y2="508" stroke="#222" stroke-width="2.5" marker-end="url(#ar)"/>
+<circle cx="806" cy="497" r="14" fill="#111"/><text x="806" y="502" font-size="13" font-weight="bold" text-anchor="middle" fill="#fff">B2</text>
+<line x1="440" y1="471" x2="440" y2="508" stroke="#222" stroke-width="2.5" marker-end="url(#ar)"/>
+<line x1="470" y1="510" x2="470" y2="473" stroke="#222" stroke-width="2.5" marker-end="url(#ar)"/>
+<circle cx="520" cy="492" r="14" fill="#111"/><text x="520" y="497" font-size="13" font-weight="bold" text-anchor="middle" fill="#fff">B3</text>
+<line x1="224" y1="470" x2="280" y2="430" stroke="#222" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ar)"/>
+<circle cx="246" cy="500" r="14" fill="#111"/><text x="246" y="505" font-size="13" font-weight="bold" text-anchor="middle" fill="#fff">B4</text>
+
+<!-- legend -->
+<rect x="14" y="722" width="872" height="176" fill="#fff" stroke="#222"/>
+<text x="24" y="742" font-size="14" font-weight="bold" fill="#111">Boundaries and what is checked there</text>
+<text x="24" y="764" font-size="13" fill="#111">B1 client to ingress: JWT HS256 (iss, aud, exp, role, tenant); body cap 512 KiB.</text>
+<text x="24" y="781.5" font-size="13" fill="#111">&#160;&#160;&#160;&#160;Open: auth runs AFTER the body is read; no timeouts or connection caps (G4B-01).</text>
+<text x="24" y="799" font-size="13" fill="#111">B2 gateway to origin: scheme, port and allowlist policy; every resolved IP filtered; connection pinned.</text>
+<text x="24" y="816.5" font-size="13" fill="#111">&#160;&#160;&#160;&#160;Open: some reserved ranges missing (G4B-15); no origin rate limit by default (G4B-11).</text>
+<text x="24" y="834" font-size="13" fill="#111">B3 gateway to peers: mTLS 1.3, one DNS SAN, registry, fingerprint, originator equals TLS identity.</text>
+<text x="24" y="851.5" font-size="13" fill="#111">&#160;&#160;&#160;&#160;Open: scope authorisation (G4B-05), epoch check (G4B-06), static membership (G4B-07), no ageing (G4B-08).</text>
+<text x="24" y="869" font-size="13" fill="#111">B4 local operator inputs: startup fail-closed rules; secrets redacted in reports. Not covered: host hardening, token issuance.</text>
+<text x="24" y="886.5" font-size="13" fill="#111">Dashed box = adversary who holds a valid token. Sources: server.rs create_app_with_lab, security/*, dist/node.rs, main.rs.</text>
+</svg>

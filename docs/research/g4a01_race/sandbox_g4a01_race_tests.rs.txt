@@ -1,0 +1,105 @@
+// SANDBOX ONLY. Uses sbx_hook (not present in main tree).
+use phantom_cache_demo::core::cache::{CacheKey, CachedResource, FetchRegistrationResult, PartitionedCache};
+use phantom_cache_demo::core::coalesce::FinalizeOutcome;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
+fn res(tag: &[u8]) -> CachedResource {
+    CachedResource { status: 200, content_type: "t".into(), body: Arc::new(tag.to_vec()),
+        etag: None, created_at_ms: 1000, ttl_ms: 3_600_000 }
+}
+fn begin(c: &Arc<PartitionedCache>, k: &CacheKey) -> phantom_cache_demo::core::coalesce::FetchRegistration {
+    match c.begin_fetch_atomic(k, 1000) { FetchRegistrationResult::Initiate(r) => r, _ => panic!("initiate") }
+}
+
+// CONTROL: invalidation lands after begin_fetch but BEFORE finalize check -> must be fenced.
+#[test]
+fn control_invalidate_before_check_is_fenced() {
+    let c = Arc::new(PartitionedCache::new(1));
+    let k = CacheKey::new(Some("t1"), "/a", None);
+    let reg = begin(&c, &k);
+    c.invalidate_tenant("t1");
+    reg.into_guard().complete(FinalizeOutcome::Success(Arc::new(res(b"PRE"))));
+    assert!(c.get_resource(&k, 1001).is_none());
+}
+
+// G4A-01 deterministic: invalidation lands between the fence check and the epoch re-read.
+#[test]
+fn g4a01_tenant_invalidate_between_check_and_restamp() {
+    let c = Arc::new(PartitionedCache::new(1));
+    let k = CacheKey::new(Some("t1"), "/a", None);
+    let reg = begin(&c, &k);
+    let c2 = c.clone();
+    let fired = Arc::new(AtomicBool::new(false));
+    let f2 = fired.clone();
+    *c.sbx_hook.lock().unwrap() = Some(Arc::new(move || {
+        if !f2.swap(true, Ordering::SeqCst) {
+            // shard mutex is HELD by finalize_fetch here; do the invalidation from another thread
+            let c3 = c2.clone();
+            std::thread::spawn(move || { c3.invalidate_tenant("t1"); }).join().unwrap();
+        }
+    }));
+    reg.into_guard().complete(FinalizeOutcome::Success(Arc::new(res(b"PRE"))));
+    assert!(fired.load(Ordering::SeqCst));
+    // invalidate_tenant has returned (acknowledged) before finalize completed.
+    let got = c.get_resource(&k, 1001);
+    assert!(got.is_none(), "STALE BODY SERVED AFTER ACKNOWLEDGED INVALIDATION: {:?}", got.map(|r| r.body));
+}
+
+#[test]
+fn g4a01_global_invalidate_between_check_and_restamp() {
+    let c = Arc::new(PartitionedCache::new(1));
+    let k = CacheKey::new(Some("t1"), "/a", None);
+    let reg = begin(&c, &k);
+    let c2 = c.clone();
+    let fired = Arc::new(AtomicBool::new(false));
+    let f2 = fired.clone();
+    *c.sbx_hook.lock().unwrap() = Some(Arc::new(move || {
+        if !f2.swap(true, Ordering::SeqCst) { c2.invalidate_all(); }
+    }));
+    reg.into_guard().complete(FinalizeOutcome::Success(Arc::new(res(b"PRE"))));
+    let got = c.get_resource(&k, 1001);
+    assert!(got.is_none(), "STALE BODY (global) SERVED: {:?}", got.map(|r| r.body));
+}
+
+// Stress without any hook: real threads, tagged bodies. A body "fetched" before an
+// acknowledged invalidation (tag < tag recorded when invalidate returned) must never be served after.
+#[test]
+fn g4a01_stress_no_hook() {
+    use std::sync::atomic::AtomicU64;
+    let c = Arc::new(PartitionedCache::new(1));
+    let k = CacheKey::new(Some("t1"), "/a", None);
+    let seq = Arc::new(AtomicU64::new(0));      // body tag source
+    let acked = Arc::new(AtomicU64::new(0));    // highest tag issued before an acked invalidation
+    let violations = Arc::new(AtomicU64::new(0));
+    let stop = Arc::new(AtomicBool::new(false));
+    let mut hs = vec![];
+    { // filler: tag taken (fetch "from origin") BEFORE begin->finalize window closes
+        let (c,k,seq,stop) = (c.clone(),k.clone(),seq.clone(),stop.clone());
+        hs.push(std::thread::spawn(move || { while !stop.load(Ordering::Relaxed) {
+            if let FetchRegistrationResult::Initiate(r) = c.begin_fetch_atomic(&k, 1000) {
+                let tag = seq.fetch_add(1, Ordering::SeqCst) + 1;
+                r.into_guard().complete(FinalizeOutcome::Success(Arc::new(res(&tag.to_le_bytes()))));
+            }
+        }}));
+    }
+    { let (c,seq,acked,stop) = (c.clone(),seq.clone(),acked.clone(),stop.clone());
+      hs.push(std::thread::spawn(move || { while !stop.load(Ordering::Relaxed) {
+        let t = seq.load(Ordering::SeqCst);
+        c.invalidate_tenant("t1");
+        acked.fetch_max(t, Ordering::SeqCst);
+      }})); }
+    { let (c,k,acked,v,stop) = (c.clone(),k.clone(),acked.clone(),violations.clone(),stop.clone());
+      hs.push(std::thread::spawn(move || { while !stop.load(Ordering::Relaxed) {
+        let a = acked.load(Ordering::SeqCst);   // invalidation acked for all tags <= a
+        if let Some(r) = c.get_resource(&k, 1001) {
+            let mut b=[0u8;8]; b.copy_from_slice(&r.body); let tag=u64::from_le_bytes(b);
+            if tag <= a { v.fetch_add(1, Ordering::SeqCst); }
+        }
+      }})); }
+    std::thread::sleep(std::time::Duration::from_secs(20));
+    stop.store(true, Ordering::Relaxed);
+    for h in hs { h.join().unwrap(); }
+    println!("stress: fetches={} violations={}", seq.load(Ordering::SeqCst), violations.load(Ordering::SeqCst));
+    assert_eq!(violations.load(Ordering::SeqCst), 0);
+}

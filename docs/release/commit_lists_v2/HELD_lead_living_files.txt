@@ -1,0 +1,6 @@
+# commit_lists_v2/HELD_lead_living_files.txt
+# HELD: lead memory-aid files (living, contain scratchpad paths)
+# Generated 2026-10-30 16:41 IST from git status --short -uall (4644 entries). One repo-relative path per line; lines starting with # are comments.
+# Use: GIT_LITERAL_PATHSPECS=1 git add --pathspec-from-file=<this file> after stripping comment lines (see g5_batch_plan_v2.md section 6).
+docs/release/lead_timeline.md
+docs/release/lead_working_state.md

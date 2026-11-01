@@ -1,0 +1,19 @@
+# M6 sealed evaluation (protocol v2.2) — results and MVP decision
+
+**Tier: SIMULATED (T1 deterministic virtual-time simulation driving the real cache/executor code). Not a measurement of any network, host or process.** Retained artifacts: `lab-results/m6_sealed_2026-10-29T234845Z/` (cells.csv 12,000 rows, manifest.json, verdict.json, analysis_*.csv) and `lab-results/m6_sealed_run_started.marker` (run-once marker, started 2026-10-29T23:48:45Z, freeze record sha256 65cf88db...ee57). Run: `cargo test --release --test m6_research_evaluation_tests -j 1 -- --ignored m6_full_sealed_evaluation` (exit 0, 97 s of test time, log `D:\Temp\m6_sealed_run.log`); the in-test post-run completeness checks and the leak scans (before and after) passed. Sealed seeds are not written anywhere (manifest `seed_values` is null).
+
+## Mechanical verdict (rule fixed in the v2.2 amendment before the run)
+**H1 (origin-aware adaptive controller beats the best static configuration found on T): NOT SUPPORTED.**
+- Peak origin concurrency endpoint: supported in 0 of 8 scenarios. The adaptive arm is credibly WORSE than the static baseline in 7 scenarios (mean relative change -1.57 to -3.00; PIE adapts up to 8 concurrent fetches, the static baseline holds 2; O-HET equal at 2).
+- Client P99 endpoint: supported in 2 of 8 scenarios (O-HET +29.2% [27.95, 30.54], O-GRD +5.6% [4.9, 6.4]); O-RT +4.2% [2.8, 5.4] is below the 5% threshold; the other five scenarios are exactly 0 (identical P99).
+- Constraints: fresh-hit loss <= 1 pp fails in O-BRN (-3.3 pp), O-FL (-4.7 pp), O-HET (-9.4 pp); error-rate increase <= 0.5 pp fails in the same three (+1.5, +3.1, +3.8 pp). Origin-cap and stale-cap violations: 0 in every arm.
+- Falsifiers: F-a fires (7/8 scenarios below 0.10 vs BL-12b; 4/8 vs BL-6; threshold 6); F-c, F-d, F-e do not fire; F-b/F-f are not mechanical.
+- H2 and H4: NOT TESTABLE at the registered horizon (the stale window never binds; PIE-no-stale is cell-identical to PIE-Retained in 1200/1200 cells). H3, H5, H6: UNVERIFIED (not measurable in T1).
+
+## What this does and does not establish
+- It establishes, in this simulation, on 30 sealed seeds and the registered scenarios/families, that a forced-adaptive AIMD concurrency controller (range max >= 4*min, tuned on tuning seeds T) does not beat the best static concurrency cap found on T, and that it breaks the hit-ratio/error constraints in three scenarios. A static cap versus NO cap is a large effect (dev data: peak -83..-98%, P99 -77..-94% vs BL-1) and is NOT part of H1.
+- The unconstrained tuning optimum for the adaptive controller was itself a static cap (min = max = 2): on T, no adaptive configuration beat the best static one. The adaptivity constraint was added after seeing T and D results and before any sealed data (amendment 7b).
+- Limits: Tier-1 only; the stale-window mechanism was not exercised; the P99 endpoint is quantized/saturated (several scenarios report identical P99 for both arms), so it is a weak discriminator; one workload set and cache size; no overhead measurement; no real-process or multi-host evidence. The result does not show that adaptive caching in general is useless; it shows no evidence of benefit for this controller under this protocol.
+
+## MVP decision (research lead)
+**MVP-B (provisional until the M7/M8 release gates pass): the best defensible product is the static gateway: single-flight coalescing, correct freshness and stale serving, generation-fenced invalidation, and a configurable static origin-concurrency cap. The adaptive controller is NOT promoted to the serving path.** The AIMD cap controller implemented in R-01 remains available behind its explicit configuration but its benefit over a static cap is unsupported. The negative result is reported as a research outcome alongside the measurement study (correctness defects found and fixed, measured propagation latency, simulation framework).

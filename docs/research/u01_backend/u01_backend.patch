@@ -1,0 +1,274 @@
+--- a/src/lab_live/scenario_b.rs
++++ b/src/lab_live/scenario_b.rs
+@@ -579,7 +579,33 @@
+     pub cancelled: bool,
+ }
+ 
++/// Why a summary is incomplete, or `None` when every planned repetition of every arm finished.
++/// `"cancelled"`: the cancel flag was raised. `"runs_missing"`: not cancelled, yet some arm has fewer runs than
++/// `cfg.reps` (defensive: a mechanism/verdict computed from absent runs would be meaningless).
++pub fn incomplete_reason(cfg: &ScenarioBConfig, runs: &[RunMetrics], cancelled: bool) -> Option<&'static str> {
++    if cancelled {
++        return Some("cancelled");
++    }
++    let short = cfg.arms.iter().any(|a| runs.iter().filter(|r| r.arm == a.name()).count() < cfg.reps);
++    if short { Some("runs_missing") } else { None }
++}
++
++pub const VERDICTS_NOT_COMPUTED_REASON: &str = "the run did not finish all planned repetitions of every arm; no mechanism verdict or arm verdict is computed from a partial design";
++
++/// Label for a summary: a planned `VALID` (config-only) never survives on an incomplete run (G4C F02).
++pub fn effective_label(planned: &str, reasons: &[String], incomplete: Option<&str>) -> (String, Vec<String>) {
++    match incomplete {
++        None => (planned.to_string(), reasons.to_vec()),
++        Some(why) => {
++            let mut r = reasons.to_vec();
++            r.push(format!("run incomplete ({why}): the planned label {planned} does not apply to a partial run"));
++            ("EXPLORATORY".to_string(), r)
++        }
++    }
++}
++
+ pub fn summarize(cfg: &ScenarioBConfig, runs: &[RunMetrics], pooled: &BTreeMap<String, Vec<f64>>, meta: &SummaryMeta) -> Value {
++    let incomplete = incomplete_reason(cfg, runs, meta.cancelled);
+     let mut arms_json = serde_json::Map::new();
+     for arm in &cfg.arms {
+         let name = arm.name();
+@@ -656,11 +682,13 @@
+         let violating: Vec<usize> = rs.iter().filter(|r| r.mechanism_violated).map(|r| r.rep).collect();
+         let max_obs = rs.iter().map(|r| r.origin_peak_whole_run).max();
+         let mech_pass = !rs.is_empty() && violating.is_empty();
++        // U-01: on an incomplete summary the observations stay, the pass/fail judgement is withheld (null).
++        let mech_pass_json = if incomplete.is_some() { Value::Null } else { json!(mech_pass) };
+         mech.insert(
+             name.to_string(),
+             json!({
+                 "cap_limit_in_force": cfg.cap_limit(*arm), "max_origin_concurrent_observed_whole_run": max_obs,
+-                "runs": rs.len(), "violating_reps": violating, "pass": mech_pass,
++                "runs": rs.len(), "violating_reps": violating, "pass": mech_pass_json,
+                 "note": "checked over the whole run including warm-up; AIMD limit = configured max (cap can only be lower)",
+             }),
+         );
+@@ -696,19 +724,35 @@
+             origin_p99_diff_mean: table.get("origin_p99_service_ms").map(|p| p.mean_diff),
+             success_diff_pp_mean: table.get("client_success_rate_pp").map(|p| p.mean_diff),
+         };
+-        let v = analysis::evaluate_arm(&ev);
+-        verdicts.insert(
+-            name.to_string(),
+-            json!({ "outcome": v.outcome.as_str(), "reasons": v.reasons, "evidence": ev }),
+-        );
++        if incomplete.is_none() {
++            let v = analysis::evaluate_arm(&ev);
++            verdicts.insert(
++                name.to_string(),
++                json!({ "outcome": v.outcome.as_str(), "reasons": v.reasons, "evidence": ev }),
++            );
++        }
+     }
+ 
+-    let h_b1 = mech.values().all(|m| m["pass"] == json!(true));
++    let (verdicts_json, h_b1_json, verdicts_status, verdicts_reason) = if incomplete.is_none() {
++        (Value::Object(verdicts), json!(mech.values().all(|m| m["pass"] == json!(true))), "computed", Value::Null)
++    } else {
++        (Value::Null, Value::Null, "not_computed", json!(VERDICTS_NOT_COMPUTED_REASON))
++    };
++    let (label, label_reasons) = effective_label(&meta.label, &meta.label_reasons, incomplete);
+     json!({
+         "summary_version": 1,
+         "tier": TIER,
+-        "label": meta.label,
+-        "label_reasons": meta.label_reasons,
++        "label": label,
++        "label_planned": meta.label,
++        "label_reasons": label_reasons,
++        "run_completeness": {
++            "complete": incomplete.is_none(),
++            "incomplete_reason": incomplete,
++            "planned_runs": cfg.reps * cfg.arms.len(),
++            "completed_runs": runs.len(),
++        },
++        "verdicts_status": verdicts_status,
++        "verdicts_reason": verdicts_reason,
+         "label_meaning": LABEL_VALID_MEANING,
+         "interpretation_notes": interpretation_notes(),
+         "status": if meta.cancelled { "CANCELLED" } else { "COMPLETE" },
+@@ -724,9 +768,9 @@
+         "config": cfg,
+         "arms": Value::Object(arms_json),
+         "mechanism_h_b1": Value::Object(mech),
+-        "mechanism_h_b1_all_pass": h_b1,
++        "mechanism_h_b1_all_pass": h_b1_json,
+         "paired_vs_base": Value::Object(paired_out),
+-        "verdicts": Value::Object(verdicts),
++        "verdicts": verdicts_json,
+         "limitations": limitations(),
+     })
+ }
+@@ -1258,8 +1302,10 @@
+             }
+         }
+     }
+-    let (label, label_reasons) = label_for(cfg);
+-    let meta = SummaryMeta { label: label.clone(), label_reasons, cancelled };
++    let (planned_label, planned_reasons) = label_for(cfg);
++    // ExperimentOutcome.label (used by the Lab API result event) must agree with summary.json (G4C F02).
++    let (label, _) = effective_label(&planned_label, &planned_reasons, incomplete_reason(cfg, &runs, cancelled));
++    let meta = SummaryMeta { label: planned_label, label_reasons: planned_reasons, cancelled };
+     let summary = summarize(cfg, &runs, &pooled, &meta);
+     io(
+         std::fs::write(cfg.out_dir.join("summary.json"), serde_json::to_string_pretty(&summary).unwrap()),
+--- a/tests/integration/lab_live_scenario_b_tests.rs
++++ b/tests/integration/lab_live_scenario_b_tests.rs
+@@ -445,6 +445,151 @@
+     assert!(o.summary["verdicts"]["STATIC-CAP"]["outcome"].is_string());
+ }
+ 
++// ------------------------------------------------------------------ U-01: incomplete runs get no verdicts
++
++mod u01_incomplete {
++    use super::*;
++    use phantom_cache_demo::lab_live::scenario_b::{summarize, RunMetrics, ScenarioBConfig, SummaryMeta};
++    use std::collections::BTreeMap;
++
++    fn cfg_with(reps: usize, arms: Vec<Arm>) -> ScenarioBConfig {
++        let mut c = ScenarioBConfig::default_experiment(PathBuf::from("C:/x/target/release/phantom-cache-demo.exe"), PathBuf::from("out"));
++        c.reps = reps;
++        c.arms = arms;
++        c
++    }
++
++    /// One real RunMetrics via compute_run_metrics (same inputs shape as the existing metrics test).
++    fn run_of(arm: Arm, rep: usize, peak_whole: usize, cap: Option<usize>) -> RunMetrics {
++        let ph = Phases { warmup_ms: 1000, healthy_ms: 1000, degraded_ms: 1000, recovery_ms: 1000 };
++        let mut client = vec![crec(0, 100, 5, 200, "")];
++        for i in 0..90u32 {
++            client.push(crec(i + 1, 1000 + i as u64 * 10, 20, 200, ""));
++        }
++        let origin = vec![orec(1500, 3, 20, false), orec(2500, 5, 60, true)];
++        let snaps: Vec<serde_json::Value> = (0..6)
++            .map(|i| serde_json::json!({"t_ns": i * 500_000_000u64, "origin_cap": {"enforcing": cap.is_some(), "cap": cap, "in_flight": 2, "rejections": i, "dispatched": 10, "controller_steps": 0}, "stale_served_total": 0}))
++            .collect();
++        let inp = RunInputs {
++            arm,
++            rep,
++            phases: ph,
++            client: &client,
++            scheduled_total: client.len(),
++            origin: &origin,
++            origin_sched_start_ns: 0,
++            origin_peak_whole_run: peak_whole,
++            snaps: &snaps,
++            snapshot_errors: 0,
++            cap_limit: cap,
++            gateway_alive: true,
++            gateway_pid: 1,
++            enforce_ok: true,
++        };
++        let (m, _) = compute_run_metrics(&inp);
++        assert!(m.valid, "{:?}", m.invalid_reasons);
++        m
++    }
++
++    fn meta(cancelled: bool) -> SummaryMeta {
++        // the planned label is VALID (release binaries, documented workload); it must not survive on an incomplete summary
++        SummaryMeta { label: "VALID".into(), label_reasons: vec![], cancelled }
++    }
++
++    fn no_outcome_anywhere(v: &serde_json::Value) {
++        let text = v.to_string();
++        for banned in ["MECHANISM_FAILED", "H-B1 falsified", "\"outcome\"", "INCONCLUSIVE", "BENEFIT_SUPPORTED", "BENEFIT_NOT_SUPPORTED"] {
++            assert!(!text.contains(banned), "incomplete summary must not carry {banned}");
++        }
++    }
++
++    fn assert_incomplete(s: &serde_json::Value, reason: &str) {
++        assert!(s["verdicts"].is_null(), "verdicts must be null, got {}", s["verdicts"]);
++        assert!(s["mechanism_h_b1_all_pass"].is_null(), "all_pass must be null, got {}", s["mechanism_h_b1_all_pass"]);
++        assert_eq!(s["verdicts_status"], "not_computed");
++        assert!(s["verdicts_reason"].is_string());
++        assert_eq!(s["run_completeness"]["complete"], false);
++        assert_eq!(s["run_completeness"]["incomplete_reason"], reason);
++        assert_ne!(s["label"], "VALID", "VALID must not label an incomplete summary");
++        assert_eq!(s["label"], "EXPLORATORY");
++        assert_eq!(s["label_planned"], "VALID");
++        assert!(s["label_reasons"].as_array().unwrap().iter().any(|r| r.as_str().unwrap().contains("incomplete")));
++        for (_, m) in s["mechanism_h_b1"].as_object().unwrap() {
++            assert!(m["pass"].is_null(), "mechanism pass must be null on an incomplete run: {m}");
++        }
++        no_outcome_anywhere(&s["verdicts"]);
++        no_outcome_anywhere(&s["mechanism_h_b1"]);
++    }
++
++    #[test]
++    fn cancelled_with_zero_runs_gets_no_verdict_and_no_h_b1_falsified() {
++        let cfg = cfg_with(10, vec![Arm::Base, Arm::StaticCap, Arm::AimdCap]);
++        let s = summarize(&cfg, &[], &BTreeMap::new(), &meta(true));
++        assert_eq!(s["status"], "CANCELLED");
++        assert_incomplete(&s, "cancelled");
++        assert_eq!(s["mechanism_h_b1"]["STATIC-CAP"]["runs"], 0);
++        assert!(s["mechanism_h_b1"]["STATIC-CAP"]["max_origin_concurrent_observed_whole_run"].is_null());
++    }
++
++    #[test]
++    fn cancelled_partial_keeps_raw_diagnostics_but_withholds_verdict() {
++        let cfg = cfg_with(10, vec![Arm::Base, Arm::StaticCap]);
++        let runs = vec![run_of(Arm::Base, 0, 40, None), run_of(Arm::StaticCap, 0, 20, Some(24))];
++        let s = summarize(&cfg, &runs, &BTreeMap::new(), &meta(true));
++        assert_incomplete(&s, "cancelled");
++        assert_eq!(s["arms"]["BASE"]["runs"], 1);
++        assert_eq!(s["arms"]["STATIC-CAP"]["runs"], 1);
++        assert!(s["arms"]["STATIC-CAP"]["per_run_mean"]["client_p50_ms"].is_number());
++        assert_eq!(s["mechanism_h_b1"]["STATIC-CAP"]["max_origin_concurrent_observed_whole_run"], 20);
++        assert_eq!(s["run_completeness"]["completed_runs"], 2);
++        assert_eq!(s["run_completeness"]["planned_runs"], 20);
++    }
++
++    #[test]
++    fn observed_violation_in_a_cancelled_run_is_kept_as_observation_only() {
++        let cfg = cfg_with(10, vec![Arm::Base, Arm::StaticCap]);
++        let runs = vec![run_of(Arm::Base, 0, 40, None), run_of(Arm::StaticCap, 0, 99, Some(24))];
++        let s = summarize(&cfg, &runs, &BTreeMap::new(), &meta(true));
++        assert_incomplete(&s, "cancelled");
++        assert_eq!(s["mechanism_h_b1"]["STATIC-CAP"]["violating_reps"], serde_json::json!([0]));
++    }
++
++    #[test]
++    fn not_cancelled_but_missing_runs_is_also_incomplete() {
++        let cfg = cfg_with(2, vec![Arm::Base, Arm::StaticCap]);
++        let runs = vec![run_of(Arm::Base, 0, 40, None), run_of(Arm::Base, 1, 40, None), run_of(Arm::StaticCap, 0, 20, Some(24))];
++        let s = summarize(&cfg, &runs, &BTreeMap::new(), &meta(false));
++        assert_eq!(s["status"], "COMPLETE");
++        assert_incomplete(&s, "runs_missing");
++    }
++
++    #[test]
++    fn completed_run_keeps_verdict_semantics() {
++        let cfg = cfg_with(1, vec![Arm::Base, Arm::StaticCap]);
++        let runs = vec![run_of(Arm::Base, 0, 40, None), run_of(Arm::StaticCap, 0, 20, Some(24))];
++        let s = summarize(&cfg, &runs, &BTreeMap::new(), &meta(false));
++        assert_eq!(s["status"], "COMPLETE");
++        assert_eq!(s["label"], "VALID", "completed-run label is unchanged");
++        assert_eq!(s["verdicts_status"], "computed");
++        assert_eq!(s["run_completeness"]["complete"], true);
++        assert!(s["run_completeness"]["incomplete_reason"].is_null());
++        assert_eq!(s["mechanism_h_b1"]["STATIC-CAP"]["pass"], true);
++        assert_eq!(s["mechanism_h_b1_all_pass"], true);
++        // 1 valid pair < 10 required: the pre-existing rule outcome, unchanged
++        assert_eq!(s["verdicts"]["STATIC-CAP"]["outcome"], "INCONCLUSIVE");
++    }
++
++    #[test]
++    fn completed_run_with_real_violation_is_still_mechanism_failed() {
++        let cfg = cfg_with(1, vec![Arm::Base, Arm::StaticCap]);
++        let runs = vec![run_of(Arm::Base, 0, 40, None), run_of(Arm::StaticCap, 0, 99, Some(24))];
++        let s = summarize(&cfg, &runs, &BTreeMap::new(), &meta(false));
++        assert_eq!(s["mechanism_h_b1"]["STATIC-CAP"]["pass"], false);
++        assert_eq!(s["mechanism_h_b1_all_pass"], false);
++        assert_eq!(s["verdicts"]["STATIC-CAP"]["outcome"], "MECHANISM_FAILED");
++    }
++}
++
+ // G2: Lab HTTP API tests (real router, real JWTs, real runners) live in a submodule of this registered target.
+ #[path = "lab_api/mod.rs"]
+ mod lab_api_tests;

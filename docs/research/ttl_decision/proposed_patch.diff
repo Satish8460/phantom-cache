@@ -1,0 +1,314 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index deaab7b..c280d39 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -259,6 +259,10 @@ path = "tests/integration/m6_research_evaluation_tests.rs"
+ name = "m7_config_tests"
+ path = "tests/integration/m7_config_tests.rs"
+ 
++[[test]]
++name = "default_ttl_wiring_tests"
++path = "tests/integration/default_ttl_wiring_tests.rs"
++
+ [[test]]
+ name = "m7_security_review_tests"
+ path = "tests/integration/m7_security_review_tests.rs"
+diff --git a/src/api/server.rs b/src/api/server.rs
+index 946942e..fd1f530 100644
+--- a/src/api/server.rs
++++ b/src/api/server.rs
+@@ -74,6 +74,28 @@ pub struct ApiState {
+     pub router: Option<Arc<crate::dist::router::RendezvousRouter>>,
+ }
+ 
++/// Fallback freshness lifetime (ms) for cacheable 200 responses that carry no origin freshness
++/// information. Matches the historical literal and `PHANTOM_DEFAULT_TTL_MS`'s schema default.
++pub const DEFAULT_TTL_MS_FALLBACK: u64 = 60_000;
++
++/// Process-wide default TTL, set once at startup by `main` from `PHANTOM_DEFAULT_TTL_MS`
++/// (same pattern as the intelligence executor global; avoids changing the `ApiState` literal
++/// that dozens of tests construct). Read per origin fill with a relaxed load.
++static DEFAULT_TTL_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(DEFAULT_TTL_MS_FALLBACK);
++
++/// Set the default freshness lifetime used when the origin sends none (0 is ignored: the config
++/// layer rejects it, and a zero default would silently disable caching of header-less responses).
++pub fn set_default_ttl_ms(ms: u64) {
++    if ms > 0 {
++        DEFAULT_TTL_MS.store(ms, std::sync::atomic::Ordering::Relaxed);
++    }
++}
++
++/// Current default freshness lifetime in milliseconds.
++pub fn default_ttl_ms() -> u64 {
++    DEFAULT_TTL_MS.load(std::sync::atomic::Ordering::Relaxed)
++}
++
+ static GLOBAL_INTEL_EXECUTOR: std::sync::OnceLock<Arc<crate::intelligence::executor::DefaultPolicyExecutor>> = std::sync::OnceLock::new();
+ static GLOBAL_INTEL_AUDIT: std::sync::OnceLock<Arc<Mutex<crate::intelligence::audit::AuditStore>>> = std::sync::OnceLock::new();
+ 
+@@ -1398,7 +1420,7 @@ async fn get_cache_handler(
+                                     now_reval,
+                                     has_explicit_framing,
+                                     body.len(),
+-                                    60_000,
++                                    default_ttl_ms(),
+                                     has_auth,
+                                 );
+                                 let content_type = headers_out
+@@ -1681,7 +1703,7 @@ async fn get_cache_handler(
+                             now_fetch,
+                             has_explicit_framing,
+                             body.len(),
+-                            60_000,
++                            default_ttl_ms(),
+                             has_auth,
+                         );
+ 
+diff --git a/src/config.rs b/src/config.rs
+index a815c7d..d420cd8 100644
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -114,8 +114,8 @@ pub const KEYS: &[KeySpec] = &[
+     key!("PHANTOM_MAX_CACHE_BYTES", Kind::Uint { min: 1, max: u64::MAX }, Some("268435456"), "bytes", false, Wiring::Main,
+         "medium: bounds memory use", "Logical byte budget of the cache (default 256 MiB)."),
+     key!("PHANTOM_DEFAULT_TTL_MS", Kind::Uint { min: 1, max: 31_536_000_000 }, Some("60000"), "ms", false,
+-        Wiring::NotWired("src/api/server.rs passes a literal 60_000 to the freshness engine; the value is validated and reported only"),
+-        "low", "Default freshness lifetime when the origin sends no freshness headers."),
++        Wiring::Main,
++        "low: bounds how long a response with no origin freshness information is served without revalidation (staleness exposure after a missed invalidation)", "Default freshness lifetime when the origin sends no freshness headers (no Cache-Control max-age/s-maxage, no Expires). Applies only to cacheable 200 responses; origin-supplied lifetimes are unaffected."),
+     key!("PHANTOM_MAX_STALE_MS", Kind::Uint { min: 1, max: 31_536_000_000 }, Some("86400000"), "ms", false, Wiring::Main,
+         "medium: hard cap on stale serving", "Hard staleness cap enforced by the execution layer (default 24 h)."),
+     key!("PHANTOM_SWEEPER_BATCH_SIZE", Kind::Uint { min: 1, max: 1024 }, Some("32"), "shards per tick", false, Wiring::Main,
+diff --git a/src/main.rs b/src/main.rs
+index 4beaed4..3b2520a 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -204,6 +204,7 @@ async fn run(cfg: config::Config) -> Result<i32, Fatal> {
+     let cache = Arc::new(PartitionedCache::new(8));
+     cache.set_byte_budget(cfg.get_u64("PHANTOM_MAX_CACHE_BYTES") as usize);
+     cache.set_max_stale_ms(cfg.get_u64("PHANTOM_MAX_STALE_MS"));
++    api::server::set_default_ttl_ms(cfg.get_u64("PHANTOM_DEFAULT_TTL_MS"));
+     cache.set_sweeper_batch_size(cfg.get_u64("PHANTOM_SWEEPER_BATCH_SIZE") as usize);
+     cache.set_sweeper_interval_ms(cfg.get_u64("PHANTOM_SWEEPER_INTERVAL_MS"));
+     let _coalescer = Arc::new(Coalescer::new(1000));
+diff --git a/docs/user/configuration.md b/docs/user/configuration.md
+index 411b595..73b2c8e 100644
+--- a/docs/user/configuration.md
++++ b/docs/user/configuration.md
+@@ -41,7 +41,7 @@ At startup (and with `--check-config`) the process prints every key with its res
+ | `PHANTOM_JWT_ISSUER` | string | `phantom-cache-auth` | applied by main | medium |
+ | `PHANTOM_JWT_AUDIENCE` | string | `phantom-cache-api` | applied by main | medium |
+ | `PHANTOM_MAX_CACHE_BYTES` | bytes, 1.. | `268435456` | applied by main | medium: bounds memory |
+-| `PHANTOM_DEFAULT_TTL_MS` | ms, 1..31536000000 | `60000` | NOT HONORED | low: `src/api/server.rs` passes a literal 60000 to the freshness engine (`:1367`, `:1650`); setting this key has no runtime effect, the effective default lifetime is always 60 s and applies only when the origin sends no freshness information |
++| `PHANTOM_DEFAULT_TTL_MS` | ms, 1..31536000000 | `60000` | applied by main | low: freshness lifetime for cacheable 200 responses that carry no `Cache-Control: max-age`/`s-maxage` and no `Expires`; origin-supplied lifetimes are not affected. After a missed invalidation a header-less entry can be served for up to this long |
+ | `PHANTOM_MAX_STALE_MS` | ms, 1..31536000000 | `86400000` | applied by main | medium: hard stale-serving cap (24 h); caps only the stale window, not the freshness lifetime an origin sets with `s-maxage`/`max-age`/`Expires` (no gateway ceiling) |
+ | `PHANTOM_SWEEPER_BATCH_SIZE` | shards per tick, 1..1024 | `32` | applied by main | low: above 32 warns |
+ | `PHANTOM_SWEEPER_INTERVAL_MS` | ms, 1..3600000 | `100` | applied by main | low |
+diff --git a/docs/user/limitations.md b/docs/user/limitations.md
+index 37858c7..5f05051 100644
+--- a/docs/user/limitations.md
++++ b/docs/user/limitations.md
+@@ -6,7 +6,7 @@ Stated plainly so that nothing here is mistaken for a claim.
+ - **No performance numbers are published with this release.** Numbers elsewhere in the repository are debug-build, loopback, single-host or simulated; none is a release-grade measurement.
+ - **Serving model.** GET is served from the local cache only; there is no cross-gateway read-through.
+ - **Cluster mode is experimental.** In the mTLS cluster configuration the local cluster node shares the gateway's HTTP serving cache, so invalidation frames received from peers purge it (`src/main.rs:327`); GET is still served from the local cache only. An anti-entropy reconciliation worker runs every 250 ms in cluster configurations (`src/main.rs:370`, `:378`); its effectiveness is not established. The insecure/partial cluster configuration (`PHANTOM_ALLOW_INSECURE_CLUSTER` without full mTLS material) has no peer addresses: no invalidation frame is sent or received, and DELETE returns a gateway timeout (`src/main.rs:376`). Membership is static. See "Cluster invalidation durability" below.
+-- **Staleness.** Entries expire by origin headers (`s-maxage`, `max-age`, `Expires`) or, when the origin gives none, a fixed 60 s default (`PHANTOM_DEFAULT_TTL_MS` is validated but not honored: `src/config.rs:116-117`, literal `60_000` at `src/api/server.rs:1367` and `:1650`). **Origin-supplied lifetimes have no gateway ceiling** (`src/core/freshness.rs:263-276`), and the hard stale cap `PHANTOM_MAX_STALE_MS` limits only how long an expired entry may be served stale (stale-while-revalidate / stale-if-error), not the freshness lifetime. No linearizability or bounded-staleness guarantee beyond that is claimed.
++- **Staleness.** Entries expire by origin headers (`s-maxage`, `max-age`, `Expires`) or, when the origin gives none, `PHANTOM_DEFAULT_TTL_MS` (default 60 s; applied by `main` via `api::server::set_default_ttl_ms`). **Origin-supplied lifetimes have no gateway ceiling** (`src/core/freshness.rs:263-276`), and the hard stale cap `PHANTOM_MAX_STALE_MS` limits only how long an expired entry may be served stale (stale-while-revalidate / stale-if-error), not the freshness lifetime. No linearizability or bounded-staleness guarantee beyond that is claimed.
+ - **Dashboard.** Parts of the SSE stream and UI are synthetic when `PHANTOM_SIMULATION=true`; simulated values are labeled and are not measurements.
+ - **Shutdown.** No in-flight connection draining yet (see operate.md), and no drain of pending cluster invalidations (`src/main.rs:484-490`; see "Cluster invalidation durability" below).
+ - **Idle CPU.** The lazy-reclamation sweeper task is started with a shutdown channel whose sender is dropped immediately. An idle process was observed using more than one core of CPU (single runs: debug build about 6.5 CPU-seconds in about 5 s wall; release build 14.8 CPU-seconds in 10 s wall, Windows 11, loopback, no traffic). The probable cause (a `watch::changed()` that is always ready in the select loop) was identified by code reading and has not been isolated experimentally; only single runs exist (no repetitions or intervals).
+diff --git a/docs/user/troubleshoot.md b/docs/user/troubleshoot.md
+index d90cd99..4cc4549 100644
+--- a/docs/user/troubleshoot.md
++++ b/docs/user/troubleshoot.md
+@@ -11,7 +11,6 @@ Run `phantom-cache-demo --check-config` first; it reports every configuration pr
+ | `cluster mTLS ...` errors | Cluster rules apply only if any cluster key is set. Remove stray cluster keys or supply the full mTLS set plus members file and listen address. |
+ | `file '...' cannot be read` | A referenced PEM/JSON path is wrong or unreadable by the service account. |
+ | `WARNING: unknown environment variable PHANTOM_...` | A misspelled key is ignored. Compare with configuration.md. |
+-| `WARNING: PHANTOM_DEFAULT_TTL_MS ... not honored` | That key is validated but the runtime still uses 60000 ms. |
+ | 401 with `X-Auth-Error` ExpiredToken / InvalidIssuer / InvalidAudience / MissingToken / InvalidToken | Fix the token. HS256 only; `exp` is required. |
+ | 403 with `X-Auth-Error: InsufficientPermissions` | The token lacks the role (see run.md). |
+ | 403 `UpstreamDestinationDisallowed` or 502 on a miss | Origin blocked by SSRF policy, wrong port, or TLS failure. |
+diff --git a/tests/integration/m7_config_tests.rs b/tests/integration/m7_config_tests.rs
+index 27f63cb..41f45bd 100644
+--- a/tests/integration/m7_config_tests.rs
++++ b/tests/integration/m7_config_tests.rs
+@@ -369,11 +369,14 @@ fn unknown_phantom_env_warns_and_unrelated_is_ignored() {
+ }
+ 
+ #[test]
+-fn not_wired_default_ttl_is_reported_honestly() {
++fn default_ttl_is_wired_and_no_longer_reported_as_not_honored() {
++    // PHANTOM_DEFAULT_TTL_MS is applied by main (api::server::set_default_ttl_ms); see
++    // tests/integration/default_ttl_wiring_tests.rs for the end-to-end proof.
+     let c = ok(&[("PHANTOM_DEFAULT_TTL_MS", "5000")]);
+-    assert!(c.warnings.iter().any(|w| w.contains("not honored")));
+-    assert!(c.report().contains("not honored by runtime"));
+-    assert!(!ok(&[]).warnings.iter().any(|w| w.contains("not honored")));
++    assert_eq!(c.get_u64("PHANTOM_DEFAULT_TTL_MS"), 5_000);
++    assert!(!c.warnings.iter().any(|w| w.contains("not honored")));
++    assert!(!c.report().contains("not honored by runtime"));
++    assert_eq!(spec("PHANTOM_DEFAULT_TTL_MS").unwrap().wiring, Wiring::Main);
+ }
+ 
+ #[test]
+diff --git a/tests/integration/default_ttl_wiring_tests.rs b/tests/integration/default_ttl_wiring_tests.rs
+new file mode 100644
+index 0000000..b972f49
+--- /dev/null
++++ b/tests/integration/default_ttl_wiring_tests.rs
+@@ -0,0 +1,154 @@
++//! PHANTOM_DEFAULT_TTL_MS wiring (proposed patch, docs/research/ttl_decision).
++//!
++//! Claim under test: the configured default freshness lifetime reaches the freshness engine on the
++//! real HTTP fill path, applies ONLY to responses without origin freshness information, and the
++//! unconfigured default stays 60 s. The test drives the real router (`create_app`) against an
++//! in-process origin and uses real time (the gateway reads its own wall clock), so it sleeps ~2.5 s.
++//!
++//! The process-wide default is global state, so the end-to-end scenario is ONE sequential test in
++//! this binary (no other test here touches it).
++
++use axum::{
++    extract::{Path, State},
++    http::{HeaderValue, StatusCode},
++    response::{IntoResponse, Response},
++    routing::get,
++    Json, Router,
++};
++use phantom_cache_demo::api::server::{
++    create_app, default_ttl_ms, set_default_ttl_ms, ApiState, NodeSnapshot, SimulationSnapshot, DEFAULT_TTL_MS_FALLBACK,
++};
++use phantom_cache_demo::config::*;
++use phantom_cache_demo::core::cache::PartitionedCache;
++use phantom_cache_demo::dist::node::{NodeState, VirtualNode};
++use std::sync::atomic::{AtomicU64, Ordering};
++use std::sync::{Arc, Mutex};
++use std::time::Duration;
++
++#[derive(Clone)]
++struct Origin {
++    count: Arc<AtomicU64>,
++}
++
++/// Paths starting with `ma-` carry `Cache-Control: max-age=60`; every other path carries NO
++/// freshness information at all.
++async fn origin_handler(State(s): State<Origin>, Path(path): Path<String>) -> Response {
++    let n = s.count.fetch_add(1, Ordering::SeqCst) + 1;
++    let mut resp = (StatusCode::OK, Json(serde_json::json!({ "key": path, "req_num": n }))).into_response();
++    if path.starts_with("ma-") {
++        resp.headers_mut().insert("Cache-Control", HeaderValue::from_static("max-age=60"));
++    }
++    resp
++}
++
++async fn spawn_gateway() -> (String, Arc<AtomicU64>) {
++    let count = Arc::new(AtomicU64::new(0));
++    let origin = Router::new().route("/*path", get(origin_handler)).with_state(Origin { count: count.clone() });
++    let ol = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
++    let origin_url = format!("http://127.0.0.1:{}", ol.local_addr().unwrap().port());
++    tokio::spawn(async move {
++        axum::serve(ol, origin).await.unwrap();
++    });
++
++    let nodes = vec![Arc::new(VirtualNode::new(1))];
++    nodes[0].set_state(NodeState::Active);
++    let state = Arc::new(ApiState {
++        snapshot: Mutex::new(SimulationSnapshot {
++            version: "1.0".into(),
++            timestamp_ms: 0,
++            throughput_req_sec: 0.0,
++            p50_latency_ms: 0,
++            p95_latency_ms: 0,
++            p99_latency_ms: 0,
++            db_load_ratio: 0.0,
++            avoided_compute_dollars: 0.0,
++            nodes: vec![NodeSnapshot { node_id: 1, state: "Active".into(), cpu_utilization: 0.0, memory_used_bytes: 0 }],
++        }),
++        nodes,
++        workload_type: Mutex::new("Normal".into()),
++        cache: Some(Arc::new(PartitionedCache::new(8))),
++        origin_url: Some(origin_url),
++        telemetry: None,
++        pie: None,
++        security: None,
++        upstream_policy: None,
++        router: None,
++    });
++    let gl = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
++    let base = format!("http://127.0.0.1:{}", gl.local_addr().unwrap().port());
++    let app = create_app(state);
++    tokio::spawn(async move {
++        axum::serve(gl, app).await.unwrap();
++    });
++    (base, count)
++}
++
++async fn status_of(c: &reqwest::Client, base: &str, key: &str) -> String {
++    let r = c.get(format!("{}/api/v1/cache/{}", base, key)).send().await.unwrap();
++    assert_eq!(r.status(), StatusCode::OK, "GET {}", key);
++    r.headers().get("X-Cache-Status").expect("X-Cache-Status").to_str().unwrap().to_string()
++}
++
++#[tokio::test]
++async fn configured_default_ttl_reaches_the_freshness_engine_through_the_real_router() {
++    // Unconfigured default is the historical 60 s (no behaviour change).
++    assert_eq!(DEFAULT_TTL_MS_FALLBACK, 60_000);
++    assert_eq!(default_ttl_ms(), 60_000);
++    let (base, origin) = spawn_gateway().await;
++    let c = reqwest::Client::new();
++
++    // Unconfigured: a header-less response is cached under the 60 s default (MISS then HIT, one fetch).
++    assert_eq!(status_of(&c, &base, "d60").await, "MISS");
++    assert_eq!(status_of(&c, &base, "d60").await, "HIT");
++    assert_eq!(origin.load(Ordering::SeqCst), 1);
++
++    // Configure a 2 s default (what main does from PHANTOM_DEFAULT_TTL_MS). Zero is ignored.
++    set_default_ttl_ms(0);
++    assert_eq!(default_ttl_ms(), 60_000, "0 must not disable the default");
++    set_default_ttl_ms(2_000);
++    assert_eq!(default_ttl_ms(), 2_000);
++
++    assert_eq!(status_of(&c, &base, "short").await, "MISS"); // origin fetch 2, no freshness headers
++    assert_eq!(status_of(&c, &base, "short").await, "HIT");
++    assert_eq!(status_of(&c, &base, "ma-long").await, "MISS"); // origin fetch 3, max-age=60
++    assert_eq!(status_of(&c, &base, "ma-long").await, "HIT");
++    assert_eq!(origin.load(Ordering::SeqCst), 3);
++
++    tokio::time::sleep(Duration::from_millis(2_600)).await;
++
++    // Header-less entry expired after ~2 s => refetched (not a HIT).
++    let after = status_of(&c, &base, "short").await;
++    assert_ne!(after, "HIT", "default TTL must have expired the header-less entry");
++    assert_eq!(origin.load(Ordering::SeqCst), 4, "expired header-less entry must be refetched");
++    // Origin-supplied max-age wins over the default: still a HIT, no extra origin fetch.
++    assert_eq!(status_of(&c, &base, "ma-long").await, "HIT");
++    assert_eq!(origin.load(Ordering::SeqCst), 4);
++}
++
++fn resolve_with(pairs: &[(&str, &str)]) -> Result<Config, Vec<ConfigError>> {
++    resolve(&Inputs {
++        env: pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
++        ..Default::default()
++    })
++}
++
++#[test]
++fn default_ttl_key_is_applied_by_main_and_range_validated() {
++    assert_eq!(spec("PHANTOM_DEFAULT_TTL_MS").unwrap().wiring, Wiring::Main);
++    assert_eq!(spec("PHANTOM_DEFAULT_TTL_MS").unwrap().default, Some("60000"));
++    assert_eq!(resolve_with(&[]).unwrap().get_u64("PHANTOM_DEFAULT_TTL_MS"), 60_000);
++    for good in ["1", "5000", "31536000000"] {
++        let c = resolve_with(&[("PHANTOM_DEFAULT_TTL_MS", good)]).unwrap_or_else(|e| panic!("{good}: {e:?}"));
++        assert_eq!(c.get_u64("PHANTOM_DEFAULT_TTL_MS").to_string(), good);
++        assert!(c.warnings.iter().all(|w| !w.contains("not honored")), "no not-honored warning for {good}");
++    }
++    for bad in ["0", "-1", "abc", "", "1.5", "31536000001", "60s"] {
++        // An empty value counts as "not set" (documented), so it resolves to the default.
++        if bad.is_empty() {
++            assert_eq!(resolve_with(&[("PHANTOM_DEFAULT_TTL_MS", bad)]).unwrap().get_u64("PHANTOM_DEFAULT_TTL_MS"), 60_000);
++            continue;
++        }
++        let e = resolve_with(&[("PHANTOM_DEFAULT_TTL_MS", bad)]).expect_err(bad);
++        assert!(e.iter().any(|x| x.key.as_deref() == Some("PHANTOM_DEFAULT_TTL_MS")), "{bad}: {e:?}");
++    }
++}

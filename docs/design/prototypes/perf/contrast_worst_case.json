@@ -1,0 +1,146 @@
+[
+ {
+  "theme": "light",
+  "alpha": 0.6,
+  "bgOverWorstBackdrop": "#999999",
+  "text": 6.25,
+  "text-2": 3.28,
+  "text-3": 2.23,
+  "accent": 2.06
+ },
+ {
+  "theme": "light",
+  "alpha": 0.7,
+  "bgOverWorstBackdrop": "#b3b3b3",
+  "text": 8.49,
+  "text-2": 4.46,
+  "text-3": 3.03,
+  "accent": 2.8
+ },
+ {
+  "theme": "light",
+  "alpha": 0.75,
+  "bgOverWorstBackdrop": "#bfbfbf",
+  "text": 9.68,
+  "text-2": 5.08,
+  "text-3": 3.46,
+  "accent": 3.2
+ },
+ {
+  "theme": "light",
+  "alpha": 0.8,
+  "bgOverWorstBackdrop": "#cccccc",
+  "text": 11.08,
+  "text-2": 5.82,
+  "text-3": 3.96,
+  "accent": 3.66
+ },
+ {
+  "theme": "light",
+  "alpha": 0.85,
+  "bgOverWorstBackdrop": "#d9d9d9",
+  "text": 12.61,
+  "text-2": 6.62,
+  "text-3": 4.5,
+  "accent": 4.17
+ },
+ {
+  "theme": "light",
+  "alpha": 0.9,
+  "bgOverWorstBackdrop": "#e6e6e6",
+  "text": 14.26,
+  "text-2": 7.49,
+  "text-3": 5.09,
+  "accent": 4.71
+ },
+ {
+  "theme": "light",
+  "alpha": 0.95,
+  "bgOverWorstBackdrop": "#f2f2f2",
+  "text": 15.89,
+  "text-2": 8.35,
+  "text-3": 5.68,
+  "accent": 5.25
+ },
+ {
+  "theme": "light",
+  "alpha": 1,
+  "bgOverWorstBackdrop": "#ffffff",
+  "text": 17.79,
+  "text-2": 9.35,
+  "text-3": 6.36,
+  "accent": 5.88
+ },
+ {
+  "theme": "dark",
+  "alpha": 0.6,
+  "bgOverWorstBackdrop": "#73767a",
+  "text": 3.82,
+  "text-2": 2.52,
+  "text-3": 2.06,
+  "accent": 1.88
+ },
+ {
+  "theme": "dark",
+  "alpha": 0.7,
+  "bgOverWorstBackdrop": "#5c5f64",
+  "text": 5.36,
+  "text-2": 3.54,
+  "text-3": 2.9,
+  "accent": 2.64
+ },
+ {
+  "theme": "dark",
+  "alpha": 0.75,
+  "bgOverWorstBackdrop": "#505359",
+  "text": 6.45,
+  "text-2": 4.25,
+  "text-3": 3.49,
+  "accent": 3.18
+ },
+ {
+  "theme": "dark",
+  "alpha": 0.8,
+  "bgOverWorstBackdrop": "#45484d",
+  "text": 7.68,
+  "text-2": 5.06,
+  "text-3": 4.15,
+  "accent": 3.79
+ },
+ {
+  "theme": "dark",
+  "alpha": 0.85,
+  "bgOverWorstBackdrop": "#393c42",
+  "text": 9.25,
+  "text-2": 6.1,
+  "text-3": 5,
+  "accent": 4.56
+ },
+ {
+  "theme": "dark",
+  "alpha": 0.9,
+  "bgOverWorstBackdrop": "#2d3137",
+  "text": 10.94,
+  "text-2": 7.21,
+  "text-3": 5.91,
+  "accent": 5.39
+ },
+ {
+  "theme": "dark",
+  "alpha": 0.95,
+  "bgOverWorstBackdrop": "#22252c",
+  "text": 12.84,
+  "text-2": 8.46,
+  "text-3": 6.93,
+  "accent": 6.32
+ },
+ {
+  "theme": "dark",
+  "alpha": 1,
+  "bgOverWorstBackdrop": "#161a21",
+  "text": 14.6,
+  "text-2": 9.62,
+  "text-3": 7.89,
+  "accent": 7.19
+ }
+]

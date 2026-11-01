@@ -2,6 +2,8 @@
 >
 > Original text below is unchanged.
 
+> Correction notice (2026-10-30, owner-approved DEC-020): (1) Section 4, "Anti-entropy guarantees self-healing eventual consistency": anti-entropy is implemented and has a production caller (worker every 250 ms, `src/main.rs:375`, `:383`), but its effectiveness is not established (`docs/research/claims_ledger.md` C6) and the repair ledger is in memory. No convergence bound is proven. (2) Section 5, "strict global acquisition order ... deadlock freedom": this order was not machine-checked (no loom or shuttle run), and the cache-side edges are listed in `CLAUDE.md` errata item 1; treat deadlock freedom as unverified.
+
 # PhantomCache — Architecture & Protocol Reference
 
 **Document ID:** `docs/handoff/03_ARCHITECTURE_AND_PROTOCOL_REFERENCE.md`  

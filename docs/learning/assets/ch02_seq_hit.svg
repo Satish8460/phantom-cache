@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" role="img" aria-labelledby="t2 d2">
+<title id="t2">Request sequence for a cache hit</title>
+<desc id="d2">A client sends GET to the gateway handler. The handler authenticates, builds the cache key, asks the cache twice (stale check, then fetch registration), receives a Hit, and answers 200 with X-Cache-Status HIT. The origin is not contacted.</desc>
+<defs>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111}
+.h{font-size:14px;font-weight:bold}
+.s{font-size:13px;fill:#333;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.sb{font-size:13px;fill:#333}
+.pb{fill:#e4e4e4;stroke:#222;stroke-width:1.5}
+.pd{fill:#fff;stroke:#222;stroke-width:1.5;stroke-dasharray:6 4}
+.l{stroke:#555;stroke-width:1.2;stroke-dasharray:3 4}
+.a{stroke:#222;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+.r{stroke:#222;stroke-width:1.6;fill:none;stroke-dasharray:7 4;marker-end:url(#ar)}
+.n{fill:#f2f2f2;stroke:#222;stroke-width:1.2}
+.c{fill:#222}
+</style>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker>
+</defs>
+<rect width="900" height="520" fill="#fff"/>
+<rect class="pb" x="30" y="14" width="120" height="40" rx="4"/><text x="90" y="39" text-anchor="middle" class="h">Client</text>
+<rect class="pb" x="230" y="14" width="140" height="40" rx="4"/><text x="300" y="39" text-anchor="middle" class="h">Gateway handler</text>
+<rect class="pb" x="500" y="14" width="180" height="40" rx="4"/><text x="590" y="39" text-anchor="middle" class="h">PartitionedCache</text>
+<rect class="pd" x="740" y="14" width="130" height="40" rx="4"/><text x="805" y="39" text-anchor="middle" class="h">Origin</text>
+<line class="l" x1="90" y1="54" x2="90" y2="470"/><line class="l" x1="300" y1="54" x2="300" y2="470"/><line class="l" x1="590" y1="54" x2="590" y2="470"/><line class="l" x1="805" y1="54" x2="805" y2="470"/>
+<!-- 1 -->
+<path class="a" d="M90 92 L300 92"/>
+<circle class="c" cx="110" cy="80" r="11"/><text x="110" y="85" text-anchor="middle" style="fill:#fff" class="h">1</text>
+<text x="130" y="76" class="s">GET /api/v1/cache/item1</text>
+<text x="108" y="112" class="s">(Authorization: Bearer ...,</text><text x="108" y="127" class="s">if JWT is on)</text>
+<!-- 2 -->
+<rect class="n" x="310" y="124" width="250" height="34" rx="3"/>
+<circle class="c" cx="324" cy="141" r="10"/><text x="324" y="146" text-anchor="middle" style="fill:#fff" class="h">2</text>
+<text x="340" y="138" class="sb">authenticate: role cache:read,</text><text x="340" y="153" class="sb">tenant from the token</text>
+<!-- 3 -->
+<rect class="n" x="310" y="172" width="250" height="34" rx="3"/>
+<circle class="c" cx="324" cy="189" r="10"/><text x="324" y="194" text-anchor="middle" style="fill:#fff" class="h">3</text>
+<text x="340" y="186" class="sb">CacheKey::new + validate,</text><text x="340" y="201" class="sb">requests_total + 1</text>
+<!-- 4 -->
+<path class="a" d="M300 244 L590 244"/>
+<circle class="c" cx="318" cy="232" r="11"/><text x="318" y="237" text-anchor="middle" style="fill:#fff" class="h">4</text>
+<text x="336" y="228" class="s">check_stale_serving (lock one shard)</text>
+<path class="r" d="M590 276 L300 276"/>
+<text x="330" y="270" class="s">Ineligible: entry is still fresh</text>
+<!-- 5 -->
+<path class="a" d="M300 318 L590 318"/>
+<circle class="c" cx="318" cy="306" r="11"/><text x="318" y="311" text-anchor="middle" style="fill:#fff" class="h">5</text>
+<text x="336" y="302" class="s">begin_fetch_atomic (lock shard again)</text>
+<text x="600" y="338" class="s">epochs match, not expired:</text><text x="600" y="354" class="s">visited = true, cache_hits + 1</text>
+<!-- 6 -->
+<path class="r" d="M590 376 L300 376"/>
+<circle class="c" cx="570" cy="364" r="11"/><text x="570" y="369" text-anchor="middle" style="fill:#fff" class="h">6</text>
+<text x="330" y="370" class="s">Hit(resource)</text>
+<!-- 7 -->
+<path class="r" d="M300 430 L90 430"/>
+<circle class="c" cx="112" cy="418" r="11"/><text x="112" y="423" text-anchor="middle" style="fill:#fff" class="h">7</text>
+<text x="130" y="402" class="s">200, X-Cache-Status: HIT,</text><text x="130" y="417" class="s">Age, ETag</text>
+<text x="312" y="450" class="s">telemetry records latency, hit = true</text>
+<text x="805" y="490" text-anchor="middle" class="s">Origin: not contacted</text>
+<text x="30" y="500" class="s">Solid arrow: call. Dashed arrow: return. Boxes: work done inside one component.</text>
+</svg>

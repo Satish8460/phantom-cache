@@ -1,0 +1,268 @@
+[
+ {
+  "theme": "light",
+  "pair": "ink on bg",
+  "ratio": 15.88,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "ink on surface",
+  "ratio": 17.17,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "ink-2 on surface",
+  "ratio": 9.44,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "ink-3 on surface",
+  "ratio": 6.2,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "ink-3 on surface-2",
+  "ratio": 5.38,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "ink-3 on bg",
+  "ratio": 5.74,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "ink-2 on surface-3",
+  "ratio": 7.46,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "real on realBg",
+  "ratio": 5.62,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "derived on derivedBg",
+  "ratio": 5.92,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "sim on simBg",
+  "ratio": 5.75,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "unavail on unavailBg",
+  "ratio": 6.24,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "crit on critBg",
+  "ratio": 5.46,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "warn on warnBg",
+  "ratio": 5.55,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "crit on surface",
+  "ratio": 6.31,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "derived on surface (links)",
+  "ratio": 6.89,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "lineStrong on surface (UI boundary)",
+  "ratio": 4.75,
+  "min": 3,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "lineStrong on bg",
+  "ratio": 4.39,
+  "min": 3,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "focus on bg",
+  "ratio": 5.25,
+  "min": 3,
+  "pass": true
+ },
+ {
+  "theme": "light",
+  "pair": "focus on surface",
+  "ratio": 5.67,
+  "min": 3,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "ink on bg",
+  "ratio": 17.07,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "ink on surface",
+  "ratio": 16.01,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "ink-2 on surface",
+  "ratio": 10.32,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "ink-3 on surface",
+  "ratio": 8,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "ink-3 on surface-2",
+  "ratio": 7.46,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "ink-3 on bg",
+  "ratio": 8.53,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "ink-2 on surface-3",
+  "ratio": 8.74,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "real on realBg",
+  "ratio": 8.55,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "derived on derivedBg",
+  "ratio": 7.79,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "sim on simBg",
+  "ratio": 8.62,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "unavail on unavailBg",
+  "ratio": 6.76,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "crit on critBg",
+  "ratio": 7.16,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "warn on warnBg",
+  "ratio": 7.33,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "crit on surface",
+  "ratio": 8.22,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "derived on surface (links)",
+  "ratio": 9.63,
+  "min": 4.5,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "lineStrong on surface (UI boundary)",
+  "ratio": 5.7,
+  "min": 3,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "lineStrong on bg",
+  "ratio": 6.07,
+  "min": 3,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "focus on bg",
+  "ratio": 9.88,
+  "min": 3,
+  "pass": true
+ },
+ {
+  "theme": "dark",
+  "pair": "focus on surface",
+  "ratio": 9.27,
+  "min": 3,
+  "pass": true
+ }
+]

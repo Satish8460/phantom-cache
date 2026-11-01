@@ -1,0 +1,1696 @@
+--- a/tests/support/cluster_harness.rs
++++ b/tests/support/cluster_harness.rs
+@@ -51,6 +51,7 @@
+     pub records: Mutex<HashMap<String, KeyRecord>>,
+     pub access_log: Mutex<Vec<OriginAccessEntry>>,
+     pub call_count: AtomicU64,
++    pub max_age_secs: AtomicU64,
+ }
+ 
+ pub struct VersionedMockOrigin {
+@@ -61,7 +62,14 @@
+ 
+ impl VersionedMockOrigin {
+     pub async fn start() -> Self {
++        Self::start_with_max_age(60).await
++    }
++
++    /// As `start`, but the origin advertises `Cache-Control: max-age=<secs>` (default 60). A long
++    /// value lets a test keep a stale entry alive far beyond the repair bound.
++    pub async fn start_with_max_age(max_age_secs: u64) -> Self {
+         let state = Arc::new(MockOriginState::default());
++        state.max_age_secs.store(max_age_secs, Ordering::SeqCst);
+         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+ 
+         let state_clone = state.clone();
+@@ -167,11 +175,12 @@
+             timestamp_ms: now_ms,
+         });
+ 
++        let cache_control = format!("max-age={}", state.max_age_secs.load(Ordering::SeqCst));
+         (
+             StatusCode::OK,
+             [
+-                ("content-type", "application/json"),
+-                ("cache-control", "max-age=60"),
++                ("content-type", "application/json".to_string()),
++                ("cache-control", cache_control),
+             ],
+             Json(serde_json::json!({
+                 "key": norm_key,
+@@ -280,6 +289,10 @@
+     pub child: Child,
+     /// File receiving the gateway's captured stdout+stderr (inside the PKI temp dir).
+     pub log_path: PathBuf,
++    /// Retained spawn specification (binary and full environment) so the node can be restarted
++    /// with identical ports, identity and peer addresses.
++    pub bin_path: PathBuf,
++    pub env: Vec<(String, String)>,
+ }
+ 
+ /// Start-up options for `ClusterHarness::start_with_options`.
+@@ -295,6 +308,11 @@
+     /// After `/health/ready`, also wait for every gateway to report that its inter-node
+     /// connection pool is pre-warmed (marker line in its log).
+     pub wait_for_prewarm: bool,
++    /// `Cache-Control: max-age` (seconds) advertised by the mock origin; `None` keeps 60.
++    pub origin_max_age_secs: Option<u64>,
++    /// Environment applied per node after `extra_env`; `{id}` is replaced by the node id and
++    /// `{dir}` by the harness temp directory (e.g. a per-node log path).
++    pub per_node_env: Vec<(String, String)>,
+ }
+ 
+ impl Default for ClusterOptions {
+@@ -304,10 +322,35 @@
+             extra_env: Vec::new(),
+             startup_timeout: Duration::from_secs(12),
+             wait_for_prewarm: true,
++            origin_max_age_secs: None,
++            per_node_env: Vec::new(),
+         }
+     }
+ }
+ 
++/// Spawns one gateway process. On Windows the child gets its own process group so that a
++/// CTRL_BREAK can be aimed at it (graceful stop); everything else is identical on all platforms.
++fn spawn_gateway(
++    bin_path: &std::path::Path,
++    env: &[(String, String)],
++    log_out: std::fs::File,
++    log_err: std::fs::File,
++) -> std::io::Result<Child> {
++    let mut cmd = Command::new(bin_path);
++    cmd.kill_on_drop(true)
++        .stdout(std::process::Stdio::from(log_out))
++        .stderr(std::process::Stdio::from(log_err));
++    for (k, v) in env {
++        cmd.env(k, v);
++    }
++    #[cfg(windows)]
++    {
++        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
++        cmd.creation_flags(CREATE_NEW_PROCESS_GROUP);
++    }
++    cmd.spawn()
++}
++
+ /// Marker line printed by a gateway once it holds a pooled connection to every active peer.
+ pub const PREWARM_MARKER: &str = "[cluster] pool pre-warm complete";
+ 
+@@ -338,6 +381,31 @@
+         .unwrap_or(false)
+ }
+ 
++fn log_count(path: &std::path::Path, needle: &str) -> usize {
++    std::fs::read(path)
++        .map(|b| String::from_utf8_lossy(&b).matches(needle).count())
++        .unwrap_or(0)
++}
++
++/// Windows only: sends CTRL_BREAK to the process group of `pid` (the child must have been created
++/// with CREATE_NEW_PROCESS_GROUP and the calling process must share a console with it).
++#[cfg(windows)]
++fn send_ctrl_break(pid: u32) -> Result<(), String> {
++    extern "system" {
++        fn GenerateConsoleCtrlEvent(dw_ctrl_event: u32, dw_process_group_id: u32) -> i32;
++        fn GetLastError() -> u32;
++    }
++    const CTRL_BREAK_EVENT: u32 = 1;
++    // SAFETY: plain Win32 calls with integer arguments.
++    unsafe {
++        if GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, pid) != 0 {
++            Ok(())
++        } else {
++            Err(format!("GenerateConsoleCtrlEvent failed, GetLastError={}", GetLastError()))
++        }
++    }
++}
++
+ // ---------------------------------------------------------------------------
+ // Multi-Process Cluster Harness
+ // ---------------------------------------------------------------------------
+@@ -419,7 +487,7 @@
+         opts: ClusterOptions,
+     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+         let with_proxies = opts.with_proxies;
+-        let origin = Arc::new(VersionedMockOrigin::start().await);
++        let origin = Arc::new(VersionedMockOrigin::start_with_max_age(opts.origin_max_age_secs.unwrap_or(60)).await);
+         let cluster_id = "phantom-test-cluster";
+ 
+         // Pre-allocate ephemeral loopback ports for HTTP and cluster listeners
+@@ -490,27 +558,30 @@
+             let log_out = std::fs::File::create(&log_path)?;
+             let log_err = log_out.try_clone()?;
+ 
+-            let mut cmd = Command::new(&bin_path);
+-            cmd.kill_on_drop(true)
+-                .env("PHANTOM_NODE_ID", id.to_string())
+-                .env("PHANTOM_BIND_ADDR", http_addr.to_string())
+-                .env("PHANTOM_CLUSTER_LISTEN_ADDR", cluster_addr.to_string())
+-                .env("PHANTOM_CLUSTER_PEER_ADDRS", peer_addrs_str)
+-                .env("PHANTOM_CLUSTER_MEMBERS_FILE", &pki.members_file_path)
+-                .env("PHANTOM_CLUSTER_CA", pki.temp_dir.join("cluster_ca.pem"))
+-                .env("PHANTOM_NODE_CERT", &pki.node_cert_paths[&id])
+-                .env("PHANTOM_NODE_KEY", &pki.node_key_paths[&id])
+-                .env("PHANTOM_CLUSTER_ID", cluster_id)
+-                .env("ORIGIN_URL", origin.url())
+-                .env("PHANTOM_ALLOW_INSECURE_UPSTREAM", "true")
+-                .env("PHANTOM_MAX_CACHE_BYTES", "67108864") // 64 MB
+-                .stdout(std::process::Stdio::from(log_out))
+-                .stderr(std::process::Stdio::from(log_err));
+-            for (k, v) in &opts.extra_env {
+-                cmd.env(k, v);
++            let mut env: Vec<(String, String)> = vec![
++                ("PHANTOM_NODE_ID".into(), id.to_string()),
++                ("PHANTOM_BIND_ADDR".into(), http_addr.to_string()),
++                ("PHANTOM_CLUSTER_LISTEN_ADDR".into(), cluster_addr.to_string()),
++                ("PHANTOM_CLUSTER_PEER_ADDRS".into(), peer_addrs_str),
++                ("PHANTOM_CLUSTER_MEMBERS_FILE".into(), pki.members_file_path.display().to_string()),
++                ("PHANTOM_CLUSTER_CA".into(), pki.temp_dir.join("cluster_ca.pem").display().to_string()),
++                ("PHANTOM_NODE_CERT".into(), pki.node_cert_paths[&id].display().to_string()),
++                ("PHANTOM_NODE_KEY".into(), pki.node_key_paths[&id].display().to_string()),
++                ("PHANTOM_CLUSTER_ID".into(), cluster_id.to_string()),
++                ("ORIGIN_URL".into(), origin.url().to_string()),
++                ("PHANTOM_ALLOW_INSECURE_UPSTREAM".into(), "true".into()),
++                ("PHANTOM_MAX_CACHE_BYTES".into(), "67108864".into()), // 64 MB
++            ];
++            env.extend(opts.extra_env.iter().cloned());
++            for (k, v) in &opts.per_node_env {
++                env.push((
++                    k.clone(),
++                    v.replace("{id}", &id.to_string())
++                        .replace("{dir}", &pki.temp_dir.display().to_string()),
++                ));
+             }
+ 
+-            let child = cmd.spawn()?;
++            let child = spawn_gateway(&bin_path, &env, log_out, log_err)?;
+             gateways.insert(
+                 id,
+                 GatewayNode {
+@@ -519,6 +590,8 @@
+                     cluster_addr,
+                     child,
+                     log_path,
++                    bin_path: bin_path.clone(),
++                    env,
+                 },
+             );
+         }
+@@ -762,6 +835,233 @@
+         Ok(())
+     }
+ 
++    /// kill -9 equivalent for one gateway (TerminateProcess on Windows, SIGKILL on Unix): no
++    /// shutdown hooks run. Waits (bounded) until the process is reaped.
++    pub async fn kill_node(&mut self, node_id: u8) -> Result<(), String> {
++        let gw = self.gateways.get_mut(&node_id).ok_or("no such gateway")?;
++        gw.child.start_kill().map_err(|e| format!("kill failed: {e}"))?;
++        tokio::time::timeout(Duration::from_secs(5), gw.child.wait())
++            .await
++            .map_err(|_| "killed gateway did not exit within 5 s".to_string())?
++            .map_err(|e| format!("wait failed: {e}"))?;
++        Ok(())
++    }
++
++    /// Orderly stop request (SIGTERM on Unix; CTRL_BREAK to the child's process group on Windows,
++    /// which needs a shared console and may be unavailable under a detached test runner) and wait
++    /// up to `timeout` for the process to exit on its own. Returns the exit status text.
++    pub async fn graceful_stop_node(&mut self, node_id: u8, timeout: Duration) -> Result<String, String> {
++        let gw = self.gateways.get_mut(&node_id).ok_or("no such gateway")?;
++        let pid = gw.child.id().ok_or("gateway already exited")?;
++        #[cfg(windows)]
++        send_ctrl_break(pid)?;
++        #[cfg(unix)]
++        {
++            let st = std::process::Command::new("kill")
++                .arg("-TERM")
++                .arg(pid.to_string())
++                .status()
++                .map_err(|e| format!("kill -TERM failed: {e}"))?;
++            if !st.success() {
++                return Err(format!("kill -TERM exited with {st}"));
++            }
++        }
++        match tokio::time::timeout(timeout, gw.child.wait()).await {
++            Ok(Ok(status)) => Ok(format!("{status}")),
++            Ok(Err(e)) => Err(format!("wait failed: {e}")),
++            Err(_) => Err(format!("gateway did not exit within {timeout:?} of the stop request")),
++        }
++    }
++
++    /// Sends the orderly stop request without waiting for the exit (see `graceful_stop_node`).
++    pub fn request_graceful_stop(&mut self, node_id: u8) -> Result<(), String> {
++        let gw = self.gateways.get_mut(&node_id).ok_or("no such gateway")?;
++        let pid = gw.child.id().ok_or("gateway already exited")?;
++        #[cfg(windows)]
++        send_ctrl_break(pid)?;
++        #[cfg(unix)]
++        {
++            let st = std::process::Command::new("kill")
++                .arg("-TERM")
++                .arg(pid.to_string())
++                .status()
++                .map_err(|e| format!("kill -TERM failed: {e}"))?;
++            if !st.success() {
++                return Err(format!("kill -TERM exited with {st}"));
++            }
++        }
++        Ok(())
++    }
++
++    /// Waits (bounded) for a gateway process to exit; returns its exit status text.
++    pub async fn wait_node_exit(&mut self, node_id: u8, timeout: Duration) -> Result<String, String> {
++        let gw = self.gateways.get_mut(&node_id).ok_or("no such gateway")?;
++        match tokio::time::timeout(timeout, gw.child.wait()).await {
++            Ok(Ok(status)) => Ok(format!("{status}")),
++            Ok(Err(e)) => Err(format!("wait failed: {e}")),
++            Err(_) => Err(format!("gateway did not exit within {timeout:?}")),
++        }
++    }
++
++    /// Every line of a gateway's full log (all restarts) that contains one of `needles`.
++    pub fn gateway_log_lines_containing(&self, node_id: u8, needles: &[&str]) -> Vec<String> {
++        let path = match self.gateways.get(&node_id) {
++            Some(g) => g.log_path.clone(),
++            None => return Vec::new(),
++        };
++        std::fs::read(&path)
++            .map(|b| {
++                String::from_utf8_lossy(&b)
++                    .lines()
++                    .filter(|l| needles.iter().any(|n| l.contains(n)))
++                    .map(|l| l.to_string())
++                    .collect()
++            })
++            .unwrap_or_default()
++    }
++
++    /// Restarts a stopped gateway with the identical command line, environment and ports (its
++    /// stdout/stderr is APPENDED to the same log file). `env_overrides` replace/add variables.
++    /// Returns when `/health/ready` answers and the pool pre-warm marker has been printed by the
++    /// NEW process.
++    pub async fn restart_node(&mut self, node_id: u8, env_overrides: &[(String, String)]) -> Result<(), String> {
++        let (bin, env, log_path, http_addr) = {
++            let gw = self.gateways.get_mut(&node_id).ok_or("no such gateway")?;
++            if let Ok(None) = gw.child.try_wait() {
++                return Err("gateway is still running; stop it first".into());
++            }
++            let mut env = gw.env.clone();
++            for (k, v) in env_overrides {
++                env.retain(|(ek, _)| ek != k);
++                env.push((k.clone(), v.clone()));
++            }
++            gw.env = env.clone();
++            (gw.bin_path.clone(), env, gw.log_path.clone(), gw.http_addr)
++        };
++        let before = log_count(&log_path, PREWARM_MARKER);
++        let mk = || {
++            std::fs::OpenOptions::new()
++                .create(true)
++                .append(true)
++                .open(&log_path)
++                .map_err(|e| format!("cannot open gateway log: {e}"))
++        };
++        let (out, err) = (mk()?, mk()?);
++        {
++            let mut sep = mk()?;
++            use std::io::Write;
++            let _ = writeln!(sep, "\n===== [harness] restart of node {node_id} =====");
++        }
++        let child = spawn_gateway(&bin, &env, out, err).map_err(|e| format!("spawn failed: {e}"))?;
++        self.gateways.get_mut(&node_id).unwrap().child = child;
++
++        let t0 = Instant::now();
++        let budget = Duration::from_secs(15);
++        let ready_url = format!("http://{}/health/ready", http_addr);
++        loop {
++            if t0.elapsed() > budget {
++                return Err(format!(
++                    "restarted gateway {node_id} not ready within {budget:?}\n{}",
++                    tail_of_file(&log_path, 30)
++                ));
++            }
++            if let Some(gw) = self.gateways.get_mut(&node_id) {
++                if let Ok(Some(status)) = gw.child.try_wait() {
++                    return Err(format!(
++                        "restarted gateway {node_id} exited with {status}\n{}",
++                        tail_of_file(&log_path, 30)
++                    ));
++                }
++            }
++            if let Ok(resp) = self.client.get(&ready_url).send().await {
++                if resp.status() == StatusCode::OK {
++                    break;
++                }
++            }
++            tokio::time::sleep(Duration::from_millis(50)).await;
++        }
++        while log_count(&log_path, PREWARM_MARKER) <= before {
++            if t0.elapsed() > budget {
++                return Err(format!("restarted gateway {node_id}: pool pre-warm did not complete"));
++            }
++            tokio::time::sleep(Duration::from_millis(25)).await;
++        }
++        Ok(())
++    }
++
++    /// Spawns a STOPPED gateway with its recorded specification plus `env_overrides` (NOT
++    /// persisted) and returns immediately, without waiting for readiness. The log file is
++    /// appended. Used to start a node with a failpoint armed that is expected to terminate it,
++    /// and to start a node under a modified environment for one run only.
++    pub fn spawn_node_raw(&mut self, node_id: u8, env_overrides: &[(String, String)]) -> Result<(), String> {
++        let (bin, env, log_path) = {
++            let gw = self.gateways.get_mut(&node_id).ok_or("no such gateway")?;
++            if let Ok(None) = gw.child.try_wait() {
++                return Err("gateway is still running; stop it first".into());
++            }
++            let mut env = gw.env.clone();
++            for (k, v) in env_overrides {
++                env.retain(|(ek, _)| ek != k);
++                env.push((k.clone(), v.clone()));
++            }
++            (gw.bin_path.clone(), env, gw.log_path.clone())
++        };
++        let mk = || {
++            std::fs::OpenOptions::new()
++                .create(true)
++                .append(true)
++                .open(&log_path)
++                .map_err(|e| format!("cannot open gateway log: {e}"))
++        };
++        let (out, err) = (mk()?, mk()?);
++        {
++            let mut sep = mk()?;
++            use std::io::Write;
++            let _ = writeln!(sep, "\n===== [harness] restart of node {node_id} (raw spawn) =====");
++        }
++        let child = spawn_gateway(&bin, &env, out, err).map_err(|e| format!("spawn failed: {e}"))?;
++        self.gateways.get_mut(&node_id).unwrap().child = child;
++        Ok(())
++    }
++
++    /// Waits until a gateway started with `spawn_node_raw` answers `/health/ready` (bounded).
++    pub async fn wait_node_ready(&mut self, node_id: u8, budget: Duration) -> Result<(), String> {
++        let (http_addr, log_path) = {
++            let gw = self.gateways.get(&node_id).ok_or("no such gateway")?;
++            (gw.http_addr, gw.log_path.clone())
++        };
++        let t0 = Instant::now();
++        let ready_url = format!("http://{}/health/ready", http_addr);
++        loop {
++            if t0.elapsed() > budget {
++                return Err(format!("gateway {node_id} not ready within {budget:?}\n{}", tail_of_file(&log_path, 30)));
++            }
++            if let Some(gw) = self.gateways.get_mut(&node_id) {
++                if let Ok(Some(status)) = gw.child.try_wait() {
++                    return Err(format!("gateway {node_id} exited with {status}\n{}", tail_of_file(&log_path, 30)));
++                }
++            }
++            if let Ok(resp) = self.client.get(&ready_url).send().await {
++                if resp.status() == StatusCode::OK {
++                    return Ok(());
++                }
++            }
++            tokio::time::sleep(Duration::from_millis(50)).await;
++        }
++    }
++
++    /// Raw HTTP DELETE that does NOT surface a reqwest error as a test failure and has its own
++    /// client-side timeout: returns `Some(status)` or `None` when the connection broke / timed out.
++    pub async fn http_delete_with_timeout(&self, node_id: u8, path: &str, timeout: Duration) -> Option<StatusCode> {
++        let gw = self.gateways.get(&node_id)?;
++        let norm = if path.starts_with('/') { path.to_string() } else { format!("/{}", path) };
++        let url = format!("http://{}/api/v1/cache{}", gw.http_addr, norm);
++        match self.client.delete(&url).timeout(timeout).send().await {
++            Ok(r) => Some(r.status()),
++            Err(_) => None,
++        }
++    }
++
+     pub fn origin(&self) -> &VersionedMockOrigin {
+         &self.origin
+     }
+--- a/tests/integration/cluster_harness_controls_tests.rs
++++ b/tests/integration/cluster_harness_controls_tests.rs
+@@ -241,6 +241,7 @@
+             extra_env: vec![("PHANTOM_NODE_KEY".to_string(), bogus_key.display().to_string())],
+             startup_timeout: Duration::from_secs(12),
+             wait_for_prewarm: false,
++            ..ClusterOptions::default()
+         },
+     )
+     .await;
+--- /dev/null
++++ b/tests/m3_invalidation_durability_tests.rs
+@@ -0,0 +1,415 @@
++//! M3 invalidation durability: multi-process kill / restart tests (INVESTIGATION + PROPOSED).
++//!
++//! Defect under test: an invalidation that the issuing gateway accepted (DELETE -> 204) but that a
++//! peer has not acknowledged yet exists only in the issuer's memory. If the issuer dies, the peer
++//! keeps serving the stale entry until it expires. See docs/research/m3_durability/.
++//!
++//! Real `phantom-cache-demo` gateway processes, mTLS cluster, loopback, fault proxies on every link.
++//! Scenario (3 gateways: 1 = issuer G, 2 = victim B whose link from G is blackholed, 3 = primary):
++//!   warm /key on all three -> mutate origin -> blackhole G->B -> DELETE /key via G (expects 204;
++//!   the key is chosen so its canonical primary is node 3) -> [kill / stop G] -> heal -> [restart G]
++//!   -> poll B: does it ever stop serving the stale version?
++//!
++//! The origin advertises `max-age=120`, so a stale entry on B outlives the observation window; the
++//! tests stop observing after `OBSERVE` and never wait for expiry.
++//!
++//! Tests marked `#[ignore]` need the proposed source patch (opt-in durable log + shutdown drain).
++//! Run them with `-- --ignored`. All timings are loopback/debug-build characterisations, not
++//! performance claims.
++
++#[path = "support/mod.rs"]
++mod support;
++
++use phantom_cache_demo::dist::node::{NodeState, VirtualNode};
++use phantom_cache_demo::dist::router::RendezvousRouter;
++use std::sync::Arc;
++use std::time::{Duration, Instant};
++use support::cluster_harness::{ClusterHarness, ClusterOptions};
++use support::fault_proxy::FaultMode;
++
++const ISSUER: u8 = 1;
++const VICTIM: u8 = 2;
++const PRIMARY: u8 = 3;
++/// How long B is observed after the issuer is back (repair tick is 250 ms; 10 s is 40 ticks).
++const OBSERVE: Duration = Duration::from_secs(10);
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++enum Stop {
++    /// Negative control: the issuer keeps running.
++    None,
++    /// TerminateProcess / SIGKILL.
++    Kill9,
++    /// CTRL_BREAK / SIGTERM, then wait for the process to exit by itself.
++    Graceful,
++}
++
++#[derive(Debug)]
++struct Outcome {
++    delete_status: u16,
++    delete_latency: Duration,
++    victim_version_before: Option<u64>,
++    primary_version_after_delete: Option<u64>,
++    /// `Some(t)` = B served the fresh version `t` after the heal / restart; `None` = still stale
++    /// when observation stopped.
++    converged_after: Option<Duration>,
++    stale_polls: u32,
++    stop_detail: String,
++    gateway1_log: String,
++}
++
++/// Canonical key (by scan) whose rendezvous primary among nodes {1,2,3} is `want`.
++fn path_with_primary(want: u8, tag: &str) -> String {
++    let nodes: Vec<Arc<VirtualNode>> = (1u8..=3)
++        .map(|i| {
++            let n = Arc::new(VirtualNode::new(i));
++            n.set_state(NodeState::Active);
++            n
++        })
++        .collect();
++    let router = RendezvousRouter::new(nodes);
++    for i in 0..5000 {
++        let path = format!("/{tag}_{i}");
++        if router.route_key(&format!("__default__:{path}")).map(|n| n.node_id) == Some(want) {
++            router.stop();
++            return path;
++        }
++    }
++    router.stop();
++    panic!("no key with primary {want}");
++}
++
++struct Scenario {
++    stop: Stop,
++    /// Per-node log path env (PHANTOM_INVALIDATION_LOG_PATH) - only honoured by the patched binary.
++    durable_log: bool,
++    /// Heal the G->B link right after the DELETE (before stopping G) instead of after.
++    heal_before_stop: bool,
++    /// Graceful only: heal the G->B link this many ms AFTER the stop request (while G drains).
++    heal_during_stop_ms: Option<u64>,
++    /// PHANTOM_SHUTDOWN_DRAIN_MS for all gateways (patched binary only; ignored by the original).
++    drain_ms: Option<u64>,
++    tag: &'static str,
++}
++
++async fn run(s: Scenario) -> Result<Outcome, String> {
++    let mut per_node_env = Vec::new();
++    if s.durable_log {
++        per_node_env.push(("PHANTOM_INVALIDATION_LOG_PATH".to_string(), "{dir}/inval_{id}.log".to_string()));
++    }
++    if let Some(ms) = s.drain_ms {
++        per_node_env.push(("PHANTOM_SHUTDOWN_DRAIN_MS".to_string(), ms.to_string()));
++    }
++    let opts = ClusterOptions {
++        with_proxies: true,
++        origin_max_age_secs: Some(120),
++        per_node_env,
++        startup_timeout: Duration::from_secs(20),
++        ..ClusterOptions::default()
++    };
++    let mut h = ClusterHarness::start_with_options(&[ISSUER, VICTIM, PRIMARY], opts)
++        .await
++        .map_err(|e| e.to_string())?;
++    h.warm_invalidation_paths().await?;
++    let path = path_with_primary(PRIMARY, s.tag);
++
++    // 1. warm the key on every gateway (version 1)
++    for n in [ISSUER, VICTIM, PRIMARY] {
++        let (st, _b, _c, ver) = h.http_get(n, &path).await.map_err(|e| e.to_string())?;
++        if st != 200 || ver != Some(1) {
++            return Err(format!("warm-up GET on node {n}: status {st} version {ver:?}"));
++        }
++    }
++    // 2. origin changes, then the issuer's link to B is blackholed
++    let v = h.origin().mutate_key(&path, "v2");
++    assert_eq!(v, 2);
++    h.set_link_mode(ISSUER, VICTIM, FaultMode::Blackhole).await;
++
++    // 3. DELETE via the issuer: purge local, primary (3) acks, B is queued asynchronously
++    let t0 = Instant::now();
++    let status = h.http_delete(ISSUER, &path).await.map_err(|e| e.to_string())?;
++    let delete_latency = t0.elapsed();
++    let delete_status = status.as_u16();
++    if delete_status != 204 {
++        return Err(format!("DELETE via issuer returned {delete_status}, expected 204"));
++    }
++    if s.heal_before_stop {
++        h.set_link_mode(ISSUER, VICTIM, FaultMode::Normal).await;
++    }
++
++    // 4. stop the issuer right away (inside B's ~1.4 s delivery-retry window)
++    let mut stop_detail = "issuer kept running".to_string();
++    match s.stop {
++        Stop::None => {}
++        Stop::Kill9 => {
++            h.kill_node(ISSUER).await?;
++            stop_detail = "issuer killed (TerminateProcess/SIGKILL)".into();
++        }
++        Stop::Graceful => {
++            if let Some(ms) = s.heal_during_stop_ms {
++                h.request_graceful_stop(ISSUER).map_err(|e| format!("GRACEFUL_STOP_NOT_FEASIBLE: {e}"))?;
++                tokio::time::sleep(Duration::from_millis(ms)).await;
++                h.set_link_mode(ISSUER, VICTIM, FaultMode::Normal).await;
++                stop_detail = match h.wait_node_exit(ISSUER, Duration::from_secs(15)).await {
++                    Ok(status) => format!("issuer exited by itself: {status} (link healed {ms} ms after the stop request)"),
++                    Err(e) => return Err(format!("issuer did not exit: {e}")),
++                };
++            } else {
++                stop_detail = match h.graceful_stop_node(ISSUER, Duration::from_secs(15)).await {
++                    Ok(status) => format!("issuer exited by itself: {status}"),
++                    Err(e) => return Err(format!("GRACEFUL_STOP_NOT_FEASIBLE: {e}")),
++                };
++            }
++        }
++    }
++    h.set_link_mode(ISSUER, VICTIM, FaultMode::Normal).await;
++    let victim_version_before = {
++        // peek WITHOUT refilling: B has not been told anything, so this is a HIT of version 1
++        let (_s, _b, _c, ver) = h.http_get(VICTIM, &path).await.map_err(|e| e.to_string())?;
++        ver
++    };
++    // the primary was invalidated synchronously: it must serve the fresh version
++    let primary_version_after_delete = h
++        .http_get(PRIMARY, &path)
++        .await
++        .map_err(|e| e.to_string())?
++        .3;
++
++    // 5. restart the issuer (identical ports / identity / env)
++    if s.stop != Stop::None {
++        h.restart_node(ISSUER, &[]).await?;
++    }
++
++    // 6. observe B
++    let t_obs = Instant::now();
++    let mut stale_polls = 0u32;
++    let mut converged_after = None;
++    // B already refilled in the peek above only if it was invalidated by then
++    if victim_version_before == Some(2) {
++        converged_after = Some(Duration::ZERO);
++    }
++    while converged_after.is_none() && t_obs.elapsed() < OBSERVE {
++        match h.http_get(VICTIM, &path).await {
++            Ok((st, _b, _c, Some(2))) if st == 200 => converged_after = Some(t_obs.elapsed()),
++            Ok((st, _b, _c, Some(1))) if st == 200 => stale_polls += 1,
++            _ => {}
++        }
++        if converged_after.is_none() {
++            tokio::time::sleep(Duration::from_millis(100)).await;
++        }
++    }
++    let mut gateway1_log = h
++        .gateway_log_lines_containing(ISSUER, &["[invalidation-log]", "[shutdown]", "restart of node"])
++        .join("\n");
++    gateway1_log.push_str("\n--- tail ---\n");
++    gateway1_log.push_str(&h.gateway_log_tail(ISSUER, 12));
++    Ok(Outcome {
++        delete_status,
++        delete_latency,
++        victim_version_before,
++        primary_version_after_delete,
++        converged_after,
++        stale_polls,
++        stop_detail,
++        gateway1_log,
++    })
++}
++
++fn report(name: &str, o: &Outcome) {
++    eprintln!(
++        "[M3][{name}] delete={} ({:?}) victim_before_restart=v{:?} primary_after_delete=v{:?} stop='{}' converged_after={:?} stale_polls={}",
++        o.delete_status,
++        o.delete_latency,
++        o.victim_version_before,
++        o.primary_version_after_delete,
++        o.stop_detail,
++        o.converged_after,
++        o.stale_polls
++    );
++    for line in o.gateway1_log.lines().filter(|l| {
++        l.contains("invalidation-log") || l.contains("[shutdown]") || l.contains("restart of node")
++    }) {
++        eprintln!("[M3][{name}] issuer log: {line}");
++    }
++}
++
++// ---------------------------------------------------------------------------------------------
++// Safe on the CURRENT code (no source change needed)
++// ---------------------------------------------------------------------------------------------
++
++/// Negative control: with the issuer alive, B converges once the link heals (retry + repair ledger).
++#[tokio::test]
++async fn m3_negative_control_issuer_alive_peer_converges() {
++    let o = run(Scenario { stop: Stop::None, durable_log: false, heal_before_stop: false, heal_during_stop_ms: None, drain_ms: None, tag: "m3nc" })
++        .await
++        .expect("scenario");
++    report("negative-control", &o);
++    assert_eq!(o.primary_version_after_delete, Some(2), "primary must be invalidated synchronously");
++    assert!(
++        o.converged_after.is_some(),
++        "control failed: B still stale {:?} after the link healed with the issuer alive: {o:?}",
++        OBSERVE
++    );
++}
++
++/// CHARACTERISATION of the defect on the current code (no durable log): after the issuer is killed
++/// with an unacknowledged invalidation and restarted, B keeps serving the stale entry for the whole
++/// observation window (and, with max-age=120, until the entry expires). This test PASSES while the
++/// defect exists and starts failing when it is fixed by default.
++#[tokio::test]
++async fn m3_kill9_without_log_characterises_lost_invalidation() {
++    let o = run(Scenario { stop: Stop::Kill9, durable_log: false, heal_before_stop: false, heal_during_stop_ms: None, drain_ms: None, tag: "m3k0" })
++        .await
++        .expect("scenario");
++    report("kill9-no-log", &o);
++    assert_eq!(o.delete_status, 204);
++    assert_eq!(o.victim_version_before, Some(1), "B must still be stale right after the kill");
++    assert_eq!(o.primary_version_after_delete, Some(2));
++    assert!(
++        o.converged_after.is_none(),
++        "defect NOT reproduced: B converged after {:?}; some protection recovered the invalidation: {o:?}",
++        o.converged_after
++    );
++    assert!(o.stale_polls >= 50, "B must have been observed stale for the whole window ({} polls)", o.stale_polls);
++}
++
++// ---------------------------------------------------------------------------------------------
++// Need the proposed source patch (run with -- --ignored)
++// ---------------------------------------------------------------------------------------------
++
++/// The CORRECT behaviour: kill -9 of the issuer with an unacknowledged invalidation, restart, B must
++/// converge within the observation window. Fails on the current code (set `M3_FORCE_LOG_OFF=1` to run
++/// it with the log disabled and obtain the failing-before evidence on the patched binary).
++#[tokio::test]
++#[ignore = "requires the proposed durable-log source patch (PHANTOM_INVALIDATION_LOG_PATH)"]
++async fn m3_kill9_with_log_peer_converges_after_issuer_restart() {
++    let durable = std::env::var("M3_FORCE_LOG_OFF").is_err();
++    let o = run(Scenario { stop: Stop::Kill9, durable_log: durable, heal_before_stop: false, heal_during_stop_ms: None, drain_ms: None, tag: "m3k1" })
++        .await
++        .expect("scenario");
++    report(if durable { "kill9-with-log" } else { "kill9-log-forced-off" }, &o);
++    assert_eq!(o.victim_version_before, Some(1));
++    assert!(
++        o.converged_after.is_some(),
++        "B still served the stale entry {:?} after the issuer restarted (stale polls {}): the owed invalidation was lost\nissuer log tail:\n{}",
++        OBSERVE,
++        o.stale_polls,
++        o.gateway1_log
++    );
++}
++
++/// Graceful stop while B is still blackholed; the link heals 400 ms AFTER the stop request. The queued retry must be delivered
++/// by the shutdown drain before the process exits (the issuer is NOT restarted with a log here). With `M3_FORCE_DRAIN_OFF=1` (or the
++/// original binary) the same scenario loses it: the baseline for the drain.
++#[tokio::test]
++#[ignore = "requires the proposed shutdown-drain source patch; needs a console on Windows (CTRL_BREAK)"]
++async fn m3_graceful_stop_drain_delivers_inflight_invalidation() {
++    let drain = if std::env::var("M3_FORCE_DRAIN_OFF").is_ok() { 0 } else { 3000 };
++    let r = run(Scenario { stop: Stop::Graceful, durable_log: false, heal_before_stop: false, heal_during_stop_ms: Some(400), drain_ms: Some(drain), tag: "m3g1" }).await;
++    let o = match r {
++        Err(e) if e.starts_with("GRACEFUL_STOP_NOT_FEASIBLE") => {
++            eprintln!("[M3][graceful] {e}");
++            return;
++        }
++        other => other.expect("scenario"),
++    };
++    report(&format!("graceful-drain{drain}"), &o);
++    if drain > 0 {
++        assert!(o.converged_after.is_some(), "drain did not deliver the in-flight invalidation: {o:?}\n{}", o.gateway1_log);
++    } else {
++        eprintln!("[M3][graceful] drain disabled: converged_after={:?} (baseline)", o.converged_after);
++    }
++}
++
++/// Graceful stop while B stays unreachable: the drain deadline expires, the owed invalidation stays
++/// in the durable log, and the restarted gateway delivers it.
++#[tokio::test]
++#[ignore = "requires the proposed durable-log + drain source patch; needs a console on Windows"]
++async fn m3_graceful_stop_deadline_expires_log_keeps_debt() {
++    let r = run(Scenario { stop: Stop::Graceful, durable_log: true, heal_before_stop: false, heal_during_stop_ms: None, drain_ms: Some(1000), tag: "m3g2" }).await;
++    let o = match r {
++        Err(e) if e.starts_with("GRACEFUL_STOP_NOT_FEASIBLE") => {
++            eprintln!("[M3][graceful] {e}");
++            return;
++        }
++        other => other.expect("scenario"),
++    };
++    report("graceful-deadline-with-log", &o);
++    assert!(o.converged_after.is_some(), "owed invalidation lost across graceful restart: {o:?}\n{}", o.gateway1_log);
++}
++
++// ---------------------------------------------------------------------------------------------
++// Exploratory DELETE latency overhead (debug build, loopback, one machine). NOT a benchmark.
++// ---------------------------------------------------------------------------------------------
++
++async fn delete_latencies(env: Vec<(String, String)>, n: usize, tag: &str) -> Vec<f64> {
++    let opts = ClusterOptions {
++        per_node_env: env,
++        startup_timeout: Duration::from_secs(20),
++        ..ClusterOptions::default()
++    };
++    let h = ClusterHarness::start_with_options(&[ISSUER, VICTIM, PRIMARY], opts).await.expect("cluster");
++    h.warm_invalidation_paths().await.expect("warm");
++    // 50 unmeasured warm-up deletes, then n measured, all through the issuer
++    let mut out = Vec::with_capacity(n);
++    for i in 0..(50 + n) {
++        let key = format!("/lat_{tag}_{i}");
++        let t = Instant::now();
++        let st = h.http_delete(ISSUER, &key).await.expect("delete");
++        let dt = t.elapsed();
++        assert_eq!(st.as_u16(), 204);
++        if i >= 50 {
++            out.push(dt.as_secs_f64() * 1000.0);
++        }
++    }
++    out
++}
++
++fn pct(sorted: &[f64], p: f64) -> f64 {
++    sorted[((sorted.len() as f64 - 1.0) * p).round() as usize]
++}
++
++#[tokio::test]
++#[ignore = "exploratory measurement; needs the proposed durable-log patch for the log-on rows"]
++async fn m3_delete_latency_overhead_exploratory() {
++    let n: usize = std::env::var("M3_LAT_N").ok().and_then(|v| v.parse().ok()).unwrap_or(300);
++    let reps: usize = std::env::var("M3_LAT_REPS").ok().and_then(|v| v.parse().ok()).unwrap_or(3);
++    let path = |p: &str| ("PHANTOM_INVALIDATION_LOG_PATH".to_string(), p.to_string());
++    let fsync = |m: &str| ("PHANTOM_INVALIDATION_LOG_FSYNC".to_string(), m.to_string());
++    let configs: Vec<(&str, Vec<(String, String)>)> = vec![
++        ("log-off", vec![]),
++        ("log-on-fsync-never", vec![path("{dir}/inval_{id}.log"), fsync("never")]),
++        ("log-on-fsync-interval", vec![path("{dir}/inval_{id}.log"), fsync("interval")]),
++        ("log-on-fsync-always", vec![path("{dir}/inval_{id}.log"), fsync("always")]),
++    ];
++    // interleave repetitions so slow drift hits all configurations alike
++    let mut results: Vec<(&str, Vec<f64>)> = configs.iter().map(|(n, _)| (*n, Vec::new())).collect();
++    for rep in 0..reps {
++        for (idx, (name, env)) in configs.iter().enumerate() {
++            let tag = format!("{}{}", idx, rep);
++            let v = delete_latencies(env.clone(), n, &tag).await;
++            let mut s = v.clone();
++            s.sort_by(|a, b| a.partial_cmp(b).unwrap());
++            eprintln!(
++                "[M3-LAT] rep={rep} cfg={name} n={} p50={:.3}ms p95={:.3}ms p99={:.3}ms max={:.3}ms mean={:.3}ms",
++                s.len(),
++                pct(&s, 0.50),
++                pct(&s, 0.95),
++                pct(&s, 0.99),
++                s.last().unwrap(),
++                s.iter().sum::<f64>() / s.len() as f64
++            );
++            results[idx].1.extend(v);
++        }
++    }
++    for (name, v) in &mut results {
++        v.sort_by(|a, b| a.partial_cmp(b).unwrap());
++        eprintln!(
++            "[M3-LAT-POOLED] cfg={name} n={} p50={:.3}ms p95={:.3}ms p99={:.3}ms mean={:.3}ms",
++            v.len(),
++            pct(v, 0.50),
++            pct(v, 0.95),
++            pct(v, 0.99),
++            v.iter().sum::<f64>() / v.len() as f64
++        );
++    }
++}
+--- /dev/null
++++ b/tests/m3_crash_point_tests.rs
+@@ -0,0 +1,595 @@
++//! M3 crash-point test matrix (K1-K21) for the opt-in durable invalidation log.
++//!
++//! Compiled only when the test target is built with `RUSTFLAGS="--cfg m3_failpoints"` (no cargo
++//! feature, so Cargo.toml is not edited; in a default build this file is an empty test target).
++//! Run (separate target dir, because the flag changes every crate's fingerprint):
++//! `RUSTFLAGS="--cfg m3_failpoints" CARGO_TARGET_DIR=<dir> cargo test -j 1 --test m3_crash_point_tests -- --test-threads=1 --nocapture`.
++//! The cfg compiles named crash points (`dist::router::durable_log::failpoint`) into the gateway: a
++//! gateway whose environment names a point in `PHANTOM_M3_FAILPOINT` terminates itself there with
++//! exit code 137 and no shutdown path (closest in-process equivalent of kill -9 at an exact code
++//! location). Without the cfg the points are empty functions.
++//!
++//! Every test names the property it can falsify. Method: real `phantom-cache-demo` processes, mTLS
++//! cluster, loopback, a fault proxy on every link, an origin advertising `max-age=120` (so a stale
++//! entry outlives every observation window). Scenario (3 gateways unless stated): 1 = issuer G,
++//! 2 = victim B (G->B link blackholed), 3 = canonical primary of the key (G's synchronous leg works).
++//!
++//! Results are loopback / debug build / single Windows host. Not covered here (see the matrix doc):
++//! K18 power loss, K19 Linux, K20 Windows service stop, real clock steps (K16 is a unit test).
++
++#![allow(unexpected_cfgs)]
++#![cfg(m3_failpoints)]
++
++#[path = "support/mod.rs"]
++mod support;
++
++use phantom_cache_demo::dist::node::{NodeState, VirtualNode};
++use phantom_cache_demo::dist::router::RendezvousRouter;
++use std::sync::Arc;
++use std::time::{Duration, Instant};
++use support::cluster_harness::{ClusterHarness, ClusterOptions};
++use support::fault_proxy::FaultMode;
++
++const G: u8 = 1; // issuer
++const B: u8 = 2; // victim
++const P: u8 = 3; // canonical primary
++const A: u8 = 4; // second, reachable peer (K6)
++const OBSERVE: Duration = Duration::from_secs(10);
++
++/// The tests are heavy (3-4 gateway processes each) and their observation windows are wall-clock:
++/// within this binary they run one at a time even when the harness runs tests in parallel.
++static SERIAL: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
++
++/// `n` distinct paths whose canonical primary among nodes 1..=node_count is `want`.
++fn paths_with_primary(want: u8, node_count: u8, tag: &str, n: usize) -> Vec<String> {
++    let nodes: Vec<Arc<VirtualNode>> = (1..=node_count)
++        .map(|i| {
++            let v = Arc::new(VirtualNode::new(i));
++            v.set_state(NodeState::Active);
++            v
++        })
++        .collect();
++    let router = RendezvousRouter::new(nodes);
++    let mut out = Vec::new();
++    for i in 0..200_000 {
++        let path = format!("/{tag}_{i}");
++        if router.route_key(&format!("__default__:{path}")).map(|x| x.node_id) == Some(want) {
++            out.push(path);
++            if out.len() == n {
++                break;
++            }
++        }
++    }
++    router.stop();
++    assert_eq!(out.len(), n, "not enough keys with primary {want}");
++    out
++}
++
++async fn start(node_ids: &[u8], per_node: Vec<(String, String)>) -> ClusterHarness {
++    let mut env = vec![("PHANTOM_INVALIDATION_LOG_PATH".to_string(), "{dir}/inval_{id}.log".to_string())];
++    env.extend(per_node);
++    let opts = ClusterOptions {
++        with_proxies: true,
++        origin_max_age_secs: Some(120),
++        per_node_env: env,
++        startup_timeout: Duration::from_secs(25),
++        ..ClusterOptions::default()
++    };
++    let h = ClusterHarness::start_with_options(node_ids, opts).await.expect("cluster start");
++    h.warm_invalidation_paths().await.expect("warm paths");
++    h
++}
++
++fn s(k: &str, v: &str) -> (String, String) {
++    (k.to_string(), v.to_string())
++}
++
++/// Restarts the issuer with the failpoint `name` armed (and `extra` env), then warms nothing.
++async fn arm(h: &mut ClusterHarness, name: &str, extra: &[(String, String)]) {
++    // Let the warm-up DELETEs' fan-out be acknowledged and logged first; otherwise the armed
++    // restart would replay a leftover warm-up debt and could hit the failpoint during boot.
++    tokio::time::sleep(Duration::from_millis(1500)).await;
++    h.kill_node(G).await.expect("kill for arming");
++    let mut env = vec![s("PHANTOM_M3_FAILPOINT", name)];
++    env.extend(extra.iter().cloned());
++    h.restart_node(G, &env).await.expect("armed restart");
++}
++
++async fn disarm_restart(h: &mut ClusterHarness) {
++    h.restart_node(G, &[s("PHANTOM_M3_FAILPOINT", "")]).await.expect("disarmed restart");
++}
++
++async fn warm_all(h: &ClusterHarness, path: &str, nodes: &[u8]) {
++    for &n in nodes {
++        let (st, _b, _c, ver) = h.http_get(n, path).await.expect("warm get");
++        assert!(st == 200 && ver == Some(1), "warm-up GET on node {n}: {st} v{ver:?}");
++    }
++}
++
++async fn version_on(h: &ClusterHarness, node: u8, path: &str) -> Option<u64> {
++    h.http_get(node, path).await.ok().and_then(|r| r.3)
++}
++
++/// Polls `node` until it serves version 2; `None` = still stale (or unreachable) after `within`.
++async fn wait_v2(h: &ClusterHarness, node: u8, path: &str, within: Duration) -> Option<Duration> {
++    let t = Instant::now();
++    while t.elapsed() < within {
++        if let Ok((200, _b, _c, Some(2))) = h.http_get(node, path).await.map(|r| (r.0.as_u16(), r.1, r.2, r.3)) {
++            return Some(t.elapsed());
++        }
++        tokio::time::sleep(Duration::from_millis(100)).await;
++    }
++    None
++}
++
++/// All lines of the issuer's log (all incarnations) that report a replay.
++fn replay_lines(h: &ClusterHarness) -> Vec<String> {
++    h.gateway_log_lines_containing(G, &["replay outcome"])
++}
++
++fn owed_of(line: &str) -> Option<usize> {
++    // "... replay outcome X, N records, M owed invalidation(s) re-queued, K aged out"
++    let idx = line.find(" owed invalidation")?;
++    let head = &line[..idx];
++    head.rsplit(", ").next()?.trim().parse().ok()
++}
++
++fn last_replay(h: &ClusterHarness) -> (String, usize) {
++    let l = replay_lines(h).pop().expect("no replay line in the issuer log");
++    let n = owed_of(&l).unwrap_or_else(|| panic!("cannot parse owed count from: {l}"));
++    (l, n)
++}
++
++fn log_file(h: &ClusterHarness) -> std::path::PathBuf {
++    h.pki.temp_dir.join("inval_1.log")
++}
++
++struct Crash {
++    h: ClusterHarness,
++    path: String,
++    delete_status: Option<u16>,
++    issuer_exit: Result<String, String>,
++}
++
++/// The common crash scenario: arm `fp` on the issuer, warm the key everywhere, change the origin,
++/// blackhole G->B, DELETE via G, wait for the issuer to die at the failpoint, heal and restart it
++/// WITHOUT the failpoint.
++async fn crash_at(fp: &str, tag: &str, extra: &[(String, String)]) -> Crash {
++    let mut h = start(&[G, B, P], vec![]).await;
++    arm(&mut h, fp, extra).await;
++    let path = paths_with_primary(P, 3, tag, 1).remove(0);
++    warm_all(&h, &path, &[G, B, P]).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, B, FaultMode::Blackhole).await;
++    let delete_status = h.http_delete_with_timeout(G, &path, Duration::from_secs(10)).await.map(|c| c.as_u16());
++    let issuer_exit = h.wait_node_exit(G, Duration::from_secs(10)).await;
++    h.set_link_mode(G, B, FaultMode::Normal).await;
++    disarm_restart(&mut h).await;
++    Crash { h, path, delete_status, issuer_exit }
++}
++
++fn assert_exit_137(c: &Crash) {
++    let e = c.issuer_exit.as_ref().unwrap_or_else(|e| panic!("issuer did not die at the failpoint: {e}"));
++    assert!(e.contains("137"), "issuer should have exited with 137 at the failpoint, got {e}");
++}
++
++// ------------------------------------------------------------------------------------------
++// K1: crash after the local purge, before the primary leg. No 204 => no promise.
++// Falsifies: "a DELETE that never got a 204 leaves a durable debt / is silently half-applied".
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k01_crash_after_local_purge_no_204_no_debt() {
++    let _serial = SERIAL.lock().await;
++    let c = crash_at("delete.after_local_purge", "k01", &[]).await;
++    assert_exit_137(&c);
++    assert_eq!(c.delete_status, None, "client must not have received a status");
++    let (line, owed) = last_replay(&c.h);
++    eprintln!("[K1] {line}");
++    assert_eq!(owed, 0, "no 204 and no fan-out => nothing may be owed");
++    // the documented boundary: origin changed, nobody was told, peers stay stale until retry/expiry
++    tokio::time::sleep(Duration::from_secs(2)).await;
++    assert_eq!(version_on(&c.h, B, &c.path).await, Some(1), "B stale (no promise was made)");
++    assert_eq!(version_on(&c.h, P, &c.path).await, Some(1), "primary was never told either");
++    // recovery path = the client's retry
++    assert_eq!(c.h.http_delete(G, &c.path).await.unwrap().as_u16(), 204);
++    assert!(wait_v2(&c.h, B, &c.path, OBSERVE).await.is_some(), "retry of the DELETE must converge B");
++}
++
++// ------------------------------------------------------------------------------------------
++// K2: crash after the primary acknowledged, before the owed set is made durable. No 204.
++// Falsifies: "the primary applied but a debt exists for peers that were never promised".
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k02_crash_after_primary_ack_before_intent() {
++    let _serial = SERIAL.lock().await;
++    let c = crash_at("router.after_primary_ack", "k02", &[]).await;
++    assert_exit_137(&c);
++    assert_eq!(c.delete_status, None);
++    let (line, owed) = last_replay(&c.h);
++    eprintln!("[K2] {line}");
++    assert_eq!(owed, 0);
++    assert_eq!(version_on(&c.h, P, &c.path).await, Some(2), "primary applied the invalidation synchronously");
++    tokio::time::sleep(Duration::from_secs(2)).await;
++    assert_eq!(version_on(&c.h, B, &c.path).await, Some(1), "B stale: no promise was made");
++    assert_eq!(c.h.http_delete(G, &c.path).await.unwrap().as_u16(), 204);
++    assert!(wait_v2(&c.h, B, &c.path, OBSERVE).await.is_some(), "retry must converge B");
++}
++
++// ------------------------------------------------------------------------------------------
++// K3: crash after write_all, before sync_data. A PROCESS crash keeps the bytes (OS page cache).
++// Falsifies: "a crash between write and fsync leaves a log that cannot be opened or is treated as
++// corrupt (full-flush fallback)". Either 0 or 1 owed debts is acceptable here (no 204 was sent);
++// an OS crash / power loss variant is NOT testable in userland (K18).
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k03_crash_after_write_before_fsync() {
++    let _serial = SERIAL.lock().await;
++    let c = crash_at("log.after_write_before_sync", "k03", &[]).await;
++    assert_exit_137(&c);
++    assert_eq!(c.delete_status, None, "the 204 must not precede the fsync");
++    let (line, owed) = last_replay(&c.h);
++    eprintln!("[K3] {line}");
++    assert!(!line.contains("CorruptFallback") && !line.contains("LostFallback"), "log must open cleanly: {line}");
++    assert!(owed <= 1);
++    if owed == 1 {
++        assert!(wait_v2(&c.h, B, &c.path, OBSERVE).await.is_some(), "a replayed debt must converge B");
++    }
++}
++
++// ------------------------------------------------------------------------------------------
++// K4: crash after the fsync, before dispatch_fanout (the 204 was never sent). The debt is durable.
++// Falsifies: "an intent that reached the disk is not replayed after a restart".
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k04_crash_after_fsync_before_dispatch_replays() {
++    let _serial = SERIAL.lock().await;
++    let c = crash_at("router.after_durable_before_dispatch", "k04", &[]).await;
++    assert_exit_137(&c);
++    assert_eq!(c.delete_status, None);
++    let (line, owed) = last_replay(&c.h);
++    eprintln!("[K4] {line}");
++    assert_eq!(owed, 1, "the durable intent for B must be replayed: {line}");
++    assert!(wait_v2(&c.h, B, &c.path, OBSERVE).await.is_some(), "B must converge from the replayed debt");
++}
++
++// ------------------------------------------------------------------------------------------
++// K5: kill -9 AFTER the 204 while B is unreachable (the original reproduction). Log ON.
++// Falsifies: "an accepted DELETE whose fan-out is unacknowledged survives an issuer kill".
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k05_kill9_after_204_replays() {
++    let _serial = SERIAL.lock().await;
++    let mut h = start(&[G, B, P], vec![]).await;
++    let path = paths_with_primary(P, 3, "k05", 1).remove(0);
++    warm_all(&h, &path, &[G, B, P]).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, B, FaultMode::Blackhole).await;
++    assert_eq!(h.http_delete(G, &path).await.unwrap().as_u16(), 204);
++    h.kill_node(G).await.unwrap();
++    assert_eq!(version_on(&h, B, &path).await, Some(1), "B stale right after the kill");
++    h.set_link_mode(G, B, FaultMode::Normal).await;
++    h.restart_node(G, &[]).await.unwrap();
++    let (line, owed) = last_replay(&h);
++    eprintln!("[K5] {line}");
++    assert_eq!(owed, 1);
++    assert!(wait_v2(&h, B, &path, OBSERVE).await.is_some(), "B must converge after the replay");
++}
++
++// ------------------------------------------------------------------------------------------
++// K6: some peers acknowledged, the ack record was not written (crash right after delivery).
++// 4 nodes: G issuer, P primary, B blackholed, A reachable.
++// Falsifies: "replaying an already-delivered invalidation can leave a peer serving old data
++// (replay racing / out-of-order vs fencing and epochs)": A must serve v2 throughout, B converges.
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k06_crash_between_peer_ack_and_ack_record_duplicate_replay_is_harmless() {
++    let _serial = SERIAL.lock().await;
++    let mut h = start(&[G, B, P, A], vec![]).await;
++    arm(&mut h, "router.worker.after_delivery", &[]).await;
++    let path = paths_with_primary(P, 4, "k06", 1).remove(0);
++    warm_all(&h, &path, &[G, B, P, A]).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, B, FaultMode::Blackhole).await;
++    let st = h.http_delete_with_timeout(G, &path, Duration::from_secs(10)).await;
++    eprintln!("[K6] DELETE status at the crash: {st:?}");
++    let exit = h.wait_node_exit(G, Duration::from_secs(10)).await;
++    assert!(exit.as_ref().map(|e| e.contains("137")).unwrap_or(false), "issuer must die after A's delivery: {exit:?}");
++    h.set_link_mode(G, B, FaultMode::Normal).await;
++    assert!(wait_v2(&h, A, &path, Duration::from_secs(5)).await.is_some(), "A was delivered before the crash");
++    disarm_restart(&mut h).await;
++    let (line, owed) = last_replay(&h);
++    eprintln!("[K6] {line}");
++    assert_eq!(owed, 2, "both A (lost ack record) and B are owed again: {line}");
++    let t = Instant::now();
++    let mut b_ok = false;
++    while t.elapsed() < OBSERVE {
++        assert_ne!(version_on(&h, A, &path).await, Some(1), "A served the OLD version during/after a duplicate replay");
++        if version_on(&h, B, &path).await == Some(2) {
++            b_ok = true;
++            break;
++        }
++        tokio::time::sleep(Duration::from_millis(100)).await;
++    }
++    assert!(b_ok, "B must converge");
++    assert_eq!(version_on(&h, A, &path).await, Some(2));
++}
++
++// ------------------------------------------------------------------------------------------
++// K9: crash mid-compaction (tmp written, rename not done). K10: crash between rename and reopen.
++// Falsifies: "a crash at either compaction step loses or corrupts the owed set".
++// Compaction is forced after every batch by PHANTOM_M3_TEST_COMPACT_MIN_BYTES=1.
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k09_crash_mid_compaction_tmp_written() {
++    let _serial = SERIAL.lock().await;
++    let c = crash_at("log.compact.after_tmp", "k09", &[s("PHANTOM_M3_TEST_COMPACT_MIN_BYTES", "1")]).await;
++    assert_exit_137(&c);
++    let (line, owed) = last_replay(&c.h);
++    eprintln!("[K9] delete={:?} {line}", c.delete_status);
++    assert!(!line.contains("CorruptFallback") && !line.contains("LostFallback"), "{line}");
++    assert_eq!(owed, 1, "the old (complete) file still holds the debt: {line}");
++    assert!(wait_v2(&c.h, B, &c.path, OBSERVE).await.is_some());
++}
++
++#[tokio::test]
++async fn k10_crash_between_rename_and_reopen() {
++    let _serial = SERIAL.lock().await;
++    let c = crash_at("log.compact.after_rename", "k10", &[s("PHANTOM_M3_TEST_COMPACT_MIN_BYTES", "1")]).await;
++    assert_exit_137(&c);
++    let (line, owed) = last_replay(&c.h);
++    eprintln!("[K10] delete={:?} {line}", c.delete_status);
++    assert!(!line.contains("CorruptFallback") && !line.contains("LostFallback"), "{line}");
++    assert_eq!(owed, 1, "the new (complete) file holds the debt: {line}");
++    assert!(wait_v2(&c.h, B, &c.path, OBSERVE).await.is_some());
++}
++
++// ------------------------------------------------------------------------------------------
++// K11: a crash DURING boot replay (twice), then a normal start.
++// Falsifies: "replay is not idempotent across repeated crashes" (debt lost or duplicated into growth).
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k11_crash_during_boot_replay_twice_then_converges() {
++    let _serial = SERIAL.lock().await;
++    let mut h = start(&[G, B, P], vec![]).await;
++    let path = paths_with_primary(P, 3, "k11", 1).remove(0);
++    warm_all(&h, &path, &[G, B, P]).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, B, FaultMode::Blackhole).await;
++    assert_eq!(h.http_delete(G, &path).await.unwrap().as_u16(), 204);
++    h.kill_node(G).await.unwrap();
++    for round in 0..2 {
++        h.spawn_node_raw(G, &[s("PHANTOM_M3_FAILPOINT", "boot.after_replay")]).unwrap();
++        let e = h.wait_node_exit(G, Duration::from_secs(15)).await.expect("armed boot must exit");
++        assert!(e.contains("137"), "round {round}: {e}");
++    }
++    h.set_link_mode(G, B, FaultMode::Normal).await;
++    h.restart_node(G, &[s("PHANTOM_M3_FAILPOINT", "")]).await.unwrap();
++    let lines = replay_lines(&h);
++    for l in &lines {
++        eprintln!("[K11] {l}");
++    }
++    let owed: Vec<usize> = lines.iter().filter_map(|l| owed_of(l)).collect();
++    assert!(owed.len() >= 3 && owed[owed.len() - 3..].iter().all(|n| *n == 1), "each of the 3 boots must replay exactly 1 debt: {owed:?}");
++    assert!(wait_v2(&h, B, &path, OBSERVE).await.is_some());
++}
++
++// ------------------------------------------------------------------------------------------
++// K12 + K22: the owed peer is gone while the issuer restarts (twice); it later rejoins.
++// Falsifies: "a debt for an unreachable peer is dropped/grows, or is never cleared after rejoin".
++// (B's cache is empty after its own restart, so convergence of B itself is trivial; the property
++// is the issuer's debt lifecycle: kept while B is down, cleared after B is delivered to.)
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k12_peer_gone_debt_retained_then_cleared_after_rejoin() {
++    let _serial = SERIAL.lock().await;
++    let mut h = start(&[G, B, P], vec![]).await;
++    let path = paths_with_primary(P, 3, "k12", 1).remove(0);
++    warm_all(&h, &path, &[G, B, P]).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, B, FaultMode::Blackhole).await;
++    assert_eq!(h.http_delete(G, &path).await.unwrap().as_u16(), 204);
++    h.kill_node(G).await.unwrap();
++    h.kill_node(B).await.unwrap(); // B is permanently gone for now
++    h.set_link_mode(G, B, FaultMode::Normal).await;
++    h.restart_node(G, &[]).await.unwrap();
++    assert_eq!(last_replay(&h).1, 1);
++    tokio::time::sleep(Duration::from_secs(4)).await;
++    h.kill_node(G).await.unwrap();
++    h.restart_node(G, &[]).await.unwrap();
++    let (line, owed) = last_replay(&h);
++    eprintln!("[K12] second restart with B still gone: {line}");
++    assert_eq!(owed, 1, "debt must be retained (not dropped, not duplicated) while B is gone");
++    // B rejoins (cold cache)
++    h.restart_node(B, &[]).await.unwrap();
++    let t = Instant::now();
++    let mut cleared = false;
++    while t.elapsed() < Duration::from_secs(25) {
++        h.kill_node(G).await.unwrap();
++        h.restart_node(G, &[]).await.unwrap();
++        if last_replay(&h).1 == 0 {
++            cleared = true;
++            break;
++        }
++        tokio::time::sleep(Duration::from_secs(3)).await;
++    }
++    assert!(cleared, "after B rejoined the debt must be delivered, acknowledged and cleared; last: {:?}", last_replay(&h));
++}
++
++// ------------------------------------------------------------------------------------------
++// K13: torn tail at process level (last 3 bytes of the log removed while the issuer is dead).
++// Falsifies: "a torn last record makes the issuer refuse to start or fall back to a full flush".
++// The debt in the torn record is (by construction of the fault) lost: reported, not hidden.
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k13_torn_tail_is_tolerated_at_process_level() {
++    let _serial = SERIAL.lock().await;
++    let mut h = start(&[G, B, P], vec![]).await;
++    let path = paths_with_primary(P, 3, "k13", 1).remove(0);
++    warm_all(&h, &path, &[G, B, P]).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, B, FaultMode::Blackhole).await;
++    assert_eq!(h.http_delete(G, &path).await.unwrap().as_u16(), 204);
++    h.kill_node(G).await.unwrap();
++    let f = log_file(&h);
++    let mut bytes = std::fs::read(&f).unwrap();
++    let n = bytes.len();
++    bytes.truncate(n - 3);
++    std::fs::write(&f, &bytes).unwrap();
++    h.set_link_mode(G, B, FaultMode::Normal).await;
++    h.restart_node(G, &[]).await.unwrap();
++    let (line, _owed) = last_replay(&h);
++    eprintln!("[K13] {line}");
++    assert!(line.contains("TornTailDiscarded"), "torn tail must be classified as such: {line}");
++    assert!(!line.contains("CorruptFallback"), "{line}");
++}
++
++// ------------------------------------------------------------------------------------------
++// K14: log deleted, sentinel present => full-flush fallback on every peer; happens ONCE.
++// Falsifies: "log loss is silent", and "the fallback flush repeats on every restart".
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k14_log_deleted_sentinel_present_full_flush_once() {
++    let _serial = SERIAL.lock().await;
++    let mut h = start(&[G, B, P], vec![]).await;
++    let paths = paths_with_primary(P, 3, "k14", 2);
++    let (path, bystander) = (paths[0].clone(), paths[1].clone());
++    warm_all(&h, &path, &[G, B, P]).await;
++    warm_all(&h, &bystander, &[B]).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, B, FaultMode::Blackhole).await;
++    assert_eq!(h.http_delete(G, &path).await.unwrap().as_u16(), 204);
++    h.kill_node(G).await.unwrap();
++    std::fs::remove_file(log_file(&h)).unwrap();
++    assert!(h.pki.temp_dir.join("inval_1.log.sentinel").exists());
++    h.set_link_mode(G, B, FaultMode::Normal).await;
++    h.restart_node(G, &[]).await.unwrap();
++    let (line, owed) = last_replay(&h);
++    eprintln!("[K14] {line}");
++    assert!(line.contains("LostFallbackFlush"), "{line}");
++    assert_eq!(owed, 2, "one FullCache flush owed to each of the two peers");
++    assert!(wait_v2(&h, B, &path, OBSERVE).await.is_some(), "the fallback flush must repair B");
++    // the bystander was flushed too (coarse but safe): it is a MISS now
++    let (_st, _b, cs, _v) = h.http_get(B, &bystander).await.unwrap();
++    assert_eq!(cs.as_deref(), Some("MISS"), "bystander on B should have been flushed once");
++    // second restart: no second flush
++    warm_all_v(&h, B, &bystander).await;
++    h.kill_node(G).await.unwrap();
++    h.restart_node(G, &[]).await.unwrap();
++    let (line2, owed2) = last_replay(&h);
++    eprintln!("[K14] after 2nd restart: {line2}");
++    assert_eq!(owed2, 0, "the fallback flush was acknowledged; it must not be owed again: {line2}");
++    tokio::time::sleep(Duration::from_secs(3)).await;
++    let (_st, _b, cs2, _v) = h.http_get(B, &bystander).await.unwrap();
++    assert_eq!(cs2.as_deref(), Some("HIT"), "no second flush may hit B");
++}
++
++async fn warm_all_v(h: &ClusterHarness, node: u8, path: &str) {
++    for _ in 0..3 {
++        let _ = h.http_get(node, path).await;
++    }
++}
++
++// ------------------------------------------------------------------------------------------
++// K15a: the log location cannot be created => the gateway refuses to start (exit 2), it does not
++// silently run without durability. Falsifies: "opting in and failing silently".
++// (Runtime disk-full / write-error behaviour is covered by unit tests: K15b/c.)
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k15a_unusable_log_location_fails_startup_loudly() {
++    let _serial = SERIAL.lock().await;
++    let mut h = start(&[G, B, P], vec![]).await;
++    h.kill_node(G).await.unwrap();
++    let blocker = h.pki.temp_dir.join("not_a_directory");
++    std::fs::write(&blocker, b"x").unwrap();
++    let bad = blocker.join("inval.log").display().to_string();
++    h.spawn_node_raw(G, &[s("PHANTOM_INVALIDATION_LOG_PATH", &bad)]).unwrap();
++    let e = h.wait_node_exit(G, Duration::from_secs(15)).await.expect("gateway must exit");
++    eprintln!("[K15a] exit: {e}");
++    assert!(e.contains('2'), "expected the configuration exit code 2, got {e}");
++    let lines = h.gateway_log_lines_containing(G, &["cannot open the invalidation log"]);
++    assert!(!lines.is_empty(), "the failure must be named in the log");
++}
++
++// ------------------------------------------------------------------------------------------
++// K17 (+K21): a storm of concurrent DELETEs, kill, restart, and new DELETEs DURING the replay.
++// Falsifies: "group commit / replay loses an accepted DELETE", "a DELETE during replay is lost".
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k17_concurrent_delete_storm_kill_restart_all_converge() {
++    let _serial = SERIAL.lock().await;
++    const N: usize = 120;
++    let mut h = start(&[G, B, P], vec![]).await;
++    let paths = paths_with_primary(P, 3, "k17", 2 * N);
++    let (first, second) = paths.split_at(N);
++    for p in first.iter().chain(second.iter()) {
++        warm_all(&h, p, &[G, B, P]).await;
++    }
++    for p in first.iter().chain(second.iter()) {
++        assert_eq!(h.origin().mutate_key(p, "v2"), 2);
++    }
++    h.set_link_mode(G, B, FaultMode::Blackhole).await;
++    // storm: all first-wave DELETEs through G, 24 at a time
++    let accepted: Vec<String> = {
++        use futures_util::stream::{self, StreamExt};
++        let hr = &h;
++        stream::iter(first.iter().cloned())
++            .map(|p| async move { (hr.http_delete(G, &p).await.ok().map(|c| c.as_u16()), p) })
++            .buffer_unordered(24)
++            .filter_map(|(st, p)| async move { (st == Some(204)).then_some(p) })
++            .collect()
++            .await
++    };
++    eprintln!("[K17] {} / {N} DELETEs answered 204", accepted.len());
++    assert!(accepted.len() >= N * 9 / 10, "storm should be accepted (loopback): {}", accepted.len());
++    h.kill_node(G).await.unwrap();
++    h.set_link_mode(G, B, FaultMode::Normal).await;
++    h.restart_node(G, &[]).await.unwrap();
++    let (line, owed) = last_replay(&h);
++    eprintln!("[K17] {line}");
++    // K21: new DELETEs while the replay is being delivered
++    let mut accepted2 = Vec::new();
++    for p in second.iter().take(40) {
++        if h.http_delete(G, p).await.ok().map(|c| c.as_u16()) == Some(204) {
++            accepted2.push(p.clone());
++        }
++    }
++    assert!(owed >= 1, "at least the unacknowledged part of the storm must be replayed: {line}");
++    let deadline = Instant::now() + Duration::from_secs(40);
++    let mut missing: Vec<String> = accepted.iter().chain(accepted2.iter()).cloned().collect();
++    while !missing.is_empty() && Instant::now() < deadline {
++        let mut still = Vec::new();
++        for p in &missing {
++            if version_on(&h, B, p).await != Some(2) {
++                still.push(p.clone());
++            }
++        }
++        missing = still;
++        if !missing.is_empty() {
++            tokio::time::sleep(Duration::from_millis(250)).await;
++        }
++    }
++    assert!(missing.is_empty(), "{} accepted DELETE(s) never converged on B, e.g. {:?}", missing.len(), missing.iter().take(3).collect::<Vec<_>>());
++}
++
++// ------------------------------------------------------------------------------------------
++// K21b / finding 1: the client aborts the DELETE while the cluster leg is in flight.
++// G->P has a 60 ms delay per direction (RTT 120 ms < the 150 ms leg timeout); the client gives up
++// after 40 ms. Falsifies: "a client disconnect cannot lose the fan-out of a DELETE whose primary
++// leg is in flight" (the handler future may be dropped by the server).
++// ------------------------------------------------------------------------------------------
++#[tokio::test]
++async fn k21b_client_abort_during_cluster_leg_still_fans_out() {
++    let _serial = SERIAL.lock().await;
++    let h = start(&[G, B, P], vec![]).await;
++    let path = paths_with_primary(P, 3, "k21b", 1).remove(0);
++    warm_all(&h, &path, &[G, B, P]).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, P, FaultMode::Delay { ms: 60 }).await;
++    let st = h.http_delete_with_timeout(G, &path, Duration::from_millis(40)).await;
++    eprintln!("[K21b] client saw: {st:?} (None = aborted by the client)");
++    tokio::time::sleep(Duration::from_millis(600)).await;
++    h.set_link_mode(G, P, FaultMode::Normal).await;
++    let conv = wait_v2(&h, B, &path, Duration::from_secs(8)).await;
++    eprintln!("[K21b] B converged after {conv:?}; primary serves v{:?}", version_on(&h, P, &path).await);
++    assert!(conv.is_some(), "B never learned of the DELETE whose client aborted mid cluster-leg");
++}
+--- /dev/null
++++ b/tests/m3_router_tests.rs
+@@ -0,0 +1,98 @@
++//! M3 rework v2: router-level tests that run in the DEFAULT build (no failpoints, no processes).
++//! AI-written; not independently verified.
++//!
++//! * F-04 (router level): `invalidate_key_across_cluster` must not return (so no 204 can be built)
++//!   before the owed set is in the log file, even when the writer is slow.
++//! * F-05: the shutdown drain must count a task that still sits in the broadcaster's main queue.
++
++use phantom_cache_demo::dist::frame::InvalidationScope;
++use phantom_cache_demo::dist::node::{NodeState, VirtualNode};
++use phantom_cache_demo::dist::router::durable_log::{DurableLog, Hooks, LogConfig};
++use phantom_cache_demo::dist::router::{RendezvousRouter, ReplicaInvalidationTask};
++use std::sync::atomic::Ordering;
++use std::sync::Arc;
++use std::time::{Duration, Instant};
++
++async fn two_nodes() -> (Arc<VirtualNode>, Arc<VirtualNode>) {
++    let n1 = Arc::new(VirtualNode::new(1));
++    let a1 = n1.start_tcp_service("127.0.0.1:0").await.unwrap();
++    n1.set_addr(a1);
++    n1.set_state(NodeState::Active);
++    let n2 = Arc::new(VirtualNode::new(2));
++    let a2 = n2.start_tcp_service("127.0.0.1:0").await.unwrap();
++    n2.set_addr(a2);
++    n2.set_state(NodeState::Active);
++    (n1, n2)
++}
++
++fn tmpdir(tag: &str) -> std::path::PathBuf {
++    let d = std::env::temp_dir().join(format!("m3router_{}_{}_{}", tag, std::process::id(), rand_u32()));
++    std::fs::create_dir_all(&d).unwrap();
++    d
++}
++
++fn rand_u32() -> u32 {
++    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.subsec_nanos()).unwrap_or(7)
++}
++
++/// F-04. Falsifies: "the router can complete an accepted invalidation before its owed set is durable".
++/// The log writer is stalled for 400 ms. The call must take at least that long, and at the moment it
++/// returns the key must already be in the log file; the log must have counted an fsync.
++#[tokio::test]
++async fn f04_router_does_not_return_before_the_owed_set_is_in_the_log_file() {
++    let (n1, n2) = two_nodes().await;
++    let router = RendezvousRouter::new(vec![n1.clone(), n2.clone()]);
++    let dir = tmpdir("f04");
++    let path = dir.join("inval.log");
++    let hooks = Arc::new(Hooks::default());
++    let cfg = LogConfig { hooks: Some(hooks.clone()), durability_wait: Duration::from_secs(10), ..LogConfig::default() };
++    let (log, _rep) = DurableLog::open(&path, 1, &[2], cfg).unwrap();
++    router.broadcaster().repair_ledger().attach_durable(log.clone());
++
++    hooks.stall_ms.store(400, Ordering::Relaxed);
++    let key = "__default__:/f04_router_key";
++    let t = Instant::now();
++    let res = router.invalidate_key_across_cluster(key, InvalidationScope::ExactKey).await;
++    let took = t.elapsed();
++    assert!(res.is_ok(), "{res:?}");
++    assert!(took >= Duration::from_millis(350), "returned after {took:?}: the 204 could be built before the intent was written");
++    let bytes = std::fs::read(&path).unwrap();
++    assert!(
++        bytes.windows(key.len()).any(|w| w == key.as_bytes()),
++        "the call returned but the key is not in the log file"
++    );
++    assert!(log.stats.fsyncs.load(Ordering::Relaxed) >= 1, "returned before any fsync (fsync=always)");
++
++    hooks.stall_ms.store(0, Ordering::Relaxed);
++    router.stop();
++    log.close(false);
++    n1.stop_tcp_service();
++    n2.stop_tcp_service();
++    let _ = std::fs::remove_dir_all(&dir);
++}
++
++/// F-05. Falsifies: "`drain` reports complete while a task still sits in the broadcaster's main
++/// queue". On the current-thread test runtime the dispatcher cannot run before the first await, so
++/// right after `enqueue` the task is certainly still queued.
++#[tokio::test]
++async fn f05_drain_counts_tasks_still_in_the_broadcaster_main_queue() {
++    let (n1, n2) = two_nodes().await;
++    let router = RendezvousRouter::new(vec![n1.clone(), n2.clone()]);
++    let task = ReplicaInvalidationTask {
++        key: "__default__:/f05_queued".to_string(),
++        scope: InvalidationScope::ExactKey,
++        replica_node_ids: vec![2],
++        membership_epoch: 0,
++    };
++    assert!(router.broadcaster().enqueue(task));
++    let early = router.drain(Duration::ZERO).await;
++    assert!(!early.complete, "drain claimed completion with a task queued: {early:?}");
++    assert_eq!(early.pending_jobs, 1, "the queued task must be counted: {early:?}");
++    // given time, the dispatcher hands it over, the worker delivers it, and the count returns to 0
++    let done = router.drain(Duration::from_secs(5)).await;
++    assert!(done.complete, "drain did not complete once the dispatcher ran: {done:?}");
++    assert_eq!(done.pending_jobs, 0, "{done:?}");
++    router.stop();
++    n1.stop_tcp_service();
++    n2.stop_tcp_service();
++}
+--- /dev/null
++++ b/tests/m3_shutdown_leg_tests.rs
+@@ -0,0 +1,133 @@
++//! M3 rework v2, F-06: graceful stop while a detached DELETE cluster leg is in flight.
++//! AI-written; not independently verified. Real gateway processes, loopback, one Windows host.
++//!
++//! Scenario (3 gateways, mTLS, fault proxies, origin max-age=120, durable log ON on every node):
++//! 1 = issuer G, 2 = peer B, 3 = canonical primary P of the key. The G->P link is delayed by 60 ms
++//! per direction (round trip 120 ms < the 150 ms leg timeout), so the DELETE's primary leg is in
++//! flight for >100 ms. 40 ms after the client sent the DELETE, G gets the orderly stop request
++//! (Ctrl-Break on Windows, SIGTERM on Unix). Then G is restarted and the links are normal.
++//!
++//! Properties (falsifiable): (1) NO HALF-APPLIED DELETE: if the primary serves the new version after the
++//! stop, B must also learn of the DELETE (the stop must not cancel the leg between the primary ack and
++//! the fan-out); (2) "a DELETE for which the client RECEIVED 204 is never lost by the stop":
++//! after the restart B and P must serve the new version. If the client saw no status (the process
++//! went away before answering), nothing was promised; the outcome is printed and the test records
++//! it without failing. The process must also exit by itself within 15 s (no hang) and must not
++//! leave a log that the next start treats as corrupt.
++//!
++//! `#[ignore]`: a graceful stop on Windows needs a shared console (CTRL_BREAK); run with
++//! `cargo test -j 1 --test m3_shutdown_leg_tests -- --include-ignored --nocapture`.
++
++#[path = "support/mod.rs"]
++mod support;
++
++use phantom_cache_demo::dist::node::{NodeState, VirtualNode};
++use phantom_cache_demo::dist::router::RendezvousRouter;
++use std::sync::Arc;
++use std::time::{Duration, Instant};
++use support::cluster_harness::{ClusterHarness, ClusterOptions};
++use support::fault_proxy::FaultMode;
++
++const G: u8 = 1;
++const B: u8 = 2;
++const P: u8 = 3;
++
++fn path_with_primary(want: u8, tag: &str) -> String {
++    let nodes: Vec<Arc<VirtualNode>> = (1..=3u8)
++        .map(|i| {
++            let v = Arc::new(VirtualNode::new(i));
++            v.set_state(NodeState::Active);
++            v
++        })
++        .collect();
++    let router = RendezvousRouter::new(nodes);
++    for i in 0..200_000 {
++        let path = format!("/{tag}_{i}");
++        if router.route_key(&format!("__default__:{path}")).map(|x| x.node_id) == Some(want) {
++            router.stop();
++            return path;
++        }
++    }
++    panic!("no key with primary {want}");
++}
++
++async fn version_on(h: &ClusterHarness, node: u8, path: &str) -> Option<u64> {
++    h.http_get(node, path).await.ok().and_then(|r| r.3)
++}
++
++async fn wait_v2(h: &ClusterHarness, node: u8, path: &str, within: Duration) -> Option<Duration> {
++    let t = Instant::now();
++    while t.elapsed() < within {
++        if version_on(h, node, path).await == Some(2) {
++            return Some(t.elapsed());
++        }
++        tokio::time::sleep(Duration::from_millis(100)).await;
++    }
++    None
++}
++
++#[tokio::test]
++#[ignore = "graceful stop: needs a console on Windows (CTRL_BREAK); run with --include-ignored"]
++async fn f06_graceful_stop_with_a_delete_leg_in_flight_never_loses_an_acknowledged_delete() {
++    let opts = ClusterOptions {
++        with_proxies: true,
++        origin_max_age_secs: Some(120),
++        per_node_env: vec![("PHANTOM_INVALIDATION_LOG_PATH".to_string(), "{dir}/inval_{id}.log".to_string())],
++        startup_timeout: Duration::from_secs(25),
++        ..ClusterOptions::default()
++    };
++    let mut h = ClusterHarness::start_with_options(&[G, B, P], opts).await.expect("cluster start");
++    h.warm_invalidation_paths().await.expect("warm paths");
++    let path = path_with_primary(P, "f06");
++    for n in [G, B, P] {
++        let (st, _b, _c, ver) = h.http_get(n, &path).await.expect("warm get");
++        assert!(st == 200 && ver == Some(1), "warm-up GET on node {n}: {st} v{ver:?}");
++    }
++    // let the warm-up DELETEs' fan-out settle so only this scenario's debt exists
++    tokio::time::sleep(Duration::from_millis(1500)).await;
++    assert_eq!(h.origin().mutate_key(&path, "v2"), 2);
++    h.set_link_mode(G, P, FaultMode::Delay { ms: 60 }).await;
++
++    let url = format!("http://{}/api/v1/cache{}", h.gateways[&G].http_addr, path);
++    let client = reqwest::Client::new();
++    let delete = tokio::spawn(async move {
++        client.delete(&url).timeout(Duration::from_secs(8)).send().await.map(|r| r.status().as_u16()).map_err(|e| e.to_string())
++    });
++    tokio::time::sleep(Duration::from_millis(40)).await;
++    if let Err(e) = h.request_graceful_stop(G) {
++        eprintln!("[F06] GRACEFUL_STOP_NOT_FEASIBLE: {e}");
++        delete.abort();
++        return;
++    }
++    let client_result = delete.await.expect("client task");
++    let exit = h.wait_node_exit(G, Duration::from_secs(15)).await;
++    eprintln!("[F06] client result: {client_result:?}; issuer exit: {exit:?}");
++    assert!(exit.is_ok(), "the issuer must exit by itself within 15 s of the stop request: {exit:?}");
++    h.set_link_mode(G, P, FaultMode::Normal).await;
++    h.restart_node(G, &[]).await.expect("restart issuer");
++
++    let drain_lines = h.gateway_log_lines_containing(G, &["[shutdown] invalidation drain", "replay outcome"]);
++    for l in &drain_lines {
++        eprintln!("[F06] issuer log: {l}");
++    }
++    assert!(
++        !drain_lines.iter().any(|l| l.contains("CorruptFallbackFlush") || l.contains("LostFallbackFlush")),
++        "a stop with a leg in flight must not leave a log that the next start treats as corrupt/lost"
++    );
++
++    let p = version_on(&h, P, &path).await;
++    // Half-applied is the defect: the primary was invalidated (this DELETE took effect there) but the
++    // other member was never told and nobody was promised anything (no 204), so no retry is triggered.
++    let b = wait_v2(&h, B, &path, Duration::from_secs(10)).await;
++    eprintln!("[F06] client result {client_result:?}: primary serves v{p:?}; B converged after {b:?}");
++    if p == Some(2) {
++        assert!(
++            b.is_some(),
++            "half-applied DELETE: the primary was invalidated but B was never told (client saw {client_result:?}); the stop cancelled the in-flight leg before its fan-out"
++        );
++    }
++    if matches!(client_result, Ok(204)) {
++        assert_eq!(p, Some(2), "the client was told 204 but the primary still serves the old version");
++        assert!(b.is_some(), "the client was told 204 but B never learned of the DELETE after the stop and restart");
++    }
++}

@@ -2,6 +2,8 @@
 >
 > Original text below is unchanged.
 
+> Correction notice (2026-10-30, owner-approved DEC-020): "64-partition lock striping" is not what the binary builds: `PartitionedCache::new(8)` (`src/main.rs:204`) gives 8 shards. Every "Current Disposition: ACCEPTED" line and the "242 passing tests across 19 targets" baseline are agent-recorded and dated 2026-10-28; no owner acceptance is recorded in the repository, and the later baseline is in `docs/STATUS.md` section 3.
+
 # PhantomCache — Phase History, Audits, and Detailed Status
 
 **Document ID:** `docs/handoff/02_PHASE_HISTORY_AND_STATUS.md`  

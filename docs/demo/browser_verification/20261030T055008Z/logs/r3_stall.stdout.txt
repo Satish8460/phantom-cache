@@ -1,0 +1,50 @@
+[OBSERVED] conns.before 
+{"n":1,"route":"#/lab","ok":true,"ms":358,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.1 
+{"n":2,"route":"#/lab/evidence","ok":true,"ms":327,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.2 
+{"n":3,"route":"#/lab/evidence/m6_sealed_2026-10-29T234845Z","ok":true,"ms":315,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.3 
+{"n":4,"route":"#/lab/evidence/scenario_b.20261030T003932Z","ok":true,"ms":327,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.4 
+{"n":5,"route":"#/lab/run","ok":true,"ms":312,"pending":["/api/events?schema=2"],"conns":{"clientSide":2,"gatewaySide":2}}
+[PASS] A.cold.5 
+{"n":6,"route":"#/lab/runs","ok":true,"ms":372,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.6 
+{"n":7,"route":"#/lab/runs/20261030T055055Z-2ba246aa","ok":true,"ms":361,"pending":["/api/events?schema=2"],"conns":{"clientSide":4,"gatewaySide":4}}
+[PASS] A.cold.7 
+{"n":8,"route":"#/lab","ok":true,"ms":360,"pending":["/api/events?schema=2"],"conns":{"clientSide":4,"gatewaySide":4}}
+[PASS] A.cold.8 
+{"n":9,"route":"#/lab/evidence","ok":true,"ms":363,"pending":["/api/events?schema=2"],"conns":{"clientSide":4,"gatewaySide":4}}
+[PASS] A.cold.9 
+{"n":10,"route":"#/lab/evidence/m6_sealed_2026-10-29T234845Z","ok":true,"ms":330,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.10 
+{"n":11,"route":"#/lab/evidence/scenario_b.20261030T003932Z","ok":true,"ms":360,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.11 
+{"n":12,"route":"#/lab/run","ok":true,"ms":360,"pending":["/api/events?schema=2"],"conns":{"clientSide":2,"gatewaySide":2}}
+[PASS] A.cold.12 
+{"n":13,"route":"#/lab/runs","ok":true,"ms":373,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.13 
+{"n":14,"route":"#/lab/runs/20261030T055055Z-2ba246aa","ok":true,"ms":358,"pending":["/api/events?schema=2"],"conns":{"clientSide":4,"gatewaySide":4}}
+[PASS] A.cold.14 
+{"n":15,"route":"#/lab","ok":true,"ms":359,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.15 
+{"n":16,"route":"#/lab/evidence","ok":true,"ms":370,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.16 
+{"n":17,"route":"#/lab/evidence/m6_sealed_2026-10-29T234845Z","ok":true,"ms":359,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.17 
+{"n":18,"route":"#/lab/evidence/scenario_b.20261030T003932Z","ok":true,"ms":362,"pending":["/api/events?schema=2"],"conns":{"clientSide":3,"gatewaySide":3}}
+[PASS] A.cold.18 
+{"n":19,"route":"#/lab/run","ok":true,"ms":376,"pending":["/api/events?schema=2"],"conns":{"clientSide":2,"gatewaySide":2}}
+[PASS] A.cold.19 
+{"n":20,"route":"#/lab/runs","ok":true,"ms":343,"pending":["/api/events?schema=2"],"conns":{"clientSide":4,"gatewaySide":4}}
+[PASS] A.cold.20 
+{"n":21,"route":"#/lab/runs/20261030T055055Z-2ba246aa","ok":true,"ms":372,"pending":["/api/events?schema=2"],"conns":{"clientSide":4,"gatewaySide":4}}
+[PASS] A.cold.21 
+[PASS] A.summary 
+[OBSERVED] B.hash_nav 
+[PASS] C.running_run_cold_loads 
+[OBSERVED] C.after_run_ended 
+[OBSERVED] C.after_about_blank 
+[PASS] D.final_cold_load 
+{"before":{"clientSide":3,"gatewaySide":3},"after":{"clientSide":0,"gatewaySide":0},"gone":true}

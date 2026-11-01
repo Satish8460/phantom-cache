@@ -1,0 +1,10 @@
+default_ttl_wiring_tests EXIT=0
+m7_config_tests EXIT=101
+m1_http_tests EXIT=0
+serving_contract_tests EXIT=0
+revalidation_304_tests EXIT=0
+stale_serving_tests EXIT=0
+m7_sec_fixes_tests EXIT=0
+canonical_key_roundtrip_tests EXIT=0
+telemetry_honesty_tests EXIT=0
+DONE

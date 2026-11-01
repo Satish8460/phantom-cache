@@ -1,0 +1,7 @@
+# commit_lists_v2/NEVER_STAGE_transcripts.txt
+# Transcripts: never staged
+# Generated 2026-10-30 16:41 IST from git status --short -uall (4644 entries). One repo-relative path per line; lines starting with # are comments.
+# Use: GIT_LITERAL_PATHSPECS=1 git add --pathspec-from-file=<this file> after stripping comment lines (see g5_batch_plan_v2.md section 6).
+docs/handoff/transcripts/ag_conversation_session_1_oct11_to_oct25.jsonl
+docs/handoff/transcripts/ag_conversation_session_2_oct25_to_oct28.jsonl
+transcript_copy.jsonl

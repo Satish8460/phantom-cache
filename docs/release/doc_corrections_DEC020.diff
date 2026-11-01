@@ -1,0 +1,315 @@
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -57,3 +57,17 @@
+ - Assign by module; never let two agents edit the same file. Read-only agents write no files.
+ - Verify an agent's important claims yourself (open the file or source) before relying on them.
+ - Record decisions, alternatives, evidence and open questions in `docs/research/`.
++
++## Errata (2026-10-30, owner-approved DEC-020; original text above unchanged)
++
++Added by a documentation-only change. Each item lists only a statement above that was checked against the current tree and found wrong, stale or too strong. Evidence tags follow section 4. Details: `docs/release/doc_corrections_DEC020.md`. Nothing in `src/` was changed.
++
++1. **Section 5, "Lock order: shard mutex, then `tenant_epochs` mutex".** No code path nests the two. `tenant_epochs` is locked only in `try_invalidate_tenant` and `try_invalidate_all` (`src/core/cache.rs:576`, `:613`), and nothing outside `cache.rs` touches it. The edges actually present are: shard mutex then `epoch_snapshot` (read), waiters, `pending_freshness` and the eviction-policy mutex; `tenant_epochs` then the `epoch_snapshot` write. Verified in code by reading; no loom or shuttle run, so absence of deadlock is not established by a tool (`docs/learning/evidence/ch04_evidence.md` item 10).
++2. **Section 5, "Faithful Eviction ... O(1)-amortized".** SIEVE and LRU are O(1) only when no key is pinned (active ops or in-flight fetch). With pinned keys the worst case per call is O(n) (finding G4A-20, `KeyState.visited` is written but never read by the policies); S3-FIFO has its own open finding (G4A-02). Reported by the G4A review and reproduced by reading `src/core/eviction.rs`.
++3. **Section 6, "evictors named SIEVE/S3-FIFO/LRU are scans".** Outdated. `src/core/eviction.rs` now has `FaithfulSieve`, `FaithfulLru` and `FaithfulS3Fifo` with list or queue structures (`VecDeque` for S3-FIFO). The scan was recorded in `docs/research/eviction_policy_audit.md` for the earlier code. Section 5 already describes the new policies; the two sections contradicted each other.
++4. **Section 5, "Read-path zero contention".** True only for the epoch read (`epoch_snapshot` is an `RwLock<Arc<..>>`). Every request path takes the shard mutex, and a cache hit takes it twice (`check_stale_serving`, then `begin_fetch_atomic`). Not measured.
++5. **Section 5, "`stale_cap_violations` must be 0 in production and test suites".** The counter is nearly unfalsifiable: serving is already gated by an `Eligible` check that implies `age <= lifetime + cap`, so the counter can only move through a boundary timing artifact (finding G4A-18, `src/core/cache.rs:824-829`, reported by the G4A review). A zero value therefore proves little about the cap; the cap itself is exercised by the `stale_serving_tests` cap tests (test names only; bodies not re-read here).
++6. **Section 5, "Telemetry Hot-Path: `AtomicLogLinearHistogram` ... bounded error <= 0.39%".** The bucket arithmetic is implemented and tested (2,688 buckets, maximum relative error 1/256). The histogram is written on GET, but no production code reads its percentiles (`calculate_percentiles_histogram_*` has no caller in `src/api/` or `src/main.rs`). The latency percentiles served by `/api/v1/metrics` come from a lock-and-sort of a 10,000-sample raw window (`src/api/server.rs:583` calling `calculate_percentiles_us` in `src/intel/telemetry.rs`), with a floor index. The 0.39% bound therefore does not describe the displayed percentiles.
++7. **Stale line references.** `main.rs:327` (`VirtualNode::new_with_cache`) is now `src/main.rs:332`; the peer descriptors are built at `src/main.rs:364`; the anti-entropy worker is started at `src/main.rs:375` (mTLS branch) and `:383` (insecure or partial branch), not `:370` and `:374`; the `60_000` literals are now at `src/api/server.rs:1405` and `:1688`, not about 1077 and 1352 (the fact that `PHANTOM_DEFAULT_TTL_MS` is NotWired still holds). The mTLS startup message in `src/main.rs` (about line 369) now correctly says that peer invalidations purge the shared serving cache; the stale wording that remains is the cluster warning string in `src/config.rs:858`, which is code and is left for a later reviewed change.
++8. **Section 3, "242 tests, 19 targets" baseline.** An older reproduction (2026-10-28). `docs/STATUS.md` records, for debug profile, `cargo test --tests -j 1 --no-fail-fast`: 75 targets, 851 passed, 0 failed, 8 ignored (2026-10-30, tree at 456bb25 plus uncommitted work). Counts taken with different commands are not comparable. Passing tests still do not establish correctness.
++9. **Linearizability and cluster guarantees.** Nothing in this file claims linearizability, but the handoff, the phase reports and a code comment in `src/api/server.rs` (`delete_cache_handler`, "Guarantees linearizability") do. What is implemented and tested is narrower: on one gateway, `DELETE` purges the local cache before any cluster call, so a `GET` that starts after the `DELETE` returned does not serve the pre-delete entry from the local cache (read-your-delete for one key, one gateway). No linearizability checker or proof exists in the repository; concurrent-race findings G4A-01 (epoch laundering in `finalize_fetch`) and G4A-08 (post-invalidation requests can join a pre-invalidation fetch) are open; there is no cross-gateway staleness bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`). Section 4 already forbids stating such a guarantee without a failure model, a bound and a falsifying test.
+--- a/README.md
++++ b/README.md
+@@ -29,14 +29,14 @@
+ | Architectural Tier | Implementation Status | Technical Mechanism |
+ | :--- | :--- | :--- |
+ | **Partitioned Cache & Eviction** | **Real Executable Code** | Sharded mutex hash maps with visited-sweep (SIEVE) replacement in `src/core/cache.rs`. |
+-| **Request Coalescer** | **Real Executable Code** | Single-flight synchronization via Tokio `oneshot` rendezvous channels in `src/core/coalesce.rs`. |
++| **Request Coalescer (single-flight)** | **Real Executable Code** | The HTTP serving path uses `PartitionedCache::begin_fetch_atomic` (`src/core/cache.rs`) with the `SharedOp` waiter list and Tokio `oneshot` channels (`src/core/coalesce.rs`). The older `Coalescer` type in the same file is legacy: it is constructed in `src/main.rs` and `src/dist/node.rs` but not used by the HTTP serving path. |
+ | **Statistical Telemetry** | **Real Executable Code** | Atomic counters and log-linear latency histogram in `src/intel/` (the Count-Min Sketch type exists but is not used by the serving path). |
+ | **Adaptive Policy Controller** | **Legacy stub, not active** | `src/control/pie.rs` is a threshold trigger (not wired in `main.rs`). The Phantom Intelligence modules live in `src/intelligence/`; their benefit is not established. |
+-| **Distributed Router** | **Real Executable Code** | Highest Random Weight (Weighted Rendezvous Hashing) partition routing in `src/dist/router.rs`. |
++| **Distributed Router** | **Real Executable Code** | Highest Random Weight (Weighted Rendezvous Hashing) routing in `src/dist/router.rs`. It is used by `DELETE` invalidation only; `GET` is always served from the local gateway cache and never goes through the router. |
+ | **HTTP & Telemetry API** | **Real Executable Code** | Axum REST endpoints and Server-Sent Events (SSE) streaming at 10Hz in `src/api/server.rs`. |
+ | **Dashboard values from `PHANTOM_SIMULATION=true`** | **Simulated (synthetic)** | The simulation loop generates synthetic throughput, latency and cost values. They are not measurements. |
+ | **Operations Dashboard** | **Real Executable Code** | React 18 single-page application with SVG topology, sparklines, and control panel in `ui/`. |
+-| **Cluster Topology & Nodes** | **Modeled / Simulated** | In-process virtual node state machines (`Active`, `Degraded`, `Failed`) in `src/dist/node.rs`. |
++| **Cluster Topology & Nodes** | **Mixed: Modeled / Simulated and Real (experimental)** | The three demo nodes built when no cluster is configured are in-process virtual node state machines (`Active`, `Degraded`, `Failed`) in `src/dist/node.rs`, each with its own cache. In the mTLS cluster configuration (`src/main.rs`) the local node shares the gateway's HTTP serving cache (`VirtualNode::new_with_cache`) and the other members are address-only descriptors reached over mutual TLS; this path is experimental and tested on loopback only. |
+ | **Network Link & Jitter** | **Modeled / Simulated** | Queue-based delay model with configurable packet loss and latency distributions in `src/sim/network.rs`. |
+ | **Backend Database Queue** | **Modeled / Simulated** | M/M/1 queuing model with IOPS saturation limits and non-linear wait times in `src/sim/backend.rs`. |
+ | **Traffic Generator** | **Modeled / Simulated** | Poisson arrival process and Zipfian key popularity distribution in `src/sim/traffic.rs`. |
+@@ -62,7 +62,7 @@
+ 
+     subgraph Core Engine [Real Executable Rust Core]
+         Router[Rendezvous Hash Router]
+-        Coalescer[Single-Flight Request Coalescer]
++        Coalescer["Single-flight (begin_fetch_atomic + SharedOp)"]
+         Cache[Partitioned Cache - SIEVE Eviction]
+         PIE["Phantom Intelligence (experimental, off by default)"]
+         Sketch["Telemetry counters"]
+@@ -74,8 +74,8 @@
+         DBSim[M/M/1 Database Saturation Queue]
+     end
+ 
+-    Bench -->|Requests| Router
+-    Router -->|Primary Node| Coalescer
++    Bench -->|GET requests, local gateway only| Coalescer
++    Bench -.->|DELETE only| Router
+     Coalescer -->|Cache Probe| Cache
+     Coalescer -->|Miss: 1 Single Flight| DBSim
+     Coalescer -->|Waiters Receive Fanout| Bench
+@@ -94,7 +94,7 @@
+ ## 4. Technology Stack
+ 
+ * **Core Backend:** Rust (2021 Edition) — Memory-safe, zero-cost abstractions, multi-threaded concurrency.
+-* **Async Runtime:** Tokio 1.38 — Multi-threaded asynchronous work-stealing scheduler.
++* **Async Runtime:** Tokio (`Cargo.toml` requires 1.38 or newer; `Cargo.lock` pins 1.53.1) — Multi-threaded asynchronous work-stealing scheduler.
+ * **Web Framework:** Axum 0.7 — High-performance HTTP server with Server-Sent Events (SSE) support.
+ * **Serialization:** Serde 1.0 & Serde JSON.
+ * **Frontend UI:** React 18, Vite 5 — Modern, reactive single-page operations dashboard.
+@@ -105,7 +105,7 @@
+ ## 5. Prerequisites
+ 
+ Verify installed tools before setting up the project:
+-* **Rust:** `cargo 1.75+` (verified on `1.98.0`)
++* **Rust:** verified on `1.98.0`. The code probably needs about Rust 1.88 or newer (finding G4C F28, reported by an AI review and not re-derived); `Cargo.toml` declares no `rust-version`, so `1.75+` is not supported by evidence.
+ * **Node.js:** `v18.0+` (verified on `v24.5.0` with `npm 11.5.1`)
+ * **Git:** `2.40+`
+ 
+--- a/docs/PHASE_2_WORK_REPORT.md
++++ b/docs/PHASE_2_WORK_REPORT.md
+@@ -2,6 +2,8 @@
+ >
+ > Original text below is unchanged.
+ 
++> Correction notice (2026-10-30, owner-approved DEC-020): the sentence "Original text below is unchanged" above is not accurate. Against the committed version of this file (456bb25), the working-tree body differs: `git diff --numstat` reports 555 lines added and 223 lines removed, (the count includes the notice lines, but 223 removed lines are original text), so the body was changed after the commit; the exact edits were not reviewed here and no pre-edit copy other than the committed version was consulted. Treat the body as a course-submission report of the intended simulation-era design, not as a description of current behaviour: the single-flight path in use is `PartitionedCache::begin_fetch_atomic` (the `Coalescer` type is legacy), the cluster has a real mTLS path in addition to the simulated demo nodes, and no performance, linearizability or staleness-bound claim in it is supported by a release-profile measurement or proof (see `docs/STATUS.md`, `docs/research/claims_ledger.md`). The body below this line was not touched by this correction.
++
+ # A Course Project Work Report on
+ # “PhantomCache: An In-Memory Caching and Request Coalescing Prototype for High-Concurrency Enterprise Web Architectures”
+ 
+--- a/docs/STATUS.md
++++ b/docs/STATUS.md
+@@ -71,6 +71,7 @@
+ 
+ ## 3b. Repository state and recent findings
+ 
++- **Correction notice (2026-10-30, DEC-020):** the HEAD recorded in the next line was true at about 15:29 and is stale. When the correction was written (2026-10-30, 17:26 machine clock) `git rev-parse --short HEAD` returned `804a7b8` (documentation commits made after 456bb25; the branch is the same). The "Nothing is committed" and "HEAD is an older snapshot" statements below referred to the tree at 456bb25: documentation files have since been committed, while `src/`, `tests/` and `ui/` changes were still uncommitted at that time. The test baseline in section 3 was taken at 456bb25 plus the uncommitted tree and was not re-run for this correction. The per-measure counts in section 3 (851 passed, 8 ignored, 75 targets for `cargo test --tests`; 298 for `node --test`; `README.md` and `CLAUDE.md` quote the older 242) are labelled by their command and are not interchangeable.
+ - Repository (read-only checks, about 15:29): HEAD `456bb25930004f1896a84c53e776e7b3ef29ee16`, branch `feat/publish-phantomcache-core`, no stash. `git status --short` shows 93 lines because it collapses untracked directories; `git status --short -uall` showed 4,451 entries (36 tracked modified, 4,415 untracked) at this check, against 4,435 recorded by the lead earlier (36 + 4,399); the count is still moving as agents write evidence. **Nothing is committed.** A backup of the tree exists (path and manifest in the register). Most untracked entries are generated or evidence files.
+ - **DR-029** (cluster `GetRequest` handler fabricates `val_node_<id>` into the node cache): narrowed finding. A debug loopback reproduction (investigator) and an AI second look agree that no HTTP request can reach the fabricated entry (disjoint key spaces). Remaining: a design defect, **Low as exploited today, Medium as a latent hazard**; needs a valid cluster certificate. Not independently verified by a human; no fix applied. The lead's earlier "HTTP clients may be served the value" statement is withdrawn. See [`security/investigations/`](security/investigations/). **DR-027** (any authenticated member can send tenant or full-cache scope invalidations; global-epoch fallback) is the larger insider capability; no fix applied.
+ - **Protected core:** Rust remediation (M3 durability, DR-029/027, SEC-M7-09/10/11, quotas, intelligence tap) is being developed only in sandbox copies; nothing is merged into the tree without independent review and owner final approval. Several of those items are QUEUED behind M3 in the register.
+--- a/docs/handoff/00_START_HERE.md
++++ b/docs/handoff/00_START_HERE.md
+@@ -2,6 +2,13 @@
+ 
+ > **AUTHORITATIVE NOTICE:** Prior handoff claims regarding distributed consistency, anti-entropy, and PIE adaptive caching have been audited and corrected. See [`docs/handoff/CORRECTIONS.md`](CORRECTIONS.md) for the verified status of all architectural and performance claims.
+ 
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged).** Checked against the current tree:
++> - "64-Partition Lock Striping" (here and in files 01 and 02): the binary builds `PartitionedCache::new(8)` (`src/main.rs:204`), that is 8 shards. 64 is not the configured value.
++> - "Phase 4 Remediated, Verified, and Formally Accepted", "ACCEPTED" in the table, "100% PASS" and "Phase 4 is accepted and closed": these are agent self-reports. No dated owner acceptance of any milestone is recorded in the repository (an evidence gap, not proof that none was given; see `docs/STATUS.md` section 1).
++> - "242 / 242 tests, 19 targets": the 2026-10-28 baseline. The later baseline, with its command and profile, is in `docs/STATUS.md` section 3 (75 targets, 851 passed, 8 ignored, debug).
++> - "enterprise-grade": no production deployment, release-profile benchmark or independent security assessment supports the adjective; the README describes the project as a research prototype with experimental distributed operation.
++> - "canonical primary invalidation (T_stale = 0)" and "ensures distributed cache consistency": the implemented and tested property is per gateway: `DELETE` purges the local cache first, then asks the canonical primary, and other members are updated best effort. There is no linearizability proof or checker, no cross-gateway staleness bound, and the issuer's in-memory repair ledger is lost if the issuer dies (`docs/user/limitations.md`, `docs/research/claims_ledger.md` C6).
++
+ **Document ID:** `docs/handoff/00_START_HERE.md`  
+ **Purpose:** Primary entry point for incoming AI coding assistants.  
+ **Repository:** `D:\Personal\phantom-cache`  
+--- a/docs/handoff/01_PROJECT_MASTER_CONTEXT.md
++++ b/docs/handoff/01_PROJECT_MASTER_CONTEXT.md
+@@ -2,6 +2,8 @@
+ >
+ > Original text below is unchanged.
+ 
++> Correction notice (2026-10-30, owner-approved DEC-020): (1) "Lock striping across 64 sharded partitions": the binary builds `PartitionedCache::new(8)` (`src/main.rs:204`), i.e. 8 shards. (2) "Guaranteed Local Freshness & Bounded Replica Staleness" and "T_stale = 0": implemented and tested is only that `DELETE` purges the issuing gateway's own cache first and then asks the canonical primary within a 150 ms leg; other members are updated best effort, the issuer's repair ledger is in memory, and no cross-gateway staleness bound or linearizability property is established (`docs/user/limitations.md`, `docs/research/claims_ledger.md` C6). (3) "SIEVE ... Outperforms classic LRU": no release-profile comparison is retained, and the "200x" figure is untraceable (claims ledger C5); treat the statement as a literature-based hypothesis, not a result of this project.
++
+ # PhantomCache — Project Master Technical Context
+ 
+ **Document ID:** `docs/handoff/01_PROJECT_MASTER_CONTEXT.md`  
+--- a/docs/handoff/02_PHASE_HISTORY_AND_STATUS.md
++++ b/docs/handoff/02_PHASE_HISTORY_AND_STATUS.md
+@@ -2,6 +2,8 @@
+ >
+ > Original text below is unchanged.
+ 
++> Correction notice (2026-10-30, owner-approved DEC-020): "64-partition lock striping" is not what the binary builds: `PartitionedCache::new(8)` (`src/main.rs:204`) gives 8 shards. Every "Current Disposition: ACCEPTED" line and the "242 passing tests across 19 targets" baseline are agent-recorded and dated 2026-10-28; no owner acceptance is recorded in the repository, and the later baseline is in `docs/STATUS.md` section 3.
++
+ # PhantomCache — Phase History, Audits, and Detailed Status
+ 
+ **Document ID:** `docs/handoff/02_PHASE_HISTORY_AND_STATUS.md`  
+--- a/docs/handoff/03_ARCHITECTURE_AND_PROTOCOL_REFERENCE.md
++++ b/docs/handoff/03_ARCHITECTURE_AND_PROTOCOL_REFERENCE.md
+@@ -2,6 +2,8 @@
+ >
+ > Original text below is unchanged.
+ 
++> Correction notice (2026-10-30, owner-approved DEC-020): (1) Section 4, "Anti-entropy guarantees self-healing eventual consistency": anti-entropy is implemented and has a production caller (worker every 250 ms, `src/main.rs:375`, `:383`), but its effectiveness is not established (`docs/research/claims_ledger.md` C6) and the repair ledger is in memory. No convergence bound is proven. (2) Section 5, "strict global acquisition order ... deadlock freedom": this order was not machine-checked (no loom or shuttle run), and the cache-side edges are listed in `CLAUDE.md` errata item 1; treat deadlock freedom as unverified.
++
+ # PhantomCache — Architecture & Protocol Reference
+ 
+ **Document ID:** `docs/handoff/03_ARCHITECTURE_AND_PROTOCOL_REFERENCE.md`  
+--- a/docs/research/adr/ADR-001-present-architecture-and-direction.md
++++ b/docs/research/adr/ADR-001-present-architecture-and-direction.md
+@@ -77,3 +77,16 @@
+ 
+ ## 8. Open items / not verified
+ Handler bodies of GET (`server.rs:357-770`) not re-read line by line in this pass (earlier reads and agent trace); `node.rs` transitions and broadcaster-counter usage are [A]; `security/*` and DER parsing not audited; transcripts give no recorded rationale for leaving GET unrouted; whether HRW selecting the *local* node as primary produces a TCP self-connection under mTLS was not traced.
++
++---
++
++## Status note (2026-10-30, owner-approved DEC-020; the ADR body above is unchanged and is a record of the tree at 456bb25 on 2026-10-28)
++
++Re-checked against the current tree. Statements in the body that no longer hold:
++
++- **DELETE ordering (the DELETE paragraph, question 2, gap G8).** `delete_cache_handler` now purges the local cache FIRST (`cache.delete(&cache_key)`, `src/api/server.rs:1990`) and only then calls the router (`:1992`, `invalidate_key_across_cluster`). The body's "local delete after the primary acknowledged" and "no local delete on Rejected" describe the older code. Verified in code by reading.
++- **Peer invalidations and the serving cache (the peer-side invalidation paragraph, question 2, gap G1).** In the mTLS cluster branch the local node is built with `VirtualNode::new_with_cache(node_id, cache.clone())` (`src/main.rs:332`), so it shares the HTTP serving cache and invalidation frames received from peers purge it. Remote peers are address-only descriptors (`VirtualNode::new` plus `set_addr`, `src/main.rs:364-366`). The three demo nodes (`src/main.rs:212-214`) and the insecure or partial cluster branch use separate placeholder nodes without listeners. Whether a second real gateway's HTTP cache is purged end to end is tested only on loopback and is not established beyond that.
++- **Anti-entropy has no production caller (the anti-entropy paragraph, gap G2).** `RendezvousRouter::start_anti_entropy_worker` is now called with a 250 ms period in both cluster branches (`src/main.rs:375`, `:383`) and calls `reconcile_peer_anti_entropy`. It runs only in cluster configurations; its effectiveness is not established (`docs/research/claims_ledger.md` C6).
++- **Line numbers** in the body refer to the 456bb25 tree and are stale.
++- **"Maximum staleness is the 60 s TTL" (question 7).** The 60 s value is a literal default used only when the origin supplies no freshness information (`PHANTOM_DEFAULT_TTL_MS` is not wired, `src/api/server.rs:1405`, `:1688`); origin `max-age` and similar headers set the lifetime with no gateway ceiling. See the ADR-003 amendment.
++- Gateway-local read-your-delete is the strongest delete property established. This ADR makes no linearizability claim and none should be inferred.
+--- a/docs/research/adr/ADR-002-serving-path-contract.md
++++ b/docs/research/adr/ADR-002-serving-path-contract.md
+@@ -137,3 +137,10 @@
+ - **Status:** **VERIFIED**
+ - **Test:** `test_sweeper_vs_concurrent_fills_stress`
+ 
++
++---
++
++## Status note (2026-10-30, owner-approved DEC-020; the text above is unchanged)
++
++- **Clause INV-1 ("Linearizable Single-Key Deletion", "Status: VERIFIED").** The status line is an agent label; no owner ratification of this ADR is recorded. The property that the code implements and `test_linearizable_delete_prevents_read` exercises is narrower than the clause title: on one gateway, a request that starts after a `DELETE` returned does not see the pre-delete entry (read-your-delete for one key, one gateway, sequential case). No history-based linearizability checker or proof exists in the repository, and two review findings concern the concurrent case: G4A-01 (`finalize_fetch` re-reads tenant and global epochs after the fence check, so a pre-invalidation body can be stamped with newer epochs) and G4A-08 (requests arriving after an invalidation can still join a pre-invalidation in-flight fetch; documented as L3). Both are reported by the G4A review (`docs/release/g4/cycle1_core_engine_review.md`) and are open. Read "linearizable" in INV-1 as "gateway-local read-your-delete".
++- **Single-flight.** The serving path implements coalescing through `PartitionedCache::begin_fetch_atomic` and `SharedOp`; the older `Coalescer` struct in `src/core/coalesce.rs` is legacy and is not used by the HTTP serving path.
+--- a/docs/research/adr/ADR-003-distributed-architecture.md
++++ b/docs/research/adr/ADR-003-distributed-architecture.md
+@@ -107,3 +107,14 @@
+ - Invalidations owed to peers that have not yet acknowledged live only in the issuing process's memory (broadcaster channel, per-peer queues, repair ledger, stream sequencers, replay ring). A crash, kill or SIGTERM of the issuer loses them: the shutdown path in `src/main.rs:484-490` drops the server and exits ("cache is in-memory, nothing to flush") and `src/main.rs` contains no call to the router `stop()`/drain functions. A restarted issuer starts with an empty ledger. A peer that had not applied the invalidation then keeps serving the stale entry until it expires, or until a later `DELETE` of the same key reaches it.
+ - The staleness bound in G3, "Staleness <= TTL_eff <= PHANTOM_MAX_STALE_MS", is **not true as written**. The origin's `s-maxage`, `max-age` or `Expires` sets the freshness lifetime with no gateway ceiling (`src/core/freshness.rs:263-276`), and `PHANTOM_MAX_STALE_MS` caps only the stale-serving window (`src/api/server.rs:1280`, `:1738`, `:1788`), not the freshness lifetime. The 60 s default applies only when the origin gives no freshness information; it is a literal `60_000` at `src/api/server.rs:1367` and `:1650` (`PHANTOM_DEFAULT_TTL_MS` is validated but not wired: `src/config.rs:116-117`).
+ - No test kills or restarts an issuer with a non-empty ledger. Evidence and remediation options: `docs/research/phantomcache_milestone_accountability_report.md` section 12.
++
++---
++
++## Status note (2026-10-30, owner-approved DEC-020; the text above, including the 07:26 amendment, is unchanged)
++
++The 07:26 amendment already qualifies G3 ("Staleness <= TTL_eff <= PHANTOM_MAX_STALE_MS" is not true as written: the origin freshness lifetime has no gateway ceiling and the 24 h `PHANTOM_MAX_STALE_MS` caps only the stale-serving window) and the "every 5 seconds" anti-entropy interval (code: 250 ms). Additional corrections, checked against the current tree:
++
++- **G1 name.** "Per-Node Linearizability" should be read as gateway-local read-your-delete; see the ADR-002 status note (INV-1) for the open races G4A-01 and G4A-08. No linearizability checker exists.
++- **D_max.** The ADR states D_max <= 250 ms, while the distributed tests and the claims ledger use 50 ms, and the ledger records that the 50 ms figure is a fixed sleep and not a measured P99 (`docs/research/claims_ledger.md` C6 and section 5). Neither number is a validated bound; all evidence is loopback and debug profile.
++- **Line numbers in the amendment** moved: the local purge is at `src/api/server.rs:1990` and the router call begins at `:1992` (amendment: `:1952`, `:1957`); the anti-entropy worker is started at `src/main.rs:375` and `:383` (amendment: `:370`, `:378`).
++- **Cache unification.** In the mTLS cluster branch the local node shares the HTTP serving cache (`VirtualNode::new_with_cache`, `src/main.rs:332`); remote peers are address-only descriptors. "Option A1 ... Cache Unification" is therefore implemented for the local node only, experimental, and tested on loopback.
+--- a/docs/research/claims_ledger.md
++++ b/docs/research/claims_ledger.md
+@@ -6,6 +6,8 @@
+ **Evidence class:** `proof`, `model-check`, `simulation (Tier 1)`, `real single-host (Tier 2)`, `physical multi-host (Tier 3)`, `test-suite only` (never sufficient alone for a guarantee).  
+ **Last Audited:** `2026-10-29T18:45:00+05:30` (IST) — Independent Lead Audit.
+ 
++> **Correction notice (2026-10-30, owner-approved DEC-020; table text unchanged):** the original C6 wording "Per-node linearizability guaranteed" and "zero stale reads post-propagation (P(stale) = 0.0)" overstates what is implemented and tested. Supported by code and tests is gateway-local read-your-delete for a sequential DELETE then GET on one gateway; no linearizability checker or proof exists, the concurrent-case findings G4A-01 and G4A-08 are open (`docs/release/g4/cycle1_core_engine_review.md`), and the cross-gateway figures are loopback, debug-profile observations with a fixed 50 ms sleep (see the amendment in section 5 and the appended note near the end of this file). The "TTL_eff = 60s" fallback is not a bound: `PHANTOM_DEFAULT_TTL_MS` is NotWired and origin headers set the lifetime with no gateway ceiling.
++
+ ---
+ 
+ ## 1. Core Architecture & Adaptive Intelligence Claims
+--- a/docs/research/code_findings.md
++++ b/docs/research/code_findings.md
+@@ -3,6 +3,8 @@
+ **Date:** 2026-10-28. **Mode:** read-only. Nothing was executed except `cargo test --all-targets -j 1` (242 passed, 0 failed, 19 targets, debug profile).
+ **Method:** Source reading plus `Grep` for call sites. "Confirmed" means the statement follows from the code as read; it does **not** mean the performance impact is measured. Impact claims are tagged **[HYP]**.
+ 
++> **Correction notice (2026-10-30, owner-approved DEC-020; the register text below is unchanged and dates from 2026-10-28):** several findings describe code that has since changed. F15 (GET local-only and peer invalidations purge a separate per-node cache): in the mTLS cluster branch the local node now shares the serving cache (`VirtualNode::new_with_cache`, `src/main.rs:332`); remote peers are address-only descriptors; the demo nodes still own separate caches; GET remains local-only. F18 ("the only staleness bound is the fixed 60 s TTL"): the 60 s literal is only the no-origin-headers default (`PHANTOM_DEFAULT_TTL_MS` NotWired, `src/api/server.rs:1405`, `:1688`), origin headers set the lifetime with no gateway ceiling, and there is therefore no proven staleness bound; a cluster repair path (anti-entropy worker, 250 ms, `src/main.rs:375`) now exists but its effectiveness is not established. "DELETE ordering reversed relative to docs" (`server.rs:830-832`): the local purge now runs first (`src/api/server.rs:1990`). The test baseline "242 passed, 19 targets" is superseded by `docs/STATUS.md` section 3. All line numbers are from the 2026-10-28 tree.
++
+ Status vocabulary: **CONFIRMED** (code supports it), **CONFIRMED-WITH-CORRECTION** (my earlier wording was inaccurate), **UNRESOLVED**, **REJECTED**.
+ 
+ ## 1. Findings from the first pass, re-checked
+--- a/docs/research/phase_2_completion_report.md
++++ b/docs/research/phase_2_completion_report.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
++
+ > Notice (2026-10-30): The status "COMPLETED & ACCEPTED (Gate G-M2 PASS)" below is an agent self-report; no dated owner acceptance is recorded in the repository (an evidence gap, not proof that none was given). Specific points not supported by retained evidence: the AC2-6 figure "B4 speedup 200x" is untraceable to any retained artifact (claim C5 in [claims_ledger.md](claims_ledger.md), UNVERIFIED), and the AC2-10 soak was a 3,000-request debug test whereas the accountability report records the 2 h per platform soak criterion as not met ([accountability report](phantomcache_milestone_accountability_report.md)). `PHANTOM_DEFAULT_TTL_MS` is validated but not wired. Supported status: tested; correctness review by reading only; acceptance criteria not demonstrated. Current status: [docs/STATUS.md](../STATUS.md).
+ >
+ > Original text below is unchanged.
+--- a/docs/research/phase_2_progress.md
++++ b/docs/research/phase_2_progress.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
++
+ # PhantomCache Phase 2 — Continuous Progress Log and Ledger
+ 
+ **Authoritative Specification:** `docs/research/phase_2_execution_package.md`  
+--- a/docs/research/phase_3_completion_report.md
++++ b/docs/research/phase_3_completion_report.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
++
+ > Notice (2026-10-30): The statements "100% COMPLETE", "Gate G-M3 PASS" and "zero compromises or waivers" below are an agent self-report and are superseded. The invalidation-durability defect (invalidations owed by an issuing gateway are lost if it dies) was reproduced on 2026-10-30 ([accountability report, section 12](phantomcache_milestone_accountability_report.md)); the claim "zero stale after 50 ms" is not supported ([claims_ledger.md](claims_ledger.md), claim C6 amendment); all evidence is loopback and debug-profile; the "ACCEPTED" status of ADR-003 was recorded by agents and no owner ratification is recorded in the repository (an evidence gap, not proof that none was given). Supported status: partially implemented, weakly verified, acceptance criteria not met. Current status: [docs/STATUS.md](../STATUS.md).
+ >
+ > Original text below is unchanged.
+--- a/docs/research/phase_3_progress.md
++++ b/docs/research/phase_3_progress.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
++
+ # PhantomCache Phase 3 — Continuous Progress Log and Ledger
+ 
+ **Authoritative Specification:** `docs/research/phase_3_execution_package.md`  
+--- a/docs/research/phase_4_completion_report.md
++++ b/docs/research/phase_4_completion_report.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
++
+ > Notice (2026-10-30): The verdict "GATE G-M4 PASS" (all 12 criteria) below is an agent self-report and is not independently verified. The wording of AC4-9 and AC4-10 in this report differs from the execution package (package AC4-9: T1/T2 agreement study delivered; AC4-10: independent reproduction on a fresh checkout), see [D1 audit, section 2 (M4)](doc_audit/d1_milestone_documentation_audit.md). No T1/T2 agreement study was run, so the "100% ordinal ranking agreement (r_s = 1.0)" and the designation of T1 as PREDICTIVE are unsupported (claim C7 UNVERIFIED in [claims_ledger.md](claims_ledger.md)). Supported status: partially complete, acceptance criteria not satisfied ([accountability report, section 2](phantomcache_milestone_accountability_report.md)). Current status: [docs/STATUS.md](../STATUS.md).
+ >
+ > Original text below is unchanged.
+--- a/docs/research/phase_4_progress.md
++++ b/docs/research/phase_4_progress.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
++
+ # PhantomCache Phase 4 — Continuous Progress Log and Ledger
+ 
+ **Authoritative Specification:** `docs/research/phase_4_execution_package.md`  
+--- a/docs/research/phase_6_completion_report.md
++++ b/docs/research/phase_6_completion_report.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
++
+ > **RETRACTED / SUPERSEDED (independent review, 2026-10-29T13:22Z).** The headline results in this document (28.0% peak-concurrency reduction, 34.2% P99 improvement, ablation shares, Spearman r_s = 1.00, "MVP-A") were NOT produced by executing the controller. `tests/integration/m6_research_evaluation_tests.rs` computes the adaptive arm as `static_peak * 0.72` and `static_hit_ratio + 0.02`; the ablation test uses hard-coded constants; `MatrixRunner::run_t1_cell` applies fixed multipliers and does not map the M6 scenario IDs (`O-DEG`, `O-BRN`, ...) to any degradation scenario. Treat every number below as **unmeasured**. The M6 gate is **OPEN / HOLD**; MVP-A is **revoked**. See `master_audit_and_execution_plan.md` (Independent Review Addendum) and `claims_ledger.md`. This original text is preserved unchanged below for audit history.
+ 
+ 
+--- a/docs/research/phase_6_progress.md
++++ b/docs/research/phase_6_progress.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
++
+ # PhantomCache Phase 6 — Continuous Progress Log and Ledger
+ 
+ **Authoritative Specification:** `docs/research/phase_6_execution_package.md`  
+--- a/docs/security/phase-4-design.md
++++ b/docs/security/phase-4-design.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** this is a design specification. "Implemented, Remediated, and Independently Audited" and the stale-read bounds in it (for example "stale reads up to the key's TTL") describe the intended design: the freshness lifetime comes from origin headers with a 60 s literal fallback and no gateway ceiling (`PHANTOM_DEFAULT_TTL_MS` is not wired), the cluster is experimental and loopback-tested, and no linearizability or staleness bound is proven (`docs/user/limitations.md`, `docs/research/claims_ledger.md` C6, ADR-003 amendment). The audits cited were done by agents; see `docs/STATUS.md` for independence classes.
++
+ # PhantomCache — Phase 4 Design Specification
+ ## Distributed Invalidation, Monotonic Consistency, and Anti-Entropy Reconciliation (Post-Review Remediation)
+ 
+--- a/docs/security/phase-4-final-acceptance-report.md
++++ b/docs/security/phase-4-final-acceptance-report.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** (1) "Final Acceptance", "Sign-Off", "authorized" and "Verified Real-Time Linearizability" are agent self-reports; no dated owner acceptance of Phase 4 is recorded in the repository (an evidence gap, not proof that none was given), and later reviews do not support "zero P0" (`docs/STATUS.md`, `docs/handoff/CORRECTIONS.md`). (2) "Real-Time Linearizability" / "Stale Reads Detected: 0" / "Eventual Consistency with bounded staleness": the check reported is a loopback, debug-profile test (assumed from the report; not re-run) that no read completing after an invalidation returned older data. It is not a linearizability proof or history check, and it establishes no staleness bound. The origin freshness lifetime has no gateway ceiling and `PHANTOM_DEFAULT_TTL_MS` is not wired (`docs/user/limitations.md`); the issuing gateway keeps owed invalidations only in memory (ADR-003 amendment). (3) Test counts quoted here (for example 242 tests, 19 targets) are historical; the current baselines are in `docs/STATUS.md` section 3.
++
+ # PhantomCache — Final Acceptance & Independent Review Report
+ ## Comprehensive Post-Remediation Sign-Off: P1–P4 and Phase 3A–4C (Including Gate B Verifications)
+ 
+--- a/docs/security/stage-4b-audit-report-round2.md
++++ b/docs/security/stage-4b-audit-report-round2.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** (1) "Final Acceptance", "Sign-Off", "authorized" and "Verified Real-Time Linearizability" are agent self-reports; no dated owner acceptance of Phase 4 is recorded in the repository (an evidence gap, not proof that none was given), and later reviews do not support "zero P0" (`docs/STATUS.md`, `docs/handoff/CORRECTIONS.md`). (2) "Real-Time Linearizability" / "Stale Reads Detected: 0" / "Eventual Consistency with bounded staleness": the check reported is a loopback, debug-profile test (assumed from the report; not re-run) that no read completing after an invalidation returned older data. It is not a linearizability proof or history check, and it establishes no staleness bound. The origin freshness lifetime has no gateway ceiling and `PHANTOM_DEFAULT_TTL_MS` is not wired (`docs/user/limitations.md`); the issuing gateway keeps owed invalidations only in memory (ADR-003 amendment). (3) Test counts quoted here (for example 242 tests, 19 targets) are historical; the current baselines are in `docs/STATUS.md` section 3.
++
+ # Stage 4B Independent Acceptance Audit Report (Round 2 — Post-Remediation)
+ 
+ **Repository:** `D:\Personal\phantom-cache`  
+--- a/docs/security/stage-4b-progress.md
++++ b/docs/security/stage-4b-progress.md
+@@ -1,3 +1,5 @@
++> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** (1) "Final Acceptance", "Sign-Off", "authorized" and "Verified Real-Time Linearizability" are agent self-reports; no dated owner acceptance of Phase 4 is recorded in the repository (an evidence gap, not proof that none was given), and later reviews do not support "zero P0" (`docs/STATUS.md`, `docs/handoff/CORRECTIONS.md`). (2) "Real-Time Linearizability" / "Stale Reads Detected: 0" / "Eventual Consistency with bounded staleness": the check reported is a loopback, debug-profile test (assumed from the report; not re-run) that no read completing after an invalidation returned older data. It is not a linearizability proof or history check, and it establishes no staleness bound. The origin freshness lifetime has no gateway ceiling and `PHANTOM_DEFAULT_TTL_MS` is not wired (`docs/user/limitations.md`); the issuing gateway keeps owed invalidations only in memory (ADR-003 amendment). (3) Test counts quoted here (for example 242 tests, 19 targets) are historical; the current baselines are in `docs/STATUS.md` section 3.
++
+ # Stage 4B Implementation Progress: Distributed Invalidation Coordination & Gateway Integration
+ 
+ **Module:** PhantomCache Distributed Operations & Invalidation  

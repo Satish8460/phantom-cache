@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" width="900" height="620" role="img" aria-labelledby="t6 d6">
+<title id="t6">Where Phantom Lab and the UI sit relative to the gateway</title>
+<desc id="d6">The browser UI is served by a separate Vite dev server and calls the serving gateway. The serving gateway optionally hosts the Lab API, which drives either the in-process T1 simulation or the T2 experiment that starts a separate child gateway, a scripted origin and a load generator on loopback. The phantom-lab command line program runs the same library code without the HTTP API.</desc>
+<defs>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111}
+.h{font-size:14px;font-weight:bold}
+.s{font-size:13px;fill:#333}
+.b{fill:#fff;stroke:#222;stroke-width:1.5}
+.g{fill:#e4e4e4;stroke:#222;stroke-width:1.5}
+.k{fill:#c8c8c8;stroke:#222;stroke-width:2}
+.d{fill:#fff;stroke:#222;stroke-width:1.5;stroke-dasharray:6 4}
+.p{fill:#f6f6f6;stroke:#222;stroke-width:2}
+.a{stroke:#222;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+.ad{stroke:#222;stroke-width:1.6;fill:none;stroke-dasharray:6 4;marker-end:url(#ar)}
+</style>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker>
+</defs>
+<rect width="900" height="620" fill="#fff"/>
+<rect class="b" x="15" y="40" width="190" height="120" rx="4"/>
+<text x="25" y="62" class="h">Browser</text><text x="25" y="82" class="s">React UI from Vite dev</text><text x="25" y="98" class="s">server (port 3000)</text><text x="25" y="118" class="s">sends a Bearer token if the</text><text x="25" y="134" class="s">gateway uses JWT (Chapter 6)</text>
+<rect class="p" x="250" y="20" width="360" height="290" rx="8"/>
+<text x="262" y="42" class="h">Serving gateway (phantom-cache-demo, :8085)</text>
+<rect class="g" x="266" y="56" width="328" height="56" rx="4"/>
+<text x="276" y="76" class="h">Cache + telemetry endpoints</text><text x="276" y="94" class="s">/api/events?schema=2, /api/v1/metrics</text><text x="276" y="108" class="s">values labelled measured / derived / simulated</text>
+<rect class="d" x="266" y="126" width="328" height="168" rx="4"/>
+<text x="276" y="146" class="h">Lab API /api/v1/lab (if enabled)</text>
+<text x="276" y="166" class="s">capabilities, evidence, runs, events (SSE lab-1),</text><text x="276" y="182" class="s">artifacts; max 16 SSE streams, 16 KiB bodies</text>
+<rect class="k" x="278" y="196" width="145" height="84" rx="4"/>
+<text x="286" y="214" class="h">T1 simulation</text><text x="286" y="232" class="s">in-process library</text><text x="286" y="248" class="s">virtual clock, seeded</text><text x="286" y="264" class="s">T1, SIMULATED</text>
+<rect class="k" x="436" y="196" width="146" height="84" rx="4"/>
+<text x="444" y="214" class="h">T2 scenario_b</text><text x="444" y="232" class="s">driver spawns a child</text><text x="444" y="248" class="s">gateway, real clock</text><text x="444" y="264" class="s">T2, loopback only</text>
+<rect class="b" x="660" y="40" width="225" height="150" rx="4"/>
+<text x="670" y="62" class="h">T2 on loopback</text><text x="670" y="82" class="s">child gateway (own process,</text><text x="670" y="98" class="s">free port, own cache)</text><text x="670" y="118" class="s">scripted raw-TCP origin</text><text x="670" y="138" class="s">open-loop load generator</text><text x="670" y="158" class="s">src/lab_live/*</text>
+<rect class="b" x="250" y="380" width="360" height="104" rx="4"/>
+<text x="262" y="402" class="h">phantom-lab (separate binary)</text><text x="262" y="422" class="s">list / run (T1) / scenario-b (T2)</text><text x="262" y="438" class="s">same library code, no HTTP API</text><text x="262" y="454" class="s">refuses the sealed seed set</text><text x="262" y="470" class="s">src/bin/phantom-lab.rs</text>
+<rect class="b" x="660" y="380" width="225" height="104" rx="4"/>
+<text x="670" y="402" class="h">Files on disk</text><text x="670" y="422" class="s">lab-results/ (PHANTOM_LAB_DIR)</text><text x="670" y="438" class="s">runs/, manifests, retained</text><text x="670" y="454" class="s">evidence read by the Lab API</text>
+<path class="a" d="M205 80 L266 80"/>
+<path class="ad" d="M205 140 L240 140 L240 200 L266 200"/>
+<path class="a" d="M582 238 L660 120"/>
+<path class="a" d="M610 432 L660 432"/>
+<path class="ad" d="M594 280 L640 330 L640 400 L660 420"/>
+<text x="15" y="340" class="s">Solid arrow: always used when the part runs. Dashed arrow: only when the Lab API is on.</text>
+<text x="15" y="540" class="s">The Lab is not on the request path of cached traffic. It measures or simulates the gateway; it does not serve GET or DELETE.</text>
+<text x="15" y="560" class="s">The UI never sits between the client and the origin; it reads the gateway's observation endpoints and the Lab API.</text>
+<text x="15" y="590" class="s">Derived from src/main.rs, src/api/server.rs, src/api/lab_api.rs, src/lab_live/gateway.rs, src/bin/phantom-lab.rs, ui/src/lib/config.js.</text>
+</svg>

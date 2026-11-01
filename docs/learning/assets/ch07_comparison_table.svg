@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" font-family="Arial, Helvetica, sans-serif" font-size="13">
+<title>Comparison with established systems: overlap, difference, maturity</title>
+<desc>A table with one row per established system or technique, showing the overlapping mechanism, what PhantomCache does differently, and where the established system is more mature. It is not a ranking and makes no performance claim.</desc>
+<rect width="900" height="640" fill="#fff"/>
+<text x="450" y="22" text-anchor="middle" font-size="16" font-weight="bold">Overlap, difference and maturity (not a ranking, no performance claim)</text>
+<g stroke="#222" stroke-width="1.5">
+<rect x="10" y="34" width="150" height="30" fill="#bdbdbd"/><rect x="160" y="34" width="250" height="30" fill="#bdbdbd"/><rect x="410" y="34" width="240" height="30" fill="#bdbdbd"/><rect x="650" y="34" width="240" height="30" fill="#bdbdbd"/>
+</g>
+<g font-weight="bold"><text x="20" y="54">System</text><text x="170" y="54">Overlapping mechanism</text><text x="420" y="54">PhantomCache differs by</text><text x="660" y="54">Established side is stronger</text></g>
+<g stroke="#222" stroke-width="1">
+<rect x="10" y="64" width="150" height="70" fill="#f5f5f5"/><rect x="160" y="64" width="250" height="70" fill="#fff"/><rect x="410" y="64" width="240" height="70" fill="#fff"/><rect x="650" y="64" width="240" height="70" fill="#fff"/>
+<rect x="10" y="134" width="150" height="70" fill="#f5f5f5"/><rect x="160" y="134" width="250" height="70" fill="#fff"/><rect x="410" y="134" width="240" height="70" fill="#fff"/><rect x="650" y="134" width="240" height="70" fill="#fff"/>
+<rect x="10" y="204" width="150" height="70" fill="#f5f5f5"/><rect x="160" y="204" width="250" height="70" fill="#fff"/><rect x="410" y="204" width="240" height="70" fill="#fff"/><rect x="650" y="204" width="240" height="70" fill="#fff"/>
+<rect x="10" y="274" width="150" height="70" fill="#f5f5f5"/><rect x="160" y="274" width="250" height="70" fill="#fff"/><rect x="410" y="274" width="240" height="70" fill="#fff"/><rect x="650" y="274" width="240" height="70" fill="#fff"/>
+<rect x="10" y="344" width="150" height="70" fill="#f5f5f5"/><rect x="160" y="344" width="250" height="70" fill="#fff"/><rect x="410" y="344" width="240" height="70" fill="#fff"/><rect x="650" y="344" width="240" height="70" fill="#fff"/>
+<rect x="10" y="414" width="150" height="70" fill="#f5f5f5"/><rect x="160" y="414" width="250" height="70" fill="#fff"/><rect x="410" y="414" width="240" height="70" fill="#fff"/><rect x="650" y="414" width="240" height="70" fill="#fff"/>
+<rect x="10" y="484" width="150" height="70" fill="#f5f5f5"/><rect x="160" y="484" width="250" height="70" fill="#fff"/><rect x="410" y="484" width="240" height="70" fill="#fff"/><rect x="650" y="484" width="240" height="70" fill="#fff"/>
+</g>
+<g font-size="12.5">
+<text x="18" y="86" font-weight="bold">Redis / Memcached</text><text x="18" y="104">key-value caches</text>
+<text x="168" y="82">Memcached leases and Redis</text><text x="168" y="98">client tracking address stale</text><text x="168" y="114">sets and invalidation</text>
+<text x="418" y="82">HTTP-aware gateway in front of</text><text x="418" y="98">an origin, freshness rules,</text><text x="418" y="114">single-flight built in</text>
+<text x="658" y="82">years of production use, rich</text><text x="658" y="98">data types, clustering, clients,</text><text x="658" y="114">tooling, persistence options</text>
+<text x="18" y="156" font-weight="bold">Varnish / nginx</text><text x="18" y="174">HTTP caches</text>
+<text x="168" y="152">request collapsing, grace /</text><text x="168" y="168">stale-while-revalidate,</text><text x="168" y="184">proxy_cache_lock</text>
+<text x="418" y="152">same mechanisms plus a</text><text x="418" y="168">generation-fenced cache API</text><text x="418" y="184">and an origin concurrency gate</text>
+<text x="658" y="152">VCL, TLS offload, disk storage,</text><text x="658" y="168">large deployments, broad HTTP</text><text x="658" y="184">coverage</text>
+<text x="18" y="226" font-weight="bold">groupcache</text><text x="18" y="244">singleflight</text>
+<text x="168" y="222">one load per key across peers;</text><text x="168" y="238">hash-sharded ownership;</text><text x="168" y="254">hot-item mirroring</text>
+<text x="418" y="222">owner routing exists but GET</text><text x="418" y="238">is served from local cache only;</text><text x="418" y="254">no cross-node single-flight</text>
+<text x="658" y="222">cross-peer duplicate suppression</text><text x="658" y="238">and hot-item mirroring are the</text><text x="658" y="254">documented behaviour</text>
+<text x="18" y="296" font-weight="bold">Caffeine / TinyLFU,</text><text x="18" y="314">SIEVE, S3-FIFO</text>
+<text x="168" y="292">eviction and admission</text><text x="168" y="308">policies; Caffeine adds</text><text x="168" y="324">refresh-after-write</text>
+<text x="418" y="292">SIEVE default and TinyLFU-style</text><text x="418" y="308">filter exist; other policies are</text><text x="418" y="324">alternatives (see Chapter 4)</text>
+<text x="658" y="292">published evaluations on</text><text x="658" y="308">thousands of traces; library</text><text x="658" y="324">maturity; no eviction claim here</text>
+<text x="18" y="366" font-weight="bold">Rendezvous /</text><text x="18" y="384">consistent hashing</text>
+<text x="168" y="362">name-based placement without</text><text x="168" y="378">shared state (HRW: Thaler and</text><text x="168" y="394">Ravishankar, ToN 1998)</text>
+<text x="418" y="362">plain HRW, weight constant 1.0,</text><text x="418" y="378">used for DELETE routing; no</text><text x="418" y="394">bounded-load variant</text>
+<text x="658" y="362">bounded-load hashing, ring</text><text x="658" y="378">implementations proven at scale</text>
+<text x="18" y="436" font-weight="bold">Cassandra repair</text><text x="18" y="454">(anti-entropy)</text>
+<text x="168" y="432">compares replicas with Merkle</text><text x="168" y="448">trees, streams only mismatches</text>
+<text x="418" y="432">anti-entropy worker (250 ms)</text><text x="418" y="448">reconciles peers; effectiveness</text><text x="418" y="464">not established (claims C6)</text>
+<text x="658" y="432">production repair tooling,</text><text x="658" y="448">incremental repair, years of</text><text x="658" y="464">operation</text>
+<text x="18" y="506" font-weight="bold">Envoy / Netflix</text><text x="18" y="524">adaptive limits</text>
+<text x="168" y="502">gradient / Vegas limits compare</text><text x="168" y="518">latency to a measured minimum</text><text x="168" y="534">(Envoy docs opened via tool)</text>
+<text x="418" y="502">AIMD against an ABSOLUTE p99</text><text x="418" y="518">ceiling; sealed M6 found no</text><text x="418" y="534">benefit over a static cap</text>
+<text x="658" y="502">shipped, relative-signal</text><text x="658" y="518">controllers in production</text><text x="658" y="534">proxies</text>
+</g>
+<text x="450" y="580" text-anchor="middle" font-size="12">Sources: docs/research/rt0_prior_art_sweep_2026-10-30.md (RT-0 is PARTIAL, still open), intelligence_prior_art_coverage.md,</text>
+<text x="450" y="598" text-anchor="middle" font-size="12">and four primary pages fetched for this chapter (groupcache README, Go singleflight docs, Caffeine README, Cassandra repair docs).</text>
+<text x="450" y="616" text-anchor="middle" font-size="12">Fetch tool summaries, not verbatim reads: class OPENED-VIA-TOOL. No performance comparison is made or implied.</text>
+</svg>

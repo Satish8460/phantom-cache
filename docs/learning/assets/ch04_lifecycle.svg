@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" width="900" height="640" role="img" aria-labelledby="t2 d2">
+  <title id="t2">Entry lifecycle and fenced fetch</title>
+  <desc id="d2">A key moves from absent to a placeholder with an in-flight fetch, then finalize_fetch stores the body only if the state instance, the generation and the tenant and global epochs still match what was recorded at fetch start. Delete, epoch bump, expiry and eviction return the key to absent.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; font-size: 14px; fill: #111; }
+    .s { font-size: 13px; }
+    .b { font-weight: bold; }
+    .box { fill: #fff; stroke: #111; stroke-width: 1.5; }
+    .st { fill: #e6e6e6; stroke: #111; stroke-width: 2; }
+    .ok { fill: #cfcfcf; stroke: #111; stroke-width: 2.5; }
+    .no { fill: #fff; stroke: #111; stroke-width: 2; stroke-dasharray: 7 4; }
+    .arr { stroke: #111; stroke-width: 1.8; fill: none; marker-end: url(#a); }
+    .arr2 { stroke: #111; stroke-width: 1.8; fill: none; stroke-dasharray: 6 4; marker-end: url(#a); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="640" fill="#fff"/>
+  <text x="20" y="26" class="b" style="font-size:16px">Figure 4.3: Entry lifecycle, single-flight fetch and the fences in finalize_fetch</text>
+
+  <!-- states row -->
+  <rect class="st" x="20" y="50" width="150" height="56"/>
+  <text x="34" y="74" class="b">Absent</text>
+  <text x="34" y="94" class="s">no KeyState</text>
+
+  <path class="arr" d="M170,78 L238,78"/>
+  <text x="172" y="68" class="s">miss</text>
+
+  <rect class="st" x="240" y="50" width="250" height="56"/>
+  <text x="252" y="72" class="b">Placeholder, op in flight</text>
+  <text x="252" y="92" class="s">entry = None, key bytes charged</text>
+
+  <path class="arr" d="M490,78 L558,78"/>
+  <text x="494" y="68" class="s">finalize</text>
+
+  <rect class="ok" x="560" y="50" width="320" height="56"/>
+  <text x="572" y="72" class="b">Resident</text>
+  <text x="572" y="92" class="s">entry stamped with epochs; policy.on_insert</text>
+
+  <!-- begin_fetch details -->
+  <rect class="box" x="20" y="130" width="440" height="150"/>
+  <text x="30" y="152" class="b">begin_fetch_atomic (shard mutex held)</text>
+  <text x="30" y="172" class="s">1. Hit? epochs equal and created_at + ttl &gt; now: return Hit, on_hit.</text>
+  <text x="30" y="190" class="s">2. Epoch mismatch: drop entry, generation + 1.</text>
+  <text x="30" y="208" class="s">3. in_flight has the key: push a oneshot waiter (limit 1,000).</text>
+  <text x="30" y="226" class="s">4. Else make room (up to 32 evictions), or CapacityExceeded.</text>
+  <text x="30" y="244" class="s">5. Leader: new op_id, record op_gen = generation, stamp</text>
+  <text x="30" y="262" class="s">   entry epochs = epochs now, insert SharedOp in in_flight.</text>
+  <path class="arr" d="M365,130 L365,108"/>
+
+  <!-- origin -->
+  <rect class="box" x="480" y="130" width="400" height="60"/>
+  <text x="490" y="152" class="b">Origin fetch (spawned task, no lock held)</text>
+  <text x="490" y="172" class="s">permit from the origin gate, 5 s response read timeout</text>
+  <path class="arr" d="M680,190 L680,214"/>
+
+  <!-- finalize -->
+  <rect class="box" x="480" y="214" width="400" height="168"/>
+  <text x="490" y="236" class="b">finalize_fetch (shard mutex held)</text>
+  <text x="490" y="256" class="s">a. detach in_flight if op_id matches; take waiters.</text>
+  <text x="490" y="274" class="s">b. state_instance_id equal? else stale_ops_ignored.</text>
+  <text x="490" y="292" class="s">c. op_id still in active_op_ids? remove it.</text>
+  <text x="490" y="310" class="s">d. Success only: generation == op_gen AND</text>
+  <text x="490" y="328" class="s">   entry epochs == epochs read now (fence #1).</text>
+  <text x="490" y="346" class="s">e. byte budget: evict up to 32, else reject.</text>
+  <text x="490" y="364" class="s">f. store; re-read epochs and stamp (G4A-01 site).</text>
+
+  <!-- outcomes -->
+  <path class="arr" d="M580,382 L580,420"/>
+  <path class="arr" d="M780,382 L780,420"/>
+  <rect class="ok" x="480" y="420" width="190" height="66"/>
+  <text x="490" y="442" class="b">Stored</text>
+  <text x="490" y="462" class="s">waiters get the body,</text>
+  <text x="490" y="478" class="s">entry becomes Resident</text>
+  <rect class="no" x="690" y="420" width="190" height="66"/>
+  <text x="700" y="442" class="b">Rejected</text>
+  <text x="700" y="462" class="s">waiters still get body;</text>
+  <text x="700" y="478" class="s">stale_writes_prevented</text>
+
+  <!-- exits from resident -->
+  <rect class="box" x="20" y="310" width="440" height="176"/>
+  <text x="30" y="332" class="b">Ways a Resident entry leaves (each updates bytes)</text>
+  <text x="30" y="354" class="s">delete(key): entry None, generation + 1, in_flight detached.</text>
+  <text x="30" y="374" class="s">Epoch bump: lazy. The next read sees a mismatch and drops it.</text>
+  <text x="30" y="394" class="s">TTL passed: not served as a hit; the sweeper reclaims it later</text>
+  <text x="30" y="412" class="s">  (kept for stale-while-revalidate / stale-if-error windows).</text>
+  <text x="30" y="432" class="s">Eviction: policy picks an unpinned victim when full.</text>
+  <text x="30" y="452" class="s">Pinned = key has an active op or an in-flight fetch.</text>
+  <text x="30" y="472" class="s">Pinned keys are never evicted.</text>
+  <path class="arr2" d="M20,398 L8,398 L8,78 L19,78"/>
+
+  <rect class="box" x="20" y="510" width="860" height="112"/>
+  <text x="30" y="532" class="b">Why each fence exists</text>
+  <text x="30" y="552" class="s">instance id: a state removed and recreated must not accept a finish from the older state.</text>
+  <text x="30" y="570" class="s">generation: delete() bumps it, so a fetch that started before a DELETE cannot store its body afterwards.</text>
+  <text x="30" y="588" class="s">epochs: tenant or global invalidation bumps an epoch without touching any shard; the entry stamped at fetch start must still match.</text>
+  <text x="30" y="606" class="s">Epoch bumps do NOT change the per-key generation, so only the epoch comparison protects against them.</text>
+</svg>

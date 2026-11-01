@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 740" width="900" height="740" font-family="Arial, Helvetica, sans-serif" font-size="15">
+  <title>PhantomCache architecture overview: client to origin and across nodes</title>
+  <desc>One gateway process contains an ingress, handlers, a cache of 8 shards, an origin path with an optional concurrency gate, a cluster router used only for DELETE, and telemetry. The origin sits outside the process. Peer gateways are reached only by invalidation frames over mutual TLS, never for reads. The Lab and UI sit off the request path.</desc>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="740" fill="#ffffff"/>
+  <text x="15" y="28" font-weight="bold" font-size="18" fill="#111">PhantomCache: client to origin and across nodes</text>
+  <rect x="125" y="50" width="650" height="438" rx="6" fill="#f6f6f6" stroke="#111" stroke-width="2"/>
+  <text x="140" y="74" font-weight="bold" fill="#111">One gateway process (phantom-cache-demo)</text>
+  <rect x="4" y="132" width="112" height="62" rx="4" fill="#ffffff" stroke="#111" stroke-width="3"/><text x="60" y="158" text-anchor="middle" font-weight="bold" fill="#111">Clients</text><text x="60" y="180" text-anchor="middle" fill="#111">GET, DELETE</text>
+  <line x1="116" y1="163" x2="135" y2="163" stroke="#111" stroke-width="2" marker-end="url(#ar)"/>
+  <rect x="135" y="85" width="150" height="165" rx="4" fill="#e2e2e2" stroke="#111" stroke-width="2"/><text x="210" y="108" text-anchor="middle" font-weight="bold" fill="#111">Ingress (Axum)</text><text x="210" y="136" text-anchor="middle" fill="#111">512 KiB body cap</text><text x="210" y="156" text-anchor="middle" fill="#111">JWT role + tenant</text><text x="210" y="176" text-anchor="middle" fill="#111">if a secret is set</text><text x="210" y="204" text-anchor="middle" fill="#111">CORS layer</text>
+  <line x1="285" y1="163" x2="305" y2="163" stroke="#111" stroke-width="2" marker-end="url(#ar)"/>
+  <rect x="305" y="85" width="145" height="165" rx="4" fill="#e2e2e2" stroke="#111" stroke-width="2"/><text x="377" y="108" text-anchor="middle" font-weight="bold" fill="#111">Handlers</text><text x="377" y="136" text-anchor="middle" fill="#111">GET handler</text><text x="377" y="156" text-anchor="middle" fill="#111">DELETE handler</text><text x="377" y="184" text-anchor="middle" fill="#111">hit / miss / stale</text><text x="377" y="204" text-anchor="middle" fill="#111">bypass</text>
+  <line x1="450" y1="163" x2="470" y2="163" stroke="#111" stroke-width="2" marker-end="url(#ar)"/>
+  <rect x="470" y="85" width="295" height="165" rx="4" fill="#e2e2e2" stroke="#111" stroke-width="2"/><text x="617" y="108" text-anchor="middle" font-weight="bold" fill="#111">PartitionedCache</text>
+  <g fill="#ffffff" stroke="#111" stroke-width="1.5"><rect x="485" y="120" width="60" height="26"/><rect x="553" y="120" width="60" height="26"/><rect x="621" y="120" width="60" height="26"/><rect x="689" y="120" width="60" height="26"/><rect x="485" y="152" width="60" height="26"/><rect x="553" y="152" width="60" height="26"/><rect x="621" y="152" width="60" height="26"/><rect x="689" y="152" width="60" height="26"/></g>
+  <text x="515" y="138" text-anchor="middle" fill="#111">S0</text><text x="583" y="138" text-anchor="middle" fill="#111">S1</text><text x="651" y="138" text-anchor="middle" fill="#111">S2</text><text x="719" y="138" text-anchor="middle" fill="#111">S3</text><text x="515" y="170" text-anchor="middle" fill="#111">S4</text><text x="583" y="170" text-anchor="middle" fill="#111">S5</text><text x="651" y="170" text-anchor="middle" fill="#111">S6</text><text x="719" y="170" text-anchor="middle" fill="#111">S7</text>
+  <text x="617" y="200" text-anchor="middle" fill="#111">one mutex per shard (8)</text><text x="617" y="219" text-anchor="middle" fill="#111">single-flight, fencing, epochs</text><text x="617" y="238" text-anchor="middle" fill="#111">byte budget, SIEVE default</text>
+  <line x1="377" y1="250" x2="377" y2="284" stroke="#111" stroke-width="2" marker-end="url(#ar)"/><text x="387" y="272" fill="#111">DELETE</text>
+  <line x1="617" y1="250" x2="617" y2="284" stroke="#111" stroke-width="2" marker-end="url(#ar)"/><text x="627" y="272" fill="#111">miss</text>
+  <rect x="135" y="284" width="310" height="98" rx="4" fill="#c4c4c4" stroke="#111" stroke-width="2"/><text x="290" y="306" text-anchor="middle" font-weight="bold" fill="#111">Cluster router (DELETE only)</text><text x="290" y="325" text-anchor="middle" fill="#111">rendezvous hash, constant weight</text><text x="290" y="344" text-anchor="middle" fill="#111">repair ledger: memory only</text><text x="290" y="363" text-anchor="middle" fill="#111">anti-entropy every 250 ms</text>
+  <rect x="470" y="284" width="295" height="98" rx="4" fill="#e2e2e2" stroke="#111" stroke-width="2"/><text x="617.5" y="306" text-anchor="middle" font-weight="bold" fill="#111">Origin path (leader only)</text><text x="617.5" y="325" text-anchor="middle" fill="#111">gate: cap only in canary/active</text><text x="617.5" y="344" text-anchor="middle" fill="#111">and only if a cap is set</text><text x="617.5" y="363" text-anchor="middle" fill="#111">SSRF check, 5 s, 2 MiB cap</text>
+  <rect x="470" y="400" width="295" height="72" rx="4" fill="#ffffff" stroke="#111" stroke-width="2" stroke-dasharray="7 4"/><text x="617" y="422" text-anchor="middle" font-weight="bold" fill="#111">Telemetry and intelligence</text><text x="617" y="441" text-anchor="middle" fill="#111">counters, latency: observed</text><text x="617" y="460" text-anchor="middle" fill="#111">detectors, decision engine: library</text>
+  <line x1="765" y1="333" x2="786" y2="333" stroke="#111" stroke-width="2" marker-end="url(#ar)"/>
+  <rect x="786" y="303" width="110" height="60" rx="4" fill="#ffffff" stroke="#111" stroke-width="3"/><text x="840" y="329" text-anchor="middle" font-weight="bold" fill="#111">Origin</text><text x="840" y="350" text-anchor="middle" fill="#111">ORIGIN_URL</text>
+  <rect x="135" y="530" width="310" height="84" rx="4" fill="#c4c4c4" stroke="#111" stroke-width="2"/><text x="290" y="552" text-anchor="middle" font-weight="bold" fill="#111">Peer gateways</text><text x="290" y="571" text-anchor="middle" fill="#111">each has its own cache</text><text x="290" y="590" text-anchor="middle" fill="#111">reads never go here</text>
+  <line x1="290" y1="382" x2="290" y2="530" stroke="#111" stroke-width="2" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="302" y="420" fill="#111">mTLS 1.3 frames:</text><text x="302" y="440" fill="#111">invalidate, ack,</text><text x="302" y="460" fill="#111">sync</text>
+  <text x="475" y="548" font-weight="bold" fill="#111">Legend</text>
+  <rect x="475" y="560" width="30" height="16" rx="0" fill="#e2e2e2" stroke="#111" stroke-width="2"/><text x="515" y="574" fill="#111">on the request path</text>
+  <rect x="475" y="586" width="30" height="16" rx="0" fill="#c4c4c4" stroke="#111" stroke-width="2"/><text x="515" y="600" fill="#111">cluster (experimental)</text>
+  <rect x="690" y="560" width="30" height="16" rx="0" fill="#ffffff" stroke="#111" stroke-width="2" stroke-dasharray="5 3"/><text x="730" y="574" fill="#111">optional or library</text>
+  <rect x="690" y="586" width="30" height="16" rx="0" fill="#ffffff" stroke="#111" stroke-width="3"/><text x="730" y="600" fill="#111">outside the process</text>
+  <rect x="15" y="640" width="870" height="84" rx="4" fill="#ffffff" stroke="#111" stroke-width="2" stroke-dasharray="7 4"/>
+  <text x="450" y="664" text-anchor="middle" font-weight="bold" fill="#111">Phantom Lab (T1 simulated, T2 real gateway on loopback) and React UI</text>
+  <text x="450" y="688" text-anchor="middle" fill="#111">Off the request path. Results are labelled SIMULATED or MEASURED_LOOPBACK.</text>
+  <text x="450" y="709" text-anchor="middle" fill="#111">Lab API exists only if PHANTOM_LAB_ENABLED=true.</text>
+</svg>

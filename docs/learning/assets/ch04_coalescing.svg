@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" width="900" height="640" role="img" aria-labelledby="t3 d3">
+  <title id="t3">Request coalescing sequence</title>
+  <desc id="d3">Three clients request the same cold key. The first becomes the leader, registers an in-flight operation under the shard mutex and spawns an origin fetch. The second and third join as waiters. When the origin answers, finalize_fetch stores the body under the fences and every waiter receives the result.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; font-size: 14px; fill: #111; }
+    .s { font-size: 14px; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
+    .nt { font-size: 13.5px; }
+    .b { font-weight: bold; }
+    .p { fill: #e6e6e6; stroke: #111; stroke-width: 1.5; }
+    .life { stroke: #555; stroke-width: 1.2; stroke-dasharray: 4 4; }
+    .m { stroke: #111; stroke-width: 1.8; fill: none; marker-end: url(#a); }
+    .r { stroke: #111; stroke-width: 1.8; fill: none; stroke-dasharray: 6 4; marker-end: url(#a); }
+    .note { fill: #f3f3f3; stroke: #111; stroke-width: 1; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="640" fill="#fff"/>
+  <text x="20" y="26" class="b" style="font-size:16px">Figure 4.2: Coalescing 3 requests for one cold key into 1 origin fetch</text>
+
+  <rect class="p" x="20"  y="40" width="120" height="40"/><text x="42" y="65" class="b">Client A</text>
+  <rect class="p" x="170" y="40" width="120" height="40"/><text x="192" y="65" class="b">Client B</text>
+  <rect class="p" x="320" y="40" width="120" height="40"/><text x="342" y="65" class="b">Client C</text>
+  <rect class="p" x="470" y="40" width="190" height="40"/><text x="482" y="65" class="b">Shard (mutex + maps)</text>
+  <rect class="p" x="690" y="40" width="190" height="40"/><text x="720" y="65" class="b">Leader task + origin</text>
+
+  <path class="life" d="M80,80 L80,585"/>
+  <path class="life" d="M230,80 L230,585"/>
+  <path class="life" d="M380,80 L380,585"/>
+  <path class="life" d="M565,80 L565,585"/>
+  <path class="life" d="M785,80 L785,585"/>
+
+  <path class="m" d="M80,110 L563,110"/>
+  <text x="90" y="104" class="s">1  GET /k  (begin_fetch_atomic)</text>
+  <rect class="note" x="573" y="118" width="322" height="52"/>
+  <text x="581" y="136" class="nt">No entry, no in_flight: leader. New op_id,</text>
+  <text x="581" y="154" class="nt">op_gen, stamp epochs, in_flight[k] = SharedOp</text>
+  <path class="r" d="M563,186 L82,186"/>
+  <text x="130" y="180" class="s">2  Initiate(registration)  (A holds the leader role)</text>
+
+  <path class="m" d="M80,214 L780,214"/>
+  <text x="300" y="208" class="s">3  spawn task: acquire permit, fetch origin</text>
+
+  <path class="m" d="M230,248 L563,248"/>
+  <text x="240" y="242" class="s">4  GET /k  (B)</text>
+  <rect class="note" x="573" y="256" width="322" height="52"/>
+  <text x="581" y="274" class="nt">in_flight[k] exists: push oneshot sender.</text>
+  <text x="581" y="292" class="nt">Reject if waiters &gt;= 1,000 (leader counts).</text>
+  <path class="r" d="M563,324 L232,324"/>
+  <text x="270" y="318" class="s">5  Wait(receiver)</text>
+
+  <path class="m" d="M380,358 L563,358"/>
+  <text x="390" y="352" class="s">6  GET /k  (C)</text>
+  <path class="r" d="M563,380 L382,380"/>
+  <text x="420" y="374" class="s">7  Wait(receiver)</text>
+
+  <path class="r" d="M785,412 L567,412"/>
+  <text x="590" y="406" class="s">8  origin answers (one request in total)</text>
+  <rect class="note" x="573" y="424" width="322" height="70"/>
+  <text x="581" y="442" class="nt">9  finalize_fetch: fences, store if allowed,</text>
+  <text x="581" y="460" class="nt">   detach in_flight, take all waiters, build</text>
+  <text x="581" y="478" class="nt">   WaiterBatch (outcome shared via Arc)</text>
+
+  <path class="r" d="M563,520 L82,520"/>
+  <text x="130" y="514" class="s">10  deliver: A gets result (MISS)</text>
+  <path class="r" d="M563,544 L232,544"/>
+  <text x="270" y="538" class="s">11  B gets result (COALESCED)</text>
+  <path class="r" d="M563,568 L382,568"/>
+  <text x="420" y="562" class="s">12  C gets result (COALESCED)</text>
+
+  <text x="20" y="604" class="s">Test evidence: coalesce_tradeoffs_tests (10 clients, 150 ms origin: 1 MISS, 9 COALESCED).</text>
+  <text x="20" y="624" class="s">If the origin fails, every waiter receives the same error (test_negative_effect_error_fanout_blast_radius).</text>
+</svg>

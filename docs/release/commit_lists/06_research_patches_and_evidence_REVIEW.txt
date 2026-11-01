@@ -1,0 +1,16 @@
+docs/research/m3_durability/proposed_patch.diff
+docs/research/m3_durability/proposed_patch_0_cargo_toml_test_registration.diff
+docs/research/m3_durability/proposed_patch_1_harness_tests.diff
+docs/research/m3_durability/proposed_patch_1b_harness_controls_test_default_fields.diff
+docs/research/m3_durability/proposed_patch_2_src.diff
+docs/research/m3_durability/proposed_patch_3_docs_configuration.diff
+docs/research/m3_durability/proposed_patch_4_m7_config_tests_matrix.diff
+docs/research/phase_1_changes.patch
+docs/research/phase_1_snapshot_manifest.md
+docs/research/phase_2_changes.patch
+docs/research/phase_3_changes.patch
+docs/research/phase_4_changes.patch
+docs/research/phase_5_changes.patch
+docs/research/phase_6_changes.patch
+docs/research/ttl_decision/evidence/02_summary.txt
+docs/research/ttl_decision/proposed_patch.diff

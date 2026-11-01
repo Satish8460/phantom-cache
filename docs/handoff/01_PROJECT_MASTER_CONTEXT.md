@@ -2,6 +2,8 @@
 >
 > Original text below is unchanged.
 
+> Correction notice (2026-10-30, owner-approved DEC-020): (1) "Lock striping across 64 sharded partitions": the binary builds `PartitionedCache::new(8)` (`src/main.rs:204`), i.e. 8 shards. (2) "Guaranteed Local Freshness & Bounded Replica Staleness" and "T_stale = 0": implemented and tested is only that `DELETE` purges the issuing gateway's own cache first and then asks the canonical primary within a 150 ms leg; other members are updated best effort, the issuer's repair ledger is in memory, and no cross-gateway staleness bound or linearizability property is established (`docs/user/limitations.md`, `docs/research/claims_ledger.md` C6). (3) "SIEVE ... Outperforms classic LRU": no release-profile comparison is retained, and the "200x" figure is untraceable (claims ledger C5); treat the statement as a literature-based hypothesis, not a result of this project.
+
 # PhantomCache — Project Master Technical Context
 
 **Document ID:** `docs/handoff/01_PROJECT_MASTER_CONTEXT.md`  

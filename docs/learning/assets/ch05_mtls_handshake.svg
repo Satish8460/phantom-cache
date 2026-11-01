@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" width="900" height="640" font-family="Arial, Helvetica, sans-serif">
+  <title>Cluster connection admission: mTLS handshake and membership checks</title>
+  <desc>Sequence of steps when gateway A opens a pooled connection to gateway B: slot reservation, TCP connect, TLS 1.3 with mandatory client certificate, dialer-side fingerprint check, listener-side SAN parsing and registry validation, session registration, and per-request revalidation.</desc>
+  <rect x="0" y="0" width="900" height="640" fill="#ffffff"/>
+  <rect x="80" y="10" width="250" height="44" fill="#444" stroke="#111" stroke-width="2"/>
+  <text x="205" y="30" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">Dialer: gateway A</text>
+  <text x="205" y="47" font-size="14" text-anchor="middle" fill="#fff">router::connect_to_node_inner</text>
+  <rect x="570" y="10" width="250" height="44" fill="#444" stroke="#111" stroke-width="2"/>
+  <text x="695" y="30" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">Listener: gateway B</text>
+  <text x="695" y="47" font-size="14" text-anchor="middle" fill="#fff">node::start_tcp_service</text>
+  <line x1="205" y1="54" x2="205" y2="612" stroke="#111" stroke-width="2" stroke-dasharray="5 4"/>
+  <line x1="695" y1="54" x2="695" y2="612" stroke="#111" stroke-width="2" stroke-dasharray="5 4"/>
+
+  <!-- 1 -->
+  <circle cx="30" cy="90" r="13" fill="#111"/><text x="30" y="95" font-size="14" text-anchor="middle" fill="#fff">1</text>
+  <text x="226" y="86" font-size="14" fill="#111">pool.checkout_or_reserve: wait up to half the</text>
+  <text x="226" y="102" font-size="14" fill="#111">time budget for a slot (max 8 per peer)</text>
+  <!-- 2 -->
+  <circle cx="30" cy="140" r="13" fill="#111"/><text x="30" y="145" font-size="14" text-anchor="middle" fill="#fff">2</text>
+  <line x1="205" y1="140" x2="690" y2="140" stroke="#111" stroke-width="2.5"/><polygon points="690,140 678,134 678,146" fill="#111"/>
+  <text x="450" y="132" font-size="14" text-anchor="middle" fill="#111">TCP connect (bounded by the leg budget, 150 ms for invalidation)</text>
+  <!-- 3 -->
+  <circle cx="30" cy="190" r="13" fill="#111"/><text x="30" y="195" font-size="14" text-anchor="middle" fill="#fff">3</text>
+  <text x="708" y="178" font-size="14" fill="#111">try_acquire one of 64</text>
+  <text x="708" y="194" font-size="14" fill="#111">handshake permits,</text>
+  <text x="708" y="210" font-size="14" fill="#111">else drop</text>
+  <line x1="205" y1="222" x2="690" y2="222" stroke="#111" stroke-width="2.5"/><polygon points="690,222 678,216 678,228" fill="#111"/>
+  <text x="450" y="214" font-size="14" text-anchor="middle" fill="#111">TLS 1.3 ClientHello, server name node-B.cluster.phantom.internal</text>
+  <!-- 4 -->
+  <circle cx="30" cy="262" r="13" fill="#111"/><text x="30" y="267" font-size="14" text-anchor="middle" fill="#fff">4</text>
+  <line x1="690" y1="262" x2="210" y2="262" stroke="#111" stroke-width="2.5"/><polygon points="210,262 222,256 222,268" fill="#111"/>
+  <text x="450" y="254" font-size="14" text-anchor="middle" fill="#111">server certificate + mandatory client-certificate request</text>
+  <!-- 5 -->
+  <circle cx="30" cy="302" r="13" fill="#111"/><text x="30" y="307" font-size="14" text-anchor="middle" fill="#fff">5</text>
+  <line x1="205" y1="302" x2="690" y2="302" stroke="#111" stroke-width="2.5"/><polygon points="690,302 678,296 678,308" fill="#111"/>
+  <text x="450" y="294" font-size="14" text-anchor="middle" fill="#111">A's certificate; both chains verified against the cluster CA only</text>
+  <text x="450" y="322" font-size="14" text-anchor="middle" fill="#111">(handshake limit 1000 ms on the listener)</text>
+  <!-- 6 dialer checks -->
+  <circle cx="30" cy="362" r="13" fill="#111"/><text x="30" y="367" font-size="14" text-anchor="middle" fill="#fff">6</text>
+  <rect x="50" y="344" width="310" height="62" fill="#e6e6e6" stroke="#111" stroke-width="1.5"/>
+  <text x="205" y="362" font-size="14" text-anchor="middle" fill="#111">A checks B's leaf certificate:</text>
+  <text x="205" y="378" font-size="14" text-anchor="middle" fill="#111">registry has B, B is active, SHA-256</text>
+  <text x="205" y="394" font-size="14" text-anchor="middle" fill="#111">fingerprint is in B's pinned list</text>
+  <!-- 7 listener checks -->
+  <circle cx="870" cy="362" r="13" fill="#111"/><text x="870" y="367" font-size="14" text-anchor="middle" fill="#fff">7</text>
+  <rect x="500" y="338" width="340" height="126" fill="#e6e6e6" stroke="#111" stroke-width="1.5"/>
+  <text x="670" y="356" font-size="14" text-anchor="middle" fill="#111">B parses A's certificate:</text>
+  <text x="670" y="372" font-size="14" text-anchor="middle" fill="#111">exactly one DNS SAN, shape</text>
+  <text x="670" y="388" font-size="14" text-anchor="middle" fill="#111">node-ID.CLUSTER.phantom.internal</text>
+  <text x="670" y="404" font-size="14" text-anchor="middle" fill="#111">validate_peer: cluster id matches, node known,</text>
+  <text x="670" y="420" font-size="14" text-anchor="middle" fill="#111">member active, fingerprint pinned.</text>
+  <text x="670" y="436" font-size="14" text-anchor="middle" fill="#111">Any failure: connection dropped, no reply.</text>
+  <text x="670" y="452" font-size="14" text-anchor="middle" fill="#111">Then SessionTracker.register(A)</text>
+  <!-- 8 -->
+  <circle cx="30" cy="490" r="13" fill="#111"/><text x="30" y="495" font-size="14" text-anchor="middle" fill="#fff">8</text>
+  <line x1="205" y1="490" x2="690" y2="490" stroke="#111" stroke-width="2.5"/><polygon points="690,490 678,484 678,496" fill="#111"/>
+  <text x="450" y="482" font-size="14" text-anchor="middle" fill="#111">frame (28-byte header + payload), e.g. InvalidateRequest</text>
+  <!-- 9 -->
+  <circle cx="30" cy="540" r="13" fill="#111"/><text x="30" y="545" font-size="14" text-anchor="middle" fill="#fff">9</text>
+  <rect x="470" y="518" width="370" height="64" fill="#e6e6e6" stroke="#111" stroke-width="1.5"/>
+  <text x="655" y="536" font-size="14" text-anchor="middle" fill="#111">On EVERY frame B re-runs validate_peer (revocation).</text>
+  <text x="655" y="552" font-size="14" text-anchor="middle" fill="#111">InvalidateRequest.originator_id must equal the TLS</text>
+  <text x="655" y="568" font-size="14" text-anchor="middle" fill="#111">identity, else B closes the connection.</text>
+  <line x1="690" y1="602" x2="210" y2="602" stroke="#111" stroke-width="2.5"/><polygon points="210,602 222,596 222,608" fill="#111"/>
+  <text x="450" y="594" font-size="14" text-anchor="middle" fill="#111">InvalidateAck (responder id, status, echoed membership epoch)</text>
+  <text x="450" y="626" font-size="14" text-anchor="middle" fill="#111">Admission is checked at handshake; a revoked key has no production trigger (G4B-07, G4B-08).</text>
+</svg>

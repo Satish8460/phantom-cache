@@ -1,0 +1,2980 @@
+{
+ "result": {
+  "generated": "2026-10-30T12:46:59.422Z",
+  "apply_dedup": false,
+  "words_alnum": {
+   "original": 125398,
+   "original_front": 720,
+   "original_sources": 124678,
+   "part_I": 73256,
+   "part_II": 52142,
+   "sum": 125398,
+   "removed_duplicates": 0,
+   "check_equal": true
+  },
+  "words_whitespace_raw_files": {
+   "part_I": 77569,
+   "part_II": 56320
+  },
+  "figures": {
+   "original": 33,
+   "part_I": 32,
+   "part_II": 1,
+   "preserved": true
+  },
+  "judge_boxes": {
+   "original": 93,
+   "part_I": 23,
+   "part_II": 70,
+   "preserved": true
+  },
+  "sections_moved_whole": 65,
+  "sections_split": 49,
+  "judge_boxes_moved": 68,
+  "judge_boxes_kept": 23,
+  "table_words_extracted": 1814,
+  "tables_extracted": 9,
+  "removed_duplicates": [],
+  "partI_pointers_approx": {
+   "total": 111,
+   "toLearning": 101,
+   "toReference": 10,
+   "targetsRef": {
+    "6.13": 5,
+    "1.10": 1,
+    "2.11": 1,
+    "4.12": 1,
+    "8.7": 1,
+    "App E": 1
+   }
+  },
+  "partI_pointers_to_moved_percent": 9
+ },
+ "sections": [
+  {
+   "id": "ch01",
+   "heading": "Chapter 1: The Problem and the Vision",
+   "layer": "learning",
+   "group": "",
+   "words": 85,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:what-you-will-learn",
+   "heading": "What you will learn",
+   "layer": "learning",
+   "group": "",
+   "words": 92,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.1",
+   "heading": "1.1 What a cache is",
+   "layer": "learning",
+   "group": "",
+   "words": 508,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.2",
+   "heading": "1.2 Why applications need caching",
+   "layer": "learning",
+   "group": "",
+   "words": 955,
+   "judge_moved": [
+    "ch01:1.2#1",
+    "ch01:1.2#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.3",
+   "heading": "1.3 Where caching goes wrong",
+   "layer": "learning",
+   "group": "",
+   "words": 1563,
+   "judge_moved": [
+    "ch01:1.3#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.4",
+   "heading": "1.4 Why one cache is not enough: the case for distribution",
+   "layer": "learning",
+   "group": "",
+   "words": 1128,
+   "judge_moved": [],
+   "judge_kept": [
+    "ch01:1.4#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.5",
+   "heading": "1.5 What PhantomCache is, in one minute",
+   "layer": "learning",
+   "group": "",
+   "words": 317,
+   "judge_moved": [],
+   "judge_kept": [
+    "ch01:1.5#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.6",
+   "heading": "1.6 Pillar 1: Distributed systems engineering",
+   "layer": "learning",
+   "group": "",
+   "words": 463,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 266,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.7",
+   "heading": "1.7 Pillar 2: Workload intelligence",
+   "layer": "learning",
+   "group": "",
+   "words": 880,
+   "judge_moved": [
+    "ch01:1.7#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.8",
+   "heading": "1.8 Pillar 3: Product excellence, observability and demonstrability",
+   "layer": "learning",
+   "group": "",
+   "words": 386,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.9",
+   "heading": "1.9 Intended users and practical use cases",
+   "layer": "learning",
+   "group": "",
+   "words": 244,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.10",
+   "heading": "1.10 How the vision and the code relate (and where documents disagree)",
+   "layer": "reference",
+   "group": "R5",
+   "words": 429,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:1.11",
+   "heading": "1.11 Where to look for the truth",
+   "layer": "learning",
+   "group": "",
+   "words": 378,
+   "judge_moved": [
+    "ch01:1.11#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:key-ideas-to-remember",
+   "heading": "Key ideas to remember",
+   "layer": "learning",
+   "group": "",
+   "words": 146,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:what-you-should-now-understand",
+   "heading": "What you should now understand",
+   "layer": "learning",
+   "group": "",
+   "words": 113,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:knowledge-check",
+   "heading": "Knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 529,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:codebase-exploration-tasks",
+   "heading": "Codebase exploration tasks",
+   "layer": "learning",
+   "group": "",
+   "words": 144,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch01:challenge-questions",
+   "heading": "Challenge questions",
+   "layer": "learning",
+   "group": "",
+   "words": 348,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02",
+   "heading": "Chapter 2: System Architecture",
+   "layer": "learning",
+   "group": "",
+   "words": 100,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:what-you-will-learn",
+   "heading": "What you will learn",
+   "layer": "learning",
+   "group": "",
+   "words": 108,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.1",
+   "heading": "2.1 Two viewpoints",
+   "layer": "learning",
+   "group": "",
+   "words": 559,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.2",
+   "heading": "2.2 The component map",
+   "layer": "learning",
+   "group": "",
+   "words": 791,
+   "judge_moved": [],
+   "judge_kept": [
+    "ch02:2.2#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.3",
+   "heading": "2.3 The HTTP surface",
+   "layer": "learning",
+   "group": "",
+   "words": 645,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 311,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.4",
+   "heading": "2.4 Request flow 1: a cache hit",
+   "layer": "learning",
+   "group": "",
+   "words": 701,
+   "judge_moved": [
+    "ch02:2.4#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.5",
+   "heading": "2.5 Request flow 2: a miss, coalescing and the origin fetch",
+   "layer": "learning",
+   "group": "",
+   "words": 1141,
+   "judge_moved": [
+    "ch02:2.5#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.6",
+   "heading": "2.6 Freshness, stale serving and origin failure",
+   "layer": "learning",
+   "group": "",
+   "words": 927,
+   "judge_moved": [
+    "ch02:2.6#1"
+   ],
+   "judge_kept": [
+    "ch02:2.6#2"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.7",
+   "heading": "2.7 DELETE, the cluster, and how nodes communicate",
+   "layer": "learning",
+   "group": "",
+   "words": 1483,
+   "judge_moved": [
+    "ch02:2.7#1",
+    "ch02:2.7#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.8",
+   "heading": "2.8 Where Phantom Lab and the UI sit",
+   "layer": "learning",
+   "group": "",
+   "words": 535,
+   "judge_moved": [
+    "ch02:2.8#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.9",
+   "heading": "2.9 Configuration and deployment",
+   "layer": "learning",
+   "group": "",
+   "words": 947,
+   "judge_moved": [
+    "ch02:2.9#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 301,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.10",
+   "heading": "2.10 Auth boundaries at a high level",
+   "layer": "learning",
+   "group": "",
+   "words": 151,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:2.11",
+   "heading": "2.11 Discrepancies between documents and code",
+   "layer": "reference",
+   "group": "R5",
+   "words": 233,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:key-ideas-to-remember",
+   "heading": "Key ideas to remember",
+   "layer": "learning",
+   "group": "",
+   "words": 170,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:what-you-should-now-understand",
+   "heading": "What you should now understand",
+   "layer": "learning",
+   "group": "",
+   "words": 118,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:knowledge-check",
+   "heading": "Knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 519,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:codebase-exploration-tasks",
+   "heading": "Codebase exploration tasks",
+   "layer": "learning",
+   "group": "",
+   "words": 135,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch02:challenge-questions",
+   "heading": "Challenge questions",
+   "layer": "learning",
+   "group": "",
+   "words": 328,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03",
+   "heading": "Chapter 3: Technology Stack and Engineering Decisions",
+   "layer": "learning",
+   "group": "",
+   "words": 79,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:what-you-will-learn",
+   "heading": "What you will learn",
+   "layer": "learning",
+   "group": "",
+   "words": 115,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.0",
+   "heading": "3.0 How to read this chapter: recorded decision versus reasoning",
+   "layer": "learning",
+   "group": "",
+   "words": 461,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.1",
+   "heading": "3.1 The dependency picture in one table",
+   "layer": "reference",
+   "group": "R1",
+   "words": 376,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.2",
+   "heading": "3.2 Rust",
+   "layer": "learning",
+   "group": "",
+   "words": 889,
+   "judge_moved": [
+    "ch03:3.2#2"
+   ],
+   "judge_kept": [
+    "ch03:3.2#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.3",
+   "heading": "3.3 Async programming and Tokio",
+   "layer": "learning",
+   "group": "",
+   "words": 705,
+   "judge_moved": [
+    "ch03:3.3#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.4",
+   "heading": "3.4 Axum, hyper and tower",
+   "layer": "learning",
+   "group": "",
+   "words": 837,
+   "judge_moved": [
+    "ch03:3.4#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.5",
+   "heading": "3.5 Concurrency primitives and the concurrency model",
+   "layer": "learning",
+   "group": "",
+   "words": 1976,
+   "judge_moved": [
+    "ch03:3.5#2"
+   ],
+   "judge_kept": [
+    "ch03:3.5#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.6",
+   "heading": "3.6 Data structures as actually used",
+   "layer": "reference",
+   "group": "R1",
+   "words": 228,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.7",
+   "heading": "3.7 The TLS and mTLS stack",
+   "layer": "learning",
+   "group": "",
+   "words": 653,
+   "judge_moved": [
+    "ch03:3.7#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.8",
+   "heading": "3.8 JWT: jsonwebtoken",
+   "layer": "learning",
+   "group": "",
+   "words": 193,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.9",
+   "heading": "3.9 serde, JSON and the binary frame protocol",
+   "layer": "learning",
+   "group": "",
+   "words": 217,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.10",
+   "heading": "3.10 Build, packaging and deployment: what exists and what does not",
+   "layer": "learning",
+   "group": "",
+   "words": 272,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 186,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.11",
+   "heading": "3.11 The frontend: React, Vite, plain CSS, hand-built SVG",
+   "layer": "learning",
+   "group": "",
+   "words": 877,
+   "judge_moved": [
+    "ch03:3.11#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.12",
+   "heading": "3.12 Testing and benchmarking tools",
+   "layer": "learning",
+   "group": "",
+   "words": 496,
+   "judge_moved": [
+    "ch03:3.12#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:3.13",
+   "heading": "3.13 Supply-chain observations (verified list)",
+   "layer": "reference",
+   "group": "R5",
+   "words": 357,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:key-ideas-to-remember",
+   "heading": "Key ideas to remember",
+   "layer": "learning",
+   "group": "",
+   "words": 126,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:what-you-should-now-understand",
+   "heading": "What you should now understand",
+   "layer": "learning",
+   "group": "",
+   "words": 101,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:knowledge-check",
+   "heading": "Knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 385,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:codebase-exploration-tasks",
+   "heading": "Codebase exploration tasks",
+   "layer": "learning",
+   "group": "",
+   "words": 132,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch03:challenge-questions",
+   "heading": "Challenge questions",
+   "layer": "learning",
+   "group": "",
+   "words": 269,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04",
+   "heading": "Chapter 4: Core Cache Engine and Algorithms",
+   "layer": "learning",
+   "group": "",
+   "words": 92,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:what-you-will-learn",
+   "heading": "What you will learn",
+   "layer": "learning",
+   "group": "",
+   "words": 116,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.0",
+   "heading": "4.0 How to read the status labels",
+   "layer": "reference",
+   "group": "R6",
+   "words": 97,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.1",
+   "heading": "4.1 Storage and lookup",
+   "layer": "learning",
+   "group": "",
+   "words": 481,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.2",
+   "heading": "4.2 Sharded mutexes (partitioned buckets)",
+   "layer": "learning",
+   "group": "",
+   "words": 1476,
+   "judge_moved": [
+    "ch04:4.2#1",
+    "ch04:4.2#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.3",
+   "heading": "4.3 Concurrency in this engine: what runs where",
+   "layer": "learning",
+   "group": "",
+   "words": 136,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.4",
+   "heading": "4.4 Request coalescing, single-flight and stampedes",
+   "layer": "learning",
+   "group": "",
+   "words": 1426,
+   "judge_moved": [
+    "ch04:4.4#1",
+    "ch04:4.4#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.5",
+   "heading": "4.5 Entry lifecycle and fencing (generation, instance, epoch)",
+   "layer": "learning",
+   "group": "",
+   "words": 979,
+   "judge_moved": [],
+   "judge_kept": [
+    "ch04:4.5#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.6",
+   "heading": "4.6 Memory management and byte accounting",
+   "layer": "learning",
+   "group": "",
+   "words": 697,
+   "judge_moved": [
+    "ch04:4.6#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.7",
+   "heading": "4.7 Invalidation and epochs",
+   "layer": "learning",
+   "group": "",
+   "words": 1682,
+   "judge_moved": [
+    "ch04:4.7#1"
+   ],
+   "judge_kept": [
+    "ch04:4.7#2"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.8",
+   "heading": "4.8 Freshness, TTL, stale serving and revalidation",
+   "layer": "learning",
+   "group": "",
+   "words": 1302,
+   "judge_moved": [
+    "ch04:4.8#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.9",
+   "heading": "4.9 Eviction",
+   "layer": "learning",
+   "group": "",
+   "words": 1836,
+   "judge_moved": [
+    "ch04:4.9#2"
+   ],
+   "judge_kept": [
+    "ch04:4.9#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.10",
+   "heading": "4.10 What happens when the origin fails",
+   "layer": "learning",
+   "group": "",
+   "words": 473,
+   "judge_moved": [
+    "ch04:4.10#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.11",
+   "heading": "4.11 Capability status table",
+   "layer": "reference",
+   "group": "R1",
+   "words": 254,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:4.12",
+   "heading": "4.12 Where this chapter disagrees with other documents",
+   "layer": "reference",
+   "group": "R5",
+   "words": 226,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:key-ideas-to-remember",
+   "heading": "Key ideas to remember",
+   "layer": "learning",
+   "group": "",
+   "words": 146,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:what-you-should-now-understand",
+   "heading": "What you should now understand",
+   "layer": "learning",
+   "group": "",
+   "words": 144,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:knowledge-check",
+   "heading": "Knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 178,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:codebase-exploration-tasks",
+   "heading": "Codebase exploration tasks",
+   "layer": "learning",
+   "group": "",
+   "words": 145,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:challenge-questions",
+   "heading": "Challenge questions",
+   "layer": "learning",
+   "group": "",
+   "words": 271,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch04:answers-to-the-knowledge-check",
+   "heading": "Answers to the knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 353,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05",
+   "heading": "Chapter 5: Distributed Systems and Workload Intelligence",
+   "layer": "learning",
+   "group": "",
+   "words": 92,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:what-you-will-learn",
+   "heading": "What you will learn",
+   "layer": "learning",
+   "group": "",
+   "words": 277,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.1",
+   "heading": "5.1 Distributed caching fundamentals, and the choice PhantomCache made",
+   "layer": "learning",
+   "group": "",
+   "words": 688,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.2",
+   "heading": "5.2 Cluster membership and node-to-node communication",
+   "layer": "learning",
+   "group": "",
+   "words": 1488,
+   "judge_moved": [
+    "ch05:5.2#1",
+    "ch05:5.2#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.3",
+   "heading": "5.3 Rendezvous hashing",
+   "layer": "learning",
+   "group": "",
+   "words": 1816,
+   "judge_moved": [
+    "ch05:5.3#1",
+    "ch05:5.3#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.4",
+   "heading": "5.4 Epochs and versioning across nodes",
+   "layer": "learning",
+   "group": "",
+   "words": 890,
+   "judge_moved": [
+    "ch05:5.4#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.5",
+   "heading": "5.5 Invalidation propagation",
+   "layer": "learning",
+   "group": "",
+   "words": 1466,
+   "judge_moved": [
+    "ch05:5.5#2"
+   ],
+   "judge_kept": [
+    "ch05:5.5#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.6",
+   "heading": "5.6 Consistency: what is guaranteed, under which failure model",
+   "layer": "learning",
+   "group": "",
+   "words": 1270,
+   "judge_moved": [
+    "ch05:5.6#1"
+   ],
+   "judge_kept": [
+    "ch05:5.6#2"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.7",
+   "heading": "5.7 Node failure, recovery, partitions, and concurrency across nodes",
+   "layer": "learning",
+   "group": "",
+   "words": 1108,
+   "judge_moved": [
+    "ch05:5.7#1"
+   ],
+   "judge_kept": [
+    "ch05:5.7#2"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.8",
+   "heading": "5.8 The peer GetRequest stub, DR-029 and DR-027",
+   "layer": "learning",
+   "group": "",
+   "words": 697,
+   "judge_moved": [
+    "ch05:5.8#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.9",
+   "heading": "5.9 The durability gap and the M3 sandbox work",
+   "layer": "learning",
+   "group": "",
+   "words": 372,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.10",
+   "heading": "5.10 Workload intelligence: what exists and where it runs",
+   "layer": "learning",
+   "group": "",
+   "words": 579,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 270,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.11",
+   "heading": "5.11 Telemetry: the histogram, with the maths",
+   "layer": "learning",
+   "group": "",
+   "words": 657,
+   "judge_moved": [
+    "ch05:5.11#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.12",
+   "heading": "5.12 Probabilistic structures, hot-key detection and workload patterns",
+   "layer": "learning",
+   "group": "",
+   "words": 779,
+   "judge_moved": [
+    "ch05:5.12#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.13",
+   "heading": "5.13 The adaptive algorithms, one by one",
+   "layer": "learning",
+   "group": "",
+   "words": 1377,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.14",
+   "heading": "5.14 The M6 result: no benefit from adaptivity (sealed)",
+   "layer": "learning",
+   "group": "",
+   "words": 739,
+   "judge_moved": [],
+   "judge_kept": [
+    "ch05:5.14#1",
+    "ch05:5.14#2"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:5.15",
+   "heading": "5.15 Chapter status summary",
+   "layer": "reference",
+   "group": "R1",
+   "words": 298,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:key-ideas-to-remember",
+   "heading": "Key ideas to remember",
+   "layer": "learning",
+   "group": "",
+   "words": 142,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:what-you-should-now-understand",
+   "heading": "What you should now understand",
+   "layer": "learning",
+   "group": "",
+   "words": 123,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:knowledge-check",
+   "heading": "Knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 210,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:codebase-exploration-tasks",
+   "heading": "Codebase exploration tasks",
+   "layer": "learning",
+   "group": "",
+   "words": 203,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:challenge-questions",
+   "heading": "Challenge questions",
+   "layer": "learning",
+   "group": "",
+   "words": 297,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch05:answers-to-the-knowledge-check",
+   "heading": "Answers to the knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 442,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06",
+   "heading": "Chapter 6: Security, Reliability and Performance",
+   "layer": "learning",
+   "group": "",
+   "words": 127,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:what-you-will-learn",
+   "heading": "What you will learn",
+   "layer": "learning",
+   "group": "",
+   "words": 111,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.1",
+   "heading": "6.1 Threat model and trust boundaries",
+   "layer": "learning",
+   "group": "",
+   "words": 454,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.2",
+   "heading": "6.2 Authentication and authorisation",
+   "layer": "learning",
+   "group": "",
+   "words": 866,
+   "judge_moved": [
+    "ch06:6.2#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.3",
+   "heading": "6.3 Management and API access",
+   "layer": "learning",
+   "group": "",
+   "words": 755,
+   "judge_moved": [
+    "ch06:6.3#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.4",
+   "heading": "6.4 Peer-to-peer trust",
+   "layer": "learning",
+   "group": "",
+   "words": 1107,
+   "judge_moved": [],
+   "judge_kept": [
+    "ch06:6.4#1"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.5",
+   "heading": "6.5 Input validation, body limits, timeouts and connection management",
+   "layer": "learning",
+   "group": "",
+   "words": 900,
+   "judge_moved": [
+    "ch06:6.5#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.6",
+   "heading": "6.6 Tenant isolation and cache poisoning",
+   "layer": "learning",
+   "group": "",
+   "words": 878,
+   "judge_moved": [
+    "ch06:6.6#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.7",
+   "heading": "6.7 Data exposure and token handling",
+   "layer": "learning",
+   "group": "",
+   "words": 295,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.8",
+   "heading": "6.8 Resource exhaustion, origin overload and SSRF",
+   "layer": "learning",
+   "group": "",
+   "words": 1131,
+   "judge_moved": [
+    "ch06:6.8#1",
+    "ch06:6.8#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.9",
+   "heading": "6.9 Failure recovery, lost invalidations and races",
+   "layer": "learning",
+   "group": "",
+   "words": 1584,
+   "judge_moved": [
+    "ch06:6.9#1"
+   ],
+   "judge_kept": [
+    "ch06:6.9#2"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.10",
+   "heading": "6.10 Memory safety and supply chain",
+   "layer": "learning",
+   "group": "",
+   "words": 545,
+   "judge_moved": [
+    "ch06:6.10#1"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.11",
+   "heading": "6.11 The security and failure-scenario matrix",
+   "layer": "reference",
+   "group": "R1",
+   "words": 1284,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.12",
+   "heading": "6.12 Evaluating performance correctly",
+   "layer": "learning",
+   "group": "",
+   "words": 1208,
+   "judge_moved": [
+    "ch06:6.12#1",
+    "ch06:6.12#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.13",
+   "heading": "6.13 Every real measurement in the repository",
+   "layer": "reference",
+   "group": "R5",
+   "words": 1279,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:6.14",
+   "heading": "6.14 Reliability, health and bottlenecks",
+   "layer": "learning",
+   "group": "",
+   "words": 827,
+   "judge_moved": [
+    "ch06:6.14#1",
+    "ch06:6.14#2"
+   ],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:key-ideas-to-remember",
+   "heading": "Key ideas to remember",
+   "layer": "learning",
+   "group": "",
+   "words": 139,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:what-you-should-now-understand",
+   "heading": "What you should now understand",
+   "layer": "learning",
+   "group": "",
+   "words": 104,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:knowledge-check",
+   "heading": "Knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 493,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:codebase-exploration-tasks",
+   "heading": "Codebase exploration tasks",
+   "layer": "learning",
+   "group": "",
+   "words": 133,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch06:challenge-questions",
+   "heading": "Challenge questions",
+   "layer": "learning",
+   "group": "",
+   "words": 277,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07",
+   "heading": "Chapter 7: Phantom Lab, Experimentation and Innovation",
+   "layer": "learning",
+   "group": "",
+   "words": 111,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:what-you-will-learn",
+   "heading": "What you will learn",
+   "layer": "learning",
+   "group": "",
+   "words": 126,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.1",
+   "heading": "7.1 What Phantom Lab is, and why it exists",
+   "layer": "learning",
+   "group": "",
+   "words": 597,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.2",
+   "heading": "7.2 Deterministic simulation, step by step",
+   "layer": "learning",
+   "group": "",
+   "words": 1778,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.3",
+   "heading": "7.3 Reading the numbers: metrics, paired differences and BCa intervals",
+   "layer": "learning",
+   "group": "",
+   "words": 966,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.4",
+   "heading": "7.4 Reproducibility, preregistration and evidence retention",
+   "layer": "learning",
+   "group": "",
+   "words": 1036,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.5",
+   "heading": "7.5 T2: Scenario B on a real gateway over loopback",
+   "layer": "learning",
+   "group": "",
+   "words": 1207,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.6",
+   "heading": "7.6 The M6 result: a negative outcome, reported as such",
+   "layer": "learning",
+   "group": "",
+   "words": 477,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.7",
+   "heading": "7.7 The Lab API and UI",
+   "layer": "learning",
+   "group": "",
+   "words": 357,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.8",
+   "heading": "7.8 Innovation: building the argument from evidence",
+   "layer": "learning",
+   "group": "",
+   "words": 2127,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.9",
+   "heading": "7.9 Judge boxes",
+   "layer": "learning",
+   "group": "",
+   "words": 2051,
+   "judge_moved": [
+    "ch07:7.9#2",
+    "ch07:7.9#3",
+    "ch07:7.9#4",
+    "ch07:7.9#6",
+    "ch07:7.9#7",
+    "ch07:7.9#8",
+    "ch07:7.9#9",
+    "ch07:7.9#10",
+    "ch07:7.9#11"
+   ],
+   "judge_kept": [
+    "ch07:7.9#1",
+    "ch07:7.9#5",
+    "ch07:7.9#12"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:7.10",
+   "heading": "7.10 Discrepancies found while writing this chapter",
+   "layer": "reference",
+   "group": "R5",
+   "words": 168,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:key-ideas-to-remember",
+   "heading": "Key ideas to remember",
+   "layer": "learning",
+   "group": "",
+   "words": 129,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:what-you-should-now-understand",
+   "heading": "What you should now understand",
+   "layer": "learning",
+   "group": "",
+   "words": 90,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:knowledge-check",
+   "heading": "Knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 463,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:codebase-exploration-tasks",
+   "heading": "Codebase exploration tasks",
+   "layer": "learning",
+   "group": "",
+   "words": 139,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch07:challenge-questions",
+   "heading": "Challenge questions",
+   "layer": "learning",
+   "group": "",
+   "words": 327,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08",
+   "heading": "Chapter 8: Limitations, Roadmap and Technical Defence",
+   "layer": "learning",
+   "group": "",
+   "words": 54,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:what-you-will-learn",
+   "heading": "What you will learn",
+   "layer": "learning",
+   "group": "",
+   "words": 119,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.1",
+   "heading": "8.1 How to read this chapter",
+   "layer": "learning",
+   "group": "",
+   "words": 229,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.2",
+   "heading": "8.2 Where the project stands",
+   "layer": "learning",
+   "group": "",
+   "words": 983,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 480,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.3",
+   "heading": "8.3 Architectural limitations",
+   "layer": "learning",
+   "group": "",
+   "words": 773,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.4",
+   "heading": "8.4 Known defects and risks, by theme",
+   "layer": "reference",
+   "group": "R5",
+   "words": 1337,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.5",
+   "heading": "8.5 Incomplete and deferred functionality",
+   "layer": "learning",
+   "group": "",
+   "words": 275,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.6",
+   "heading": "8.6 Design trade-offs",
+   "layer": "learning",
+   "group": "",
+   "words": 354,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.7",
+   "heading": "8.7 Technical debt and documentation honesty",
+   "layer": "reference",
+   "group": "R5",
+   "words": 678,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.8",
+   "heading": "8.8 Remediation status: what is committed and what is not",
+   "layer": "learning",
+   "group": "",
+   "words": 434,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.9",
+   "heading": "8.9 Future architecture",
+   "layer": "learning",
+   "group": "",
+   "words": 746,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.10",
+   "heading": "8.10 Production-maturity checklist",
+   "layer": "reference",
+   "group": "R1",
+   "words": 258,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.11",
+   "heading": "8.11 Claims you must NOT make",
+   "layer": "learning",
+   "group": "",
+   "words": 602,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.12",
+   "heading": "8.12 Implementation versus roadmap matrix",
+   "layer": "reference",
+   "group": "R1",
+   "words": 646,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:8.13",
+   "heading": "8.13 Preparing to defend the project",
+   "layer": "learning",
+   "group": "",
+   "words": 2382,
+   "judge_moved": [
+    "ch08:8.13#3",
+    "ch08:8.13#4",
+    "ch08:8.13#5",
+    "ch08:8.13#6",
+    "ch08:8.13#9",
+    "ch08:8.13#10",
+    "ch08:8.13#11",
+    "ch08:8.13#12"
+   ],
+   "judge_kept": [
+    "ch08:8.13#1",
+    "ch08:8.13#2",
+    "ch08:8.13#7",
+    "ch08:8.13#8"
+   ],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:key-ideas-to-remember",
+   "heading": "Key ideas to remember",
+   "layer": "learning",
+   "group": "",
+   "words": 135,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:what-you-should-now-understand",
+   "heading": "What you should now understand",
+   "layer": "learning",
+   "group": "",
+   "words": 83,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:knowledge-check",
+   "heading": "Knowledge check",
+   "layer": "learning",
+   "group": "",
+   "words": 452,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:codebase-exploration-tasks",
+   "heading": "Codebase exploration tasks",
+   "layer": "learning",
+   "group": "",
+   "words": 156,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "ch08:challenge-questions",
+   "heading": "Challenge questions",
+   "layer": "learning",
+   "group": "",
+   "words": 355,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appA",
+   "heading": "Appendix A: PhantomCache on one page",
+   "layer": "learning",
+   "group": "",
+   "words": 584,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB",
+   "heading": "Appendix B: The complete architecture, explained once",
+   "layer": "reference",
+   "group": "R6",
+   "words": 115,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.1",
+   "heading": "B.1 What the system is, in one paragraph",
+   "layer": "reference",
+   "group": "R6",
+   "words": 134,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.2",
+   "heading": "B.2 The process and what runs in it",
+   "layer": "reference",
+   "group": "R6",
+   "words": 179,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.3",
+   "heading": "B.3 The front door: ingress, authentication, tenants",
+   "layer": "reference",
+   "group": "R6",
+   "words": 252,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.4",
+   "heading": "B.4 The cache core: 8 shards",
+   "layer": "reference",
+   "group": "R6",
+   "words": 204,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.5",
+   "heading": "B.5 A hit",
+   "layer": "reference",
+   "group": "R6",
+   "words": 77,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.6",
+   "heading": "B.6 A miss: single-flight, then the origin",
+   "layer": "reference",
+   "group": "R6",
+   "words": 588,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.7",
+   "heading": "B.7 Memory, freshness and eviction",
+   "layer": "reference",
+   "group": "R6",
+   "words": 416,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.8",
+   "heading": "B.8 DELETE and the cluster",
+   "layer": "reference",
+   "group": "R6",
+   "words": 650,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.9",
+   "heading": "B.9 Observation and intelligence",
+   "layer": "reference",
+   "group": "R6",
+   "words": 236,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.10",
+   "heading": "B.10 Phantom Lab and the UI",
+   "layer": "reference",
+   "group": "R6",
+   "words": 305,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.11",
+   "heading": "B.11 Security boundaries in brief",
+   "layer": "reference",
+   "group": "R6",
+   "words": 137,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appB:B.12",
+   "heading": "B.12 Where the architecture stops",
+   "layer": "reference",
+   "group": "R6",
+   "words": 134,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appC",
+   "heading": "Appendix C: Technology and algorithm reference",
+   "layer": "reference",
+   "group": "R1",
+   "words": 105,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appC:C.1",
+   "heading": "C.1 Technologies",
+   "layer": "reference",
+   "group": "R1",
+   "words": 452,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appC:C.2",
+   "heading": "C.2 Algorithms and mechanisms",
+   "layer": "reference",
+   "group": "R1",
+   "words": 1000,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appC:C.3",
+   "heading": "C.3 How to use the tables in a defence",
+   "layer": "reference",
+   "group": "R1",
+   "words": 97,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appD",
+   "heading": "Appendix D: Glossary and abbreviations",
+   "layer": "reference",
+   "group": "R3",
+   "words": 4903,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE",
+   "heading": "Appendix E: Consolidated judge-question bank",
+   "layer": "reference",
+   "group": "R4",
+   "words": 194,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:ten-hard-questions-to-rehearse-first",
+   "heading": "Ten hard questions to rehearse first",
+   "layer": "reference",
+   "group": "R4",
+   "words": 158,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:never-say",
+   "heading": "Never say",
+   "layer": "reference",
+   "group": "R4",
+   "words": 476,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:1-fundamentals",
+   "heading": "1. Fundamentals",
+   "layer": "reference",
+   "group": "R4",
+   "words": 619,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:2-architecture",
+   "heading": "2. Architecture",
+   "layer": "reference",
+   "group": "R4",
+   "words": 1028,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:3-technology",
+   "heading": "3. Technology",
+   "layer": "reference",
+   "group": "R4",
+   "words": 1310,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:4-algorithms",
+   "heading": "4. Algorithms",
+   "layer": "reference",
+   "group": "R4",
+   "words": 1801,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:5-distributed-systems",
+   "heading": "5. Distributed systems",
+   "layer": "reference",
+   "group": "R4",
+   "words": 2114,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:6-security",
+   "heading": "6. Security",
+   "layer": "reference",
+   "group": "R4",
+   "words": 1582,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:7-innovation",
+   "heading": "7. Innovation",
+   "layer": "reference",
+   "group": "R4",
+   "words": 962,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:8-evaluation",
+   "heading": "8. Evaluation",
+   "layer": "reference",
+   "group": "R4",
+   "words": 1759,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appE:9-limitations-and-honesty",
+   "heading": "9. Limitations and honesty",
+   "layer": "reference",
+   "group": "R4",
+   "words": 1529,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF",
+   "heading": "Appendix F: Important source files and their responsibilities",
+   "layer": "reference",
+   "group": "R2",
+   "words": 142,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:1-entry-points-and-configuration",
+   "heading": "1. Entry points and configuration",
+   "layer": "reference",
+   "group": "R2",
+   "words": 159,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:2-src-core-the-cache-engine",
+   "heading": "2. src/core: the cache engine",
+   "layer": "reference",
+   "group": "R2",
+   "words": 128,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:3-src-api-http-surface",
+   "heading": "3. src/api: HTTP surface",
+   "layer": "reference",
+   "group": "R2",
+   "words": 93,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:4-src-dist-cluster",
+   "heading": "4. src/dist: cluster",
+   "layer": "reference",
+   "group": "R2",
+   "words": 176,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:5-src-security-authentication-and-trust",
+   "heading": "5. src/security: authentication and trust",
+   "layer": "reference",
+   "group": "R2",
+   "words": 129,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:6-src-intel-telemetry-and-early-prototyp",
+   "heading": "6. src/intel: telemetry and early prototypes",
+   "layer": "reference",
+   "group": "R2",
+   "words": 127,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:7-src-intelligence-the-intelligence-libr",
+   "heading": "7. src/intelligence: the intelligence library",
+   "layer": "reference",
+   "group": "R2",
+   "words": 199,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:8-src-control-and-src-sim-legacy",
+   "heading": "8. src/control and src/sim: legacy",
+   "layer": "reference",
+   "group": "R2",
+   "words": 102,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:9-src-lab-and-src-lab-live-phantom-lab",
+   "heading": "9. src/lab and src/lab_live: Phantom Lab",
+   "layer": "reference",
+   "group": "R2",
+   "words": 394,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:10-tests-benchmarks-and-test-support",
+   "heading": "10. Tests, benchmarks and test support",
+   "layer": "reference",
+   "group": "R2",
+   "words": 340,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:11-ui-scripts-and-packaging",
+   "heading": "11. ui, scripts and packaging",
+   "layer": "reference",
+   "group": "R2",
+   "words": 301,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appF:12-key-documents-and-registers",
+   "heading": "12. Key documents and registers",
+   "layer": "reference",
+   "group": "R2",
+   "words": 424,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appG",
+   "heading": "Appendix G: Implementation versus roadmap matrix",
+   "layer": "reference",
+   "group": "R1",
+   "words": 108,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appG:G.1",
+   "heading": "G.1 Status vocabulary",
+   "layer": "reference",
+   "group": "R1",
+   "words": 206,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appG:G.2",
+   "heading": "G.2 Pillar 1: Distributed systems engineering",
+   "layer": "reference",
+   "group": "R1",
+   "words": 445,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appG:G.3",
+   "heading": "G.3 Pillar 2: Workload intelligence",
+   "layer": "reference",
+   "group": "R1",
+   "words": 182,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appG:G.4",
+   "heading": "G.4 Pillar 3: Product excellence, observability and demonstrability",
+   "layer": "reference",
+   "group": "R1",
+   "words": 240,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appG:G.5",
+   "heading": "G.5 Reconciled labels",
+   "layer": "reference",
+   "group": "R1",
+   "words": 253,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH",
+   "heading": "Appendix H: The ten concepts you must be able to explain without help",
+   "layer": "learning",
+   "group": "",
+   "words": 79,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.1",
+   "heading": "H.1 Cache hit, miss and origin load",
+   "layer": "learning",
+   "group": "",
+   "words": 179,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.2",
+   "heading": "H.2 Stampede and single-flight coalescing",
+   "layer": "learning",
+   "group": "",
+   "words": 179,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.3",
+   "heading": "H.3 Sharded locking",
+   "layer": "learning",
+   "group": "",
+   "words": 179,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.4",
+   "heading": "H.4 TTL, staleness and the stale cap",
+   "layer": "learning",
+   "group": "",
+   "words": 179,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.5",
+   "heading": "H.5 Generation and epoch fencing",
+   "layer": "learning",
+   "group": "",
+   "words": 177,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.6",
+   "heading": "H.6 Invalidation and what a 204 means",
+   "layer": "learning",
+   "group": "",
+   "words": 157,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.7",
+   "heading": "H.7 Rendezvous hashing and why GET is local-only",
+   "layer": "learning",
+   "group": "",
+   "words": 171,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.8",
+   "heading": "H.8 The failure model, and what is NOT guaranteed",
+   "layer": "learning",
+   "group": "",
+   "words": 216,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.9",
+   "heading": "H.9 The origin concurrency gate, and what the evidence shows",
+   "layer": "learning",
+   "group": "",
+   "words": 188,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.10",
+   "heading": "H.10 Simulation versus real execution, and the M6 negative result",
+   "layer": "learning",
+   "group": "",
+   "words": 216,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  },
+  {
+   "id": "appH:H.11",
+   "heading": "H.11 Self-test: ten questions",
+   "layer": "learning",
+   "group": "",
+   "words": 250,
+   "judge_moved": [],
+   "judge_kept": [],
+   "table_words_extracted": 0,
+   "removed_dup_words": 0
+  }
+ ],
+ "moved_judge": [
+  {
+   "id": "ch01:1.2#1",
+   "section": "ch01:1.2",
+   "question": "Why is caching necessary at all? Why not just make the database faster?"
+  },
+  {
+   "id": "ch01:1.2#2",
+   "section": "ch01:1.2",
+   "question": "Why not let the application query the database directly and keep the architecture simple?"
+  },
+  {
+   "id": "ch01:1.3#1",
+   "section": "ch01:1.3",
+   "question": "What does caching introduce that you did not have before? What are the costs?"
+  },
+  {
+   "id": "ch01:1.7#1",
+   "section": "ch01:1.7",
+   "question": "What is the actual intelligence in PhantomCache? Is it AI?"
+  },
+  {
+   "id": "ch01:1.11#1",
+   "section": "ch01:1.11",
+   "question": "Your tests pass. Does that mean the system is correct and ready?"
+  },
+  {
+   "id": "ch02:2.4#1",
+   "section": "ch02:2.4",
+   "question": "Walk me through what happens to one request, from the network to the response."
+  },
+  {
+   "id": "ch02:2.5#1",
+   "section": "ch02:2.5",
+   "question": "What happens on a cache miss? And what if a thousand clients ask for the same missing key?"
+  },
+  {
+   "id": "ch02:2.6#1",
+   "section": "ch02:2.6",
+   "question": "What happens when the origin is unavailable?"
+  },
+  {
+   "id": "ch02:2.7#1",
+   "section": "ch02:2.7",
+   "question": "How do the nodes communicate?"
+  },
+  {
+   "id": "ch02:2.7#2",
+   "section": "ch02:2.7",
+   "question": "Which node serves a read for a key, and does rendezvous hashing decide that?"
+  },
+  {
+   "id": "ch02:2.8#1",
+   "section": "ch02:2.8",
+   "question": "Is the dashboard showing real data? And how does the Lab relate to the real system?"
+  },
+  {
+   "id": "ch02:2.9#1",
+   "section": "ch02:2.9",
+   "question": "Is this deployable in production today? What exists for deployment?"
+  },
+  {
+   "id": "ch03:3.2#2",
+   "section": "ch03:3.2",
+   "question": "Why not Go or C#? Go has goroutines, a good HTTP server, and is the language of many caches."
+  },
+  {
+   "id": "ch03:3.3#1",
+   "section": "ch03:3.3",
+   "question": "Why Tokio, and what does it give you that threads would not?"
+  },
+  {
+   "id": "ch03:3.4#1",
+   "section": "ch03:3.4",
+   "question": "Why Axum rather than another framework, and why did you write your own HTTP client for the origin?"
+  },
+  {
+   "id": "ch03:3.5#2",
+   "section": "ch03:3.5",
+   "question": "What are the concurrency implications of your design? Where could it deadlock or stall?"
+  },
+  {
+   "id": "ch03:3.7#1",
+   "section": "ch03:3.7",
+   "question": "Why rustls and not OpenSSL for the mTLS between nodes? And why do you have both `ring` and `aws-lc-rs`?"
+  },
+  {
+   "id": "ch03:3.11#1",
+   "section": "ch03:3.11",
+   "question": "Why React with plain CSS and no UI or chart libraries? Isn't that reinventing the wheel?"
+  },
+  {
+   "id": "ch03:3.12#1",
+   "section": "ch03:3.12",
+   "question": "You have hundreds of tests. Do they prove your concurrent cache is correct?"
+  },
+  {
+   "id": "ch04:4.2#1",
+   "section": "ch04:4.2",
+   "question": "Why partitioned mutexes? Why not one lock, a lock-free map, or a concurrent hash map crate?"
+  },
+  {
+   "id": "ch04:4.2#2",
+   "section": "ch04:4.2",
+   "question": "What about lock contention? How do you know it is not a bottleneck?"
+  },
+  {
+   "id": "ch04:4.4#1",
+   "section": "ch04:4.4",
+   "question": "What stops a cache stampede? What happens to the origin when a hot key expires?"
+  },
+  {
+   "id": "ch04:4.4#2",
+   "section": "ch04:4.4",
+   "question": "What happens with a hot-key overload? Say one key gets most of the traffic."
+  },
+  {
+   "id": "ch04:4.6#1",
+   "section": "ch04:4.6",
+   "question": "How do you know the cache does not leak memory? Is the byte count the real memory use?"
+  },
+  {
+   "id": "ch04:4.7#1",
+   "section": "ch04:4.7",
+   "question": "Explain epochs. Why not just delete the keys? What does invalidation guarantee?"
+  },
+  {
+   "id": "ch04:4.8#1",
+   "section": "ch04:4.8",
+   "question": "How does expiry work? What stops the cache from serving very old data? Is the default TTL configurable?"
+  },
+  {
+   "id": "ch04:4.9#2",
+   "section": "ch04:4.9",
+   "question": "State the time and space complexity of the cache operations."
+  },
+  {
+   "id": "ch04:4.10#1",
+   "section": "ch04:4.10",
+   "question": "The origin goes down. What does the user see, and what protects the origin when it comes back?"
+  },
+  {
+   "id": "ch05:5.2#1",
+   "section": "ch05:5.2",
+   "question": "How do your nodes discover each other and communicate? What if I add a node?"
+  },
+  {
+   "id": "ch05:5.2#2",
+   "section": "ch05:5.2",
+   "question": "You have heartbeats. So does the cluster detect a dead node?"
+  },
+  {
+   "id": "ch05:5.3#1",
+   "section": "ch05:5.3",
+   "question": "You say you use weighted rendezvous hashing. Walk me through it. How does the weight enter, and what does the system do with it?"
+  },
+  {
+   "id": "ch05:5.3#2",
+   "section": "ch05:5.3",
+   "question": "Walk me through a read. Which node serves it, and where does the hash come in?"
+  },
+  {
+   "id": "ch05:5.4#1",
+   "section": "ch05:5.4",
+   "question": "You mention epochs. What is an epoch here, and does it give you a global version of the cache?"
+  },
+  {
+   "id": "ch05:5.5#2",
+   "section": "ch05:5.5",
+   "question": "What if the invalidation message is lost or arrives late?"
+  },
+  {
+   "id": "ch05:5.6#1",
+   "section": "ch05:5.6",
+   "question": "Can two of your nodes serve different values for the same key at the same time?"
+  },
+  {
+   "id": "ch05:5.7#1",
+   "section": "ch05:5.7",
+   "question": "What happens if a node fails? What if the network partitions?"
+  },
+  {
+   "id": "ch05:5.8#1",
+   "section": "ch05:5.8",
+   "question": "Your node protocol has a GET request. Can a peer poison your cache with it?"
+  },
+  {
+   "id": "ch05:5.11#1",
+   "section": "ch05:5.11",
+   "question": "How accurate are your latency percentiles, and how do you compute them without slowing the request path?"
+  },
+  {
+   "id": "ch05:5.12#1",
+   "section": "ch05:5.12",
+   "question": "How do you detect and handle hot keys?"
+  },
+  {
+   "id": "ch06:6.2#1",
+   "section": "ch06:6.2",
+   "question": "How do you stop an unauthorised user reading or deleting cached data?"
+  },
+  {
+   "id": "ch06:6.3#1",
+   "section": "ch06:6.3",
+   "question": "Your control endpoint changes cluster node state. Who can call it, and what stops a demo control from breaking production?"
+  },
+  {
+   "id": "ch06:6.5#1",
+   "section": "ch06:6.5",
+   "question": "What happens if someone sends a malicious request: a huge body, a slow body, a crafted path?"
+  },
+  {
+   "id": "ch06:6.6#1",
+   "section": "ch06:6.6",
+   "question": "How is tenant isolation enforced, and could one tenant ever see another's data?"
+  },
+  {
+   "id": "ch06:6.8#1",
+   "section": "ch06:6.8",
+   "question": "How do you prevent resource exhaustion and protect the origin from overload?"
+  },
+  {
+   "id": "ch06:6.8#2",
+   "section": "ch06:6.8",
+   "question": "Could a user make your gateway fetch an internal address (SSRF)?"
+  },
+  {
+   "id": "ch06:6.9#1",
+   "section": "ch06:6.9",
+   "question": "What happens if an invalidation is lost or delayed? Can two nodes serve different values?"
+  },
+  {
+   "id": "ch06:6.10#1",
+   "section": "ch06:6.10",
+   "question": "Is the system memory-safe, and how do you manage third-party risk?"
+  },
+  {
+   "id": "ch06:6.12#1",
+   "section": "ch06:6.12",
+   "question": "How did you measure performance, and why should I trust the numbers?"
+  },
+  {
+   "id": "ch06:6.12#2",
+   "section": "ch06:6.12",
+   "question": "Is your benchmark fair? Could you be fooling yourselves?"
+  },
+  {
+   "id": "ch06:6.14#1",
+   "section": "ch06:6.14",
+   "question": "What would you improve first, and what are your real bottlenecks?"
+  },
+  {
+   "id": "ch06:6.14#2",
+   "section": "ch06:6.14",
+   "question": "What is still unresolved? Give me the honest list."
+  },
+  {
+   "id": "ch07:7.9#2",
+   "section": "ch07:7.9",
+   "question": "Why not just use Redis or Memcached?"
+  },
+  {
+   "id": "ch07:7.9#3",
+   "section": "ch07:7.9",
+   "question": "What is the actual intelligence in the system?"
+  },
+  {
+   "id": "ch07:7.9#4",
+   "section": "ch07:7.9",
+   "question": "What is your strongest technical contribution?"
+  },
+  {
+   "id": "ch07:7.9#6",
+   "section": "ch07:7.9",
+   "question": "Where are established products stronger than PhantomCache?"
+  },
+  {
+   "id": "ch07:7.9#7",
+   "section": "ch07:7.9",
+   "question": "How would I reproduce one of your experiments?"
+  },
+  {
+   "id": "ch07:7.9#8",
+   "section": "ch07:7.9",
+   "question": "What is the difference between your simulation and a real test?"
+  },
+  {
+   "id": "ch07:7.9#9",
+   "section": "ch07:7.9",
+   "question": "You report that your adaptive controller failed. Why should I trust anything else?"
+  },
+  {
+   "id": "ch07:7.9#10",
+   "section": "ch07:7.9",
+   "question": "What would you improve with more time?"
+  },
+  {
+   "id": "ch07:7.9#11",
+   "section": "ch07:7.9",
+   "question": "What does \"H1 NOT_SUPPORTED\" actually say, and what does it not say?"
+  },
+  {
+   "id": "ch08:8.13#3",
+   "section": "ch08:8.13",
+   "question": "A client sends DELETE and gets 204. Is that content guaranteed gone from every node?"
+  },
+  {
+   "id": "ch08:8.13#4",
+   "section": "ch08:8.13",
+   "question": "Is this linearizable? What is your consistency model?"
+  },
+  {
+   "id": "ch08:8.13#5",
+   "section": "ch08:8.13",
+   "question": "Can one tenant, or one cluster node, hurt another?"
+  },
+  {
+   "id": "ch08:8.13#6",
+   "section": "ch08:8.13",
+   "question": "The sealed evaluation says H1 is NOT_SUPPORTED. What does that mean for your \"intelligent\" caching claim, and what happens to the product?"
+  },
+  {
+   "id": "ch08:8.13#9",
+   "section": "ch08:8.13",
+   "question": "What would you do with more time?"
+  },
+  {
+   "id": "ch08:8.13#10",
+   "section": "ch08:8.13",
+   "question": "What have you chosen not to claim, and what is untested?"
+  },
+  {
+   "id": "ch08:8.13#11",
+   "section": "ch08:8.13",
+   "question": "Your repository is mostly uncommitted. Isn't that a process failure?"
+  },
+  {
+   "id": "ch08:8.13#12",
+   "section": "ch08:8.13",
+   "question": "The README and an older handoff say the system passed a formal acceptance. Why do your records say otherwise?"
+  }
+ ]
+}

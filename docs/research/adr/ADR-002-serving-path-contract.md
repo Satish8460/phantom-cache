@@ -137,3 +137,10 @@ Every clause defined in this ADR is verified by executable integration tests in 
 - **Status:** **VERIFIED**
 - **Test:** `test_sweeper_vs_concurrent_fills_stress`
 
+
+---
+
+## Status note (2026-10-30, owner-approved DEC-020; the text above is unchanged)
+
+- **Clause INV-1 ("Linearizable Single-Key Deletion", "Status: VERIFIED").** The status line is an agent label; no owner ratification of this ADR is recorded. The property that the code implements and `test_linearizable_delete_prevents_read` exercises is narrower than the clause title: on one gateway, a request that starts after a `DELETE` returned does not see the pre-delete entry (read-your-delete for one key, one gateway, sequential case). No history-based linearizability checker or proof exists in the repository, and two review findings concern the concurrent case: G4A-01 (`finalize_fetch` re-reads tenant and global epochs after the fence check, so a pre-invalidation body can be stamped with newer epochs) and G4A-08 (requests arriving after an invalidation can still join a pre-invalidation in-flight fetch; documented as L3). Both are reported by the G4A review (`docs/release/g4/cycle1_core_engine_review.md`) and are open. Read "linearizable" in INV-1 as "gateway-local read-your-delete".
+- **Single-flight.** The serving path implements coalescing through `PartitionedCache::begin_fetch_atomic` and `SharedOp`; the older `Coalescer` struct in `src/core/coalesce.rs` is legacy and is not used by the HTTP serving path.

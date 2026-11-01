@@ -77,3 +77,16 @@ Reasons: (1) the leading research thread (origin-aware control) acts on the per-
 
 ## 8. Open items / not verified
 Handler bodies of GET (`server.rs:357-770`) not re-read line by line in this pass (earlier reads and agent trace); `node.rs` transitions and broadcaster-counter usage are [A]; `security/*` and DER parsing not audited; transcripts give no recorded rationale for leaving GET unrouted; whether HRW selecting the *local* node as primary produces a TCP self-connection under mTLS was not traced.
+
+---
+
+## Status note (2026-10-30, owner-approved DEC-020; the ADR body above is unchanged and is a record of the tree at 456bb25 on 2026-10-28)
+
+Re-checked against the current tree. Statements in the body that no longer hold:
+
+- **DELETE ordering (the DELETE paragraph, question 2, gap G8).** `delete_cache_handler` now purges the local cache FIRST (`cache.delete(&cache_key)`, `src/api/server.rs:1990`) and only then calls the router (`:1992`, `invalidate_key_across_cluster`). The body's "local delete after the primary acknowledged" and "no local delete on Rejected" describe the older code. Verified in code by reading.
+- **Peer invalidations and the serving cache (the peer-side invalidation paragraph, question 2, gap G1).** In the mTLS cluster branch the local node is built with `VirtualNode::new_with_cache(node_id, cache.clone())` (`src/main.rs:332`), so it shares the HTTP serving cache and invalidation frames received from peers purge it. Remote peers are address-only descriptors (`VirtualNode::new` plus `set_addr`, `src/main.rs:364-366`). The three demo nodes (`src/main.rs:212-214`) and the insecure or partial cluster branch use separate placeholder nodes without listeners. Whether a second real gateway's HTTP cache is purged end to end is tested only on loopback and is not established beyond that.
+- **Anti-entropy has no production caller (the anti-entropy paragraph, gap G2).** `RendezvousRouter::start_anti_entropy_worker` is now called with a 250 ms period in both cluster branches (`src/main.rs:375`, `:383`) and calls `reconcile_peer_anti_entropy`. It runs only in cluster configurations; its effectiveness is not established (`docs/research/claims_ledger.md` C6).
+- **Line numbers** in the body refer to the 456bb25 tree and are stale.
+- **"Maximum staleness is the 60 s TTL" (question 7).** The 60 s value is a literal default used only when the origin supplies no freshness information (`PHANTOM_DEFAULT_TTL_MS` is not wired, `src/api/server.rs:1405`, `:1688`); origin `max-age` and similar headers set the lifetime with no gateway ceiling. See the ADR-003 amendment.
+- Gateway-local read-your-delete is the strongest delete property established. This ADR makes no linearizability claim and none should be inferred.

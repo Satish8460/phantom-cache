@@ -1,0 +1,22 @@
+/* Differences from build/handbook.css for the two-layer prototype (handbook.css itself is not edited). */
+/* Near-blank pages came from keep-whole rules: judge boxes and worked examples may now break across pages. */
+.judge, .example { break-inside: auto; }
+.judge > p:first-child { break-after: avoid; }
+.judge p, .example p { orphans: 3; widows: 3; }
+/* Figures stay whole but are capped so that a tall figure does not leave a half-empty page. */
+figure img { max-height: 112mm; width: auto; max-width: 100%; }
+/* A table caption stays with its table; a table header row stays with the first body row. */
+p:has(+ table) { break-after: avoid; }
+thead { break-after: avoid; }
+h5 { font-size: 10pt; margin: .9em 0 .3em; color: var(--muted); break-after: avoid; }
+/* Cross-part markers inserted by the builder: "(Part II, R4)" in Part I, "(Part I)" in Part II. */
+.xp { font-size: .82em; color: var(--blue); white-space: nowrap; font-weight: 600; }
+/* Title page status block */
+.statusbox { margin: 1.2em 0 0; padding: .7em 1em; border: 2px solid var(--amber); background: #fff8ea; border-radius: 4px; break-inside: avoid; }
+.statusbox p { margin: .25em 0; }
+.statusbox .statuslabel { font-size: 11pt; }
+.statusbox .relation { font-size: 10pt; color: var(--ink); }
+header#title-block-header { margin-bottom: 1em; }
+#TOC { font-size: 9.5pt; }
+#TOC ul { margin: .1em 0; }
+#TOC li { margin: 0; line-height: 1.35; }

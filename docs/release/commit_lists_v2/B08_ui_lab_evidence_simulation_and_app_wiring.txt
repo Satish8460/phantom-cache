@@ -1,0 +1,45 @@
+# commit_lists_v2/B08_ui_lab_evidence_simulation_and_app_wiring.txt
+# Lab, evidence, Simulation, Overview screens, app wiring, harness and render tests
+# Generated 2026-10-30 16:41 IST from git status --short -uall (4644 entries). One repo-relative path per line; lines starting with # are comments.
+# Use: GIT_LITERAL_PATHSPECS=1 git add --pathspec-from-file=<this file> after stripping comment lines (see g5_batch_plan_v2.md section 6).
+ui/index.html
+ui/scripts/a11y-lint.mjs
+ui/scripts/harness-entry.jsx
+ui/scripts/render-harness.mjs
+ui/src/App.jsx
+ui/src/components/ChartFrame.jsx
+ui/src/components/Charts.jsx
+ui/src/components/LabCharts.jsx
+ui/src/components/LabParts.jsx
+ui/src/main.jsx
+ui/src/screens/CacheMemory.jsx
+ui/src/screens/Freshness.jsx
+ui/src/screens/Origin.jsx
+ui/src/screens/Overview.jsx
+ui/src/screens/Placeholder.jsx
+ui/src/screens/ScreenFrame.jsx
+ui/src/screens/Simulation.jsx
+ui/src/screens/Traffic.jsx
+ui/src/screens/lab/ConnectionPanel.jsx
+ui/src/screens/lab/EvidenceViews.jsx
+ui/src/screens/lab/Gate.jsx
+ui/src/screens/lab/LabScreen.jsx
+ui/src/screens/lab/RunForm.jsx
+ui/src/screens/lab/RunsViews.jsx
+ui/src/screens/lab/ScenarioBResult.jsx
+ui/src/screens/lab/StoryView.jsx
+ui/src/styles/lab.css
+ui/src/styles/sim.css
+ui/test/a11y.test.mjs
+ui/test/func.result.test.mjs
+ui/test/index.js
+ui/test/lab.fixes.test.mjs
+ui/test/lab.guard.test.mjs
+ui/test/lab.hierarchy.test.mjs
+ui/test/lab.markdown.test.mjs
+ui/test/lab.render.test.mjs
+ui/test/lab.round2.test.mjs
+ui/test/render.test.mjs
+ui/test/shell.test.mjs
+ui/test/shell.v2.test.mjs
+ui/test/sim.test.mjs

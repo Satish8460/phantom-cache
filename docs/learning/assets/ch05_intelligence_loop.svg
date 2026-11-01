@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 660" width="900" height="660" font-family="Arial, Helvetica, sans-serif">
+  <title>Intelligence loop and the serving-path boundary</title>
+  <desc>Left: what runs on the live request path: telemetry recording and the AIMD origin concurrency gate, which is active only when configured and in canary or active mode. Right: the observe, detect, evaluate, adapt, explain loop whose components have no production caller and run only in the lab simulator and tests. The legacy PIE stub is never constructed.</desc>
+  <rect x="0" y="0" width="900" height="660" fill="#ffffff"/>
+  <!-- serving path -->
+  <rect x="14" y="40" width="380" height="560" fill="#e6e6e6" stroke="#111" stroke-width="3"/>
+  <text x="204" y="30" font-size="15" font-weight="bold" text-anchor="middle" fill="#111">ON THE SERVING PATH (real gateway)</text>
+  <rect x="30" y="60" width="348" height="52" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="204" y="80" font-size="13" text-anchor="middle" fill="#111">Request: GET / DELETE, cache lookup, single-flight</text>
+  <text x="204" y="98" font-size="13" text-anchor="middle" fill="#111">(Chapter 4)</text>
+  <rect x="30" y="130" width="348" height="78" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="204" y="150" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">OBSERVE (counters + latency)</text>
+  <text x="204" y="168" font-size="13" text-anchor="middle" fill="#111">record_us: raw window (read by /metrics) +</text>
+  <text x="204" y="184" font-size="13" text-anchor="middle" fill="#111">2,688-bucket histogram (written, not read),</text>
+  <text x="204" y="200" font-size="13" text-anchor="middle" fill="#111">CacheCounters, OriginMetrics.</text>
+  <rect x="22" y="226" width="364" height="150" fill="#9a9a9a" stroke="#111" stroke-width="3"/>
+  <text x="204" y="248" font-size="13" font-weight="bold" text-anchor="middle" fill="#000">ADAPT: AIMD origin gate (OriginGate)</text>
+  <text x="204" y="268" font-size="13" text-anchor="middle" fill="#000">permit per real origin fetch; RAII release</text>
+  <text x="204" y="284" font-size="13" text-anchor="middle" fill="#000">every N observations (default 100):</text>
+  <text x="204" y="300" font-size="13" text-anchor="middle" fill="#000">p99 over ceiling or errors over 5%: cap x 0.70</text>
+  <text x="204" y="316" font-size="13" text-anchor="middle" fill="#000">else cap + 1 (min and max kept; clamp 256)</text>
+  <text x="204" y="338" font-size="13" text-anchor="middle" fill="#000">Enforced only if PHANTOM_ORIGIN_CAP_MAX set</text>
+  <text x="204" y="354" font-size="13" text-anchor="middle" fill="#000">AND mode is canary or active (100% of fetches)</text>
+  <rect x="30" y="394" width="348" height="66" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="204" y="414" font-size="13" text-anchor="middle" fill="#111">EXPLAIN (thin): /api/v1/intelligence/status</text>
+  <text x="204" y="432" font-size="13" text-anchor="middle" fill="#111">mode, active candidate, revert count.</text>
+  <text x="204" y="450" font-size="13" text-anchor="middle" fill="#111">/audit is served but nothing writes to the store</text>
+  <rect x="30" y="480" width="348" height="104" fill="#ffffff" stroke="#111" stroke-width="1.5" stroke-dasharray="7 4"/>
+  <text x="204" y="500" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">LEGACY PIE STUB: src/control/pie.rs</text>
+  <text x="204" y="518" font-size="13" text-anchor="middle" fill="#111">pie: None in main.rs. Threshold rule, fixed</text>
+  <text x="204" y="536" font-size="13" text-anchor="middle" fill="#111">expected_utility = 85.0, no canary, no statistics.</text>
+  <text x="204" y="554" font-size="13" text-anchor="middle" fill="#111">Never constructed in the shipped binary.</text>
+  <text x="204" y="572" font-size="13" text-anchor="middle" fill="#111">Not the intelligence.</text>
+
+  <!-- library loop -->
+  <rect x="430" y="40" width="456" height="560" fill="#ffffff" stroke="#111" stroke-width="3" stroke-dasharray="10 5"/>
+  <text x="658" y="30" font-size="15" font-weight="bold" text-anchor="middle" fill="#111">LIBRARY AND LAB ONLY (no production caller)</text>
+  <rect x="446" y="60" width="424" height="84" fill="#f0f0f0" stroke="#111" stroke-width="1.5"/>
+  <text x="658" y="80" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">OBSERVE + DETECT: WorkloadPipeline (signals.rs)</text>
+  <text x="658" y="98" font-size="13" text-anchor="middle" fill="#111">request-rate EWMA, Count-Min + Space-Saving heavy hitters,</text>
+  <text x="658" y="114" font-size="13" text-anchor="middle" fill="#111">Zipf alpha, working-set sample, CUSUM burst, hot-key emergence</text>
+  <text x="658" y="132" font-size="13" text-anchor="middle" fill="#111">output: SignalWindow with provenance per field</text>
+  <rect x="446" y="170" width="424" height="108" fill="#f0f0f0" stroke="#111" stroke-width="1.5"/>
+  <text x="658" y="190" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">EVALUATE: shadow policies + decision engine</text>
+  <text x="658" y="208" font-size="13" text-anchor="middle" fill="#111">ShadowEvaluator replays a 1-in-R key sample through two simulated</text>
+  <text x="658" y="224" font-size="13" text-anchor="middle" fill="#111">policies (LRU, SIEVE, S3-FIFO, TinyLFU) and compares hit ratios.</text>
+  <text x="658" y="242" font-size="13" text-anchor="middle" fill="#111">PieDecisionEngine: guardrails then 95% interval; Commit, Rollback,</text>
+  <text x="658" y="258" font-size="13" text-anchor="middle" fill="#111">NoAction, Fault. Canary route_bucket: 1024 buckets, 50 candidate</text>
+  <text x="658" y="272" font-size="13" text-anchor="middle" fill="#111">(5%), 10 holdback (1%)</text>
+  <rect x="446" y="304" width="424" height="84" fill="#f0f0f0" stroke="#111" stroke-width="1.5"/>
+  <text x="658" y="324" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">ADAPT: DefaultPolicyExecutor</text>
+  <text x="658" y="342" font-size="13" text-anchor="middle" fill="#111">apply_policy (eviction, stale window, refresh cap), clamps,</text>
+  <text x="658" y="358" font-size="13" text-anchor="middle" fill="#111">revert_to_safe, check_watchdog (heartbeat stall -> revert, mode Off),</text>
+  <text x="658" y="376" font-size="13" text-anchor="middle" fill="#111">safe_apply_policy (panic -> revert)</text>
+  <rect x="446" y="414" width="424" height="66" fill="#f0f0f0" stroke="#111" stroke-width="1.5"/>
+  <text x="658" y="434" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">EXPLAIN: AuditStore + DecisionRecord</text>
+  <text x="658" y="452" font-size="13" text-anchor="middle" fill="#111">100-record ring; nothing in src/ appends to it</text>
+  <rect x="446" y="500" width="424" height="84" fill="#ffffff" stroke="#111" stroke-width="1.5"/>
+  <text x="658" y="520" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">Where it runs: unit and integration tests; the lab simulator</text>
+  <text x="658" y="538" font-size="13" text-anchor="middle" fill="#111">(SIMULATED) uses only executor, AIMD, stale controller, admission filter</text>
+  <text x="658" y="554" font-size="13" text-anchor="middle" fill="#111">M6 sealed: H1 NOT_SUPPORTED; tuned optimum was a static cap</text>
+  <text x="658" y="572" font-size="13" text-anchor="middle" fill="#111">Shadow, engine, signals, canary route: tests only</text>
+
+  <!-- arrows in lib loop -->
+  <line x1="658" y1="144" x2="658" y2="166" stroke="#111" stroke-width="3"/><polygon points="658,170 652,158 664,158" fill="#111"/>
+  <line x1="658" y1="278" x2="658" y2="300" stroke="#111" stroke-width="3"/><polygon points="658,304 652,292 664,292" fill="#111"/>
+  <line x1="658" y1="388" x2="658" y2="410" stroke="#111" stroke-width="3"/><polygon points="658,414 652,402 664,402" fill="#111"/>
+  <!-- boundary label -->
+  <text x="412" y="332" font-size="13" text-anchor="middle" fill="#111" transform="rotate(-90 412 332)" font-weight="bold">BOUNDARY: no wire between the two sides</text>
+  <text x="450" y="640" font-size="13" text-anchor="middle" fill="#111">Source: main.rs (intel_executor, pie: None), server.rs (acquire_origin_permit, intelligence_*_handler), intelligence/*.rs, grep for callers.</text>
+</svg>

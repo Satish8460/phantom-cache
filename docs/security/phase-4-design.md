@@ -1,3 +1,5 @@
+> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** this is a design specification. "Implemented, Remediated, and Independently Audited" and the stale-read bounds in it (for example "stale reads up to the key's TTL") describe the intended design: the freshness lifetime comes from origin headers with a 60 s literal fallback and no gateway ceiling (`PHANTOM_DEFAULT_TTL_MS` is not wired), the cluster is experimental and loopback-tested, and no linearizability or staleness bound is proven (`docs/user/limitations.md`, `docs/research/claims_ledger.md` C6, ADR-003 amendment). The audits cited were done by agents; see `docs/STATUS.md` for independence classes.
+
 # PhantomCache — Phase 4 Design Specification
 ## Distributed Invalidation, Monotonic Consistency, and Anti-Entropy Reconciliation (Post-Review Remediation)
 
