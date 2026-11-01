@@ -1,0 +1,307 @@
+{
+  "git_head": "456bb25930004f1896a84c53e776e7b3ef29ee16",
+  "dirty_flag": true,
+  "pass": "R-A",
+  "src_hash": "f388d528a5d6fabbd29b6247692577ea854109f314016fe8d176072cea19601a",
+  "platform_label": "windows-native",
+  "os_kernel": "Windows 11 Home / x86_64",
+  "power_state": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+  "cpu_affinity": "0x0000FFFF (P-cores 0-15)",
+  "r2_repetitions": 10,
+  "start_utc": "2026-10-28T21:31:42.930982+00:00",
+  "end_utc": "2026-10-28T21:46:47.608221+00:00",
+  "limitations_verbatim": "hybrid-core laptop; Windows scheduler noise; WSL2 virtualization (no perf HW counters expected, no governor control); loopback only; single host; closed-loop load (coordinated omission possible; open-loop deferred); in-process mock origin; no network.",
+  "ra_core_valid": true,
+  "core_results": {
+    "B1": {
+      "c1_hit_1_tenant_ns": {
+        "median": 102.922,
+        "ci_95": [
+          101.40899999999999,
+          103.426
+        ],
+        "half_width_pct": 0.9798682497425284,
+        "min": 100.93,
+        "max": 111.301,
+        "class": "VALID"
+      },
+      "c1_hit_1000_tenants_ns": {
+        "median": 110.183,
+        "ci_95": [
+          109.771,
+          110.48400000000001
+        ],
+        "half_width_pct": 0.3235526351615077,
+        "min": 108.26,
+        "max": 110.948,
+        "class": "VALID"
+      },
+      "c2_epochs_1_tenant_ns": {
+        "median": 9.058,
+        "ci_95": [
+          8.891,
+          9.259
+        ],
+        "half_width_pct": 2.031353499668803,
+        "min": 8.865,
+        "max": 9.358,
+        "class": "VALID"
+      },
+      "c2_epochs_1000_tenants_ns": {
+        "median": 17.065,
+        "ci_95": [
+          16.846,
+          17.313499999999998
+        ],
+        "half_width_pct": 1.3697626721359437,
+        "min": 16.641,
+        "max": 18.945,
+        "class": "VALID"
+      },
+      "c2_shard_index_ns": {
+        "median": 21.458,
+        "ci_95": [
+          20.582,
+          22.103
+        ],
+        "half_width_pct": 3.5441327243918375,
+        "min": 20.209,
+        "max": 22.408,
+        "class": "VALID"
+      },
+      "c2_resource_clone_ns": {
+        "median": 9.502,
+        "ci_95": [
+          9.263,
+          9.693
+        ],
+        "half_width_pct": 2.262681540728266,
+        "min": 9.249,
+        "max": 9.734,
+        "class": "VALID"
+      },
+      "c2_fill_ns": {
+        "median": 931.96,
+        "ci_95": [
+          916.585,
+          944.335
+        ],
+        "half_width_pct": 1.488797802480793,
+        "min": 902.01,
+        "max": 968.01,
+        "class": "VALID"
+      }
+    },
+    "B2_C3": {
+      "t1_tenants1_miss0": {
+        "threads": 1,
+        "tenants": 1,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 2513671.2068088753,
+        "throughput_ci_95": [
+          2495331.584889488,
+          2571953.325480396
+        ],
+        "throughput_half_width_pct": 1.524100295682266,
+        "latency_p50_median_ns": 200,
+        "latency_p95_median_ns": 400,
+        "latency_p99_median_ns": 500,
+        "class": "VALID"
+      },
+      "t1_tenants1000_miss0": {
+        "threads": 1,
+        "tenants": 1000,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 2429099.2471245164,
+        "throughput_ci_95": [
+          2346458.214556735,
+          2454306.803061852
+        ],
+        "throughput_half_width_pct": 2.2199296433191162,
+        "latency_p50_median_ns": 200,
+        "latency_p95_median_ns": 400,
+        "latency_p99_median_ns": 500,
+        "class": "VALID"
+      },
+      "t8_tenants1_miss0": {
+        "threads": 8,
+        "tenants": 1,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 9818674.623384794,
+        "throughput_ci_95": [
+          8632503.482550917,
+          10274019.546594044
+        ],
+        "throughput_half_width_pct": 8.359152976378224,
+        "latency_p50_median_ns": 600,
+        "latency_p95_median_ns": 1300,
+        "latency_p99_median_ns": 2601,
+        "class": "VALID"
+      },
+      "t8_tenants1000_miss0": {
+        "threads": 8,
+        "tenants": 1000,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 5352179.128742014,
+        "throughput_ci_95": [
+          4981068.609420054,
+          5487972.045800497
+        ],
+        "throughput_half_width_pct": 4.7354864643664,
+        "latency_p50_median_ns": 900,
+        "latency_p95_median_ns": 3701,
+        "latency_p99_median_ns": 6203,
+        "class": "VALID"
+      },
+      "t16_tenants1_miss0": {
+        "threads": 16,
+        "tenants": 1,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 6787595.472806774,
+        "throughput_ci_95": [
+          6678451.7265148675,
+          7530339.8046119185
+        ],
+        "throughput_half_width_pct": 6.275330354541461,
+        "latency_p50_median_ns": 800,
+        "latency_p95_median_ns": 5303,
+        "latency_p99_median_ns": 28207,
+        "class": "VALID"
+      },
+      "t16_tenants1000_miss0": {
+        "threads": 16,
+        "tenants": 1000,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 4748116.6607046975,
+        "throughput_ci_95": [
+          4561284.556113099,
+          4807895.270925172
+        ],
+        "throughput_half_width_pct": 2.5969319251674823,
+        "latency_p50_median_ns": 1000,
+        "latency_p95_median_ns": 10303,
+        "latency_p99_median_ns": 47807,
+        "class": "VALID"
+      }
+    },
+    "B6_C4": {
+      "c4_record_8t_throughput": {
+        "median": 8825065.336804364,
+        "ci_95": [
+          8545334.807232404,
+          8969648.868190099
+        ],
+        "half_width_pct": 2.404027872678291,
+        "class": "VALID"
+      },
+      "c4_percentiles_10k_avg_ns": {
+        "median": 72808.0,
+        "ci_95": [
+          71500.0,
+          74469.0
+        ],
+        "half_width_pct": 2.038924294033623,
+        "class": "VALID"
+      }
+    },
+    "B8e_C5": {
+      "c5_tel_off_throughput": {
+        "median": 77635.27352586317,
+        "ci_95": [
+          74846.62329834394,
+          77774.62802830337
+        ],
+        "half_width_pct": 1.8857438101148722,
+        "class": "VALID"
+      },
+      "c5_tel_on_throughput": {
+        "median": 76213.3859856412,
+        "ci_95": [
+          75108.95172326844,
+          76828.43259533762
+        ],
+        "half_width_pct": 1.128070121693015,
+        "class": "VALID"
+      },
+      "c5_tel_off_p50_us": {
+        "median": 199,
+        "ci_95": [
+          197.0,
+          204.5
+        ],
+        "half_width_pct": 1.8844221105527637,
+        "class": "VALID"
+      },
+      "c5_tel_on_p50_us": {
+        "median": 201,
+        "ci_95": [
+          199.0,
+          203.5
+        ],
+        "half_width_pct": 1.1194029850746268,
+        "class": "VALID"
+      }
+    }
+  },
+  "comparison_vs_r0": {
+    "B1": {
+      "c1_hit_1_tenant_ns": {
+        "r0_median": 110.422,
+        "ra_median": 102.922,
+        "delta_pct": -6.79212475774755
+      },
+      "c1_hit_1000_tenants_ns": {
+        "r0_median": 118.461,
+        "ra_median": 110.183,
+        "delta_pct": -6.987953841348622
+      },
+      "c2_epochs_1_tenant_ns": {
+        "r0_median": 9.704,
+        "ra_median": 9.058,
+        "delta_pct": -6.657048639736199
+      },
+      "c2_epochs_1000_tenants_ns": {
+        "r0_median": 18.227,
+        "ra_median": 17.065,
+        "delta_pct": -6.375157733033407
+      },
+      "c2_shard_index_ns": {
+        "r0_median": 23.179,
+        "ra_median": 21.458,
+        "delta_pct": -7.42482419431382
+      },
+      "c2_resource_clone_ns": {
+        "r0_median": 10.023,
+        "ra_median": 9.502,
+        "delta_pct": -5.198044497655383
+      },
+      "c2_fill_ns": {
+        "r0_median": 1036.58,
+        "ra_median": 931.96,
+        "delta_pct": -10.092805186285661
+      }
+    },
+    "B8e_C5": {
+      "c5_tel_off_throughput": {
+        "r0_median": 75871.09201389084,
+        "ra_median": 77635.27352586317,
+        "delta_pct": 2.3252354291267316
+      },
+      "c5_tel_on_throughput": {
+        "r0_median": 74170.09800091018,
+        "ra_median": 76213.3859856412,
+        "delta_pct": 2.7548675811456405
+      },
+      "c5_tel_off_p50_us": {
+        "r0_median": 201,
+        "ra_median": 199,
+        "delta_pct": -0.9950248756218906
+      },
+      "c5_tel_on_p50_us": {
+        "r0_median": 206,
+        "ra_median": 201,
+        "delta_pct": -2.4271844660194173
+      }
+    }
+  }
+}

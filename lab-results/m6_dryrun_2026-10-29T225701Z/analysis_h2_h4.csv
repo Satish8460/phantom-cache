@@ -1,0 +1,7 @@
+# tier=SIMULATED
+# banner=SIMULATION RESULT (T1 deterministic virtual-time simulation driving the real cache/executor code). NOT A MEASUREMENT of any network, host or process.
+# role=H2 attribution and H4 stale-window stability
+item,status,detail
+H2,NOT_TESTABLE_AT_REGISTERED_HORIZON,dynamic stale window inert: PIE-no-stale is cell-for-cell identical to PIE-Retained in 1200/1200 cells (TTL 3 s + window 60 s never binds within the 28 s run); no attribution number is computed
+H4,NOT_TESTABLE_AT_REGISTERED_HORIZON,the stale window never binds at the registered horizon; the window-change count below is controller bookkeeping only
+H4_bookkeeping_only,stale_window_changes_p95,20

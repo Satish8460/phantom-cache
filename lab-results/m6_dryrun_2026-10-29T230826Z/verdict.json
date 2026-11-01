@@ -1,0 +1,370 @@
+{
+  "H1": {
+    "any_adverse_ci_p99": false,
+    "any_adverse_ci_peak": false,
+    "error_rate_constraint_holds_in_all_scenarios": true,
+    "fewer_than_3_scenarios_supported_on_an_endpoint": true,
+    "fresh_hit_constraint_holds_in_all_scenarios": true,
+    "n_seeds_paired_in_every_hypothesis": true,
+    "not_supported_triggered": true,
+    "supported_rule_met": false,
+    "supported_scenarios_client_p99": 0,
+    "supported_scenarios_peak_concurrency": 0,
+    "verdict": "NOT_SUPPORTED"
+  },
+  "H2": {
+    "compared_cells": 1200,
+    "identical_cells": 1200,
+    "reason": "dynamic stale window inert: PIE-no-stale executes cell-for-cell identically to PIE-Retained",
+    "status": "NOT_TESTABLE_AT_REGISTERED_HORIZON"
+  },
+  "H3": {
+    "note": "overhead is not measurable under T1",
+    "status": "UNVERIFIED"
+  },
+  "H4": {
+    "reason": "the stale window never binds at the registered horizon",
+    "status": "NOT_TESTABLE_AT_REGISTERED_HORIZON"
+  },
+  "H5_H6": {
+    "note": "not evaluated by this protocol",
+    "status": "UNVERIFIED"
+  },
+  "banner": "SIMULATION RESULT (T1 deterministic virtual-time simulation driving the real cache/executor code). NOT A MEASUREMENT of any network, host or process.",
+  "cells": 12000,
+  "completeness_problems": [],
+  "expected_cells": 12000,
+  "falsifiers": {
+    "F-a": {
+      "fires": true,
+      "scenarios_below_0.10_vs_BL-12b": 8,
+      "scenarios_below_0.10_vs_BL-6": 3,
+      "threshold_scenarios": 6
+    },
+    "F-b": {
+      "fires": null,
+      "note": "reported from O-HET and O-GRD rows of analysis_primary.csv; not mechanical"
+    },
+    "F-c": {
+      "fires": false,
+      "scenarios_where_PIE_P99_exceeds_BL-1_by_more_than_5pct": []
+    },
+    "F-d": {
+      "fires": false,
+      "pie_retained_cap_violations": 0,
+      "pie_retained_stale_cap_violations": 0
+    },
+    "F-e": {
+      "fires": true,
+      "rule": "all 16 primary hypotheses practically null or adverse (BCa upper bound < 0.05)"
+    },
+    "F-f": {
+      "fires": null,
+      "note": "prior-art overlap is outside this protocol"
+    }
+  },
+  "generated_utc": "2026-10-29T23:10:03Z",
+  "per_scenario": [
+    {
+      "d_error_rate": 0.0,
+      "d_fresh_hit_ratio": 0.0,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 180300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 180300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-DEG",
+        "supported": false
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-DEG",
+        "supported": false
+      },
+      "scenario": "O-DEG"
+    },
+    {
+      "d_error_rate": 0.0,
+      "d_fresh_hit_ratio": 0.0,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 60300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 60300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-BRN",
+        "supported": false
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-BRN",
+        "supported": false
+      },
+      "scenario": "O-BRN"
+    },
+    {
+      "d_error_rate": 0.0,
+      "d_fresh_hit_ratio": 0.0,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 60300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 60300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-SLW",
+        "supported": false
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-SLW",
+        "supported": false
+      },
+      "scenario": "O-SLW"
+    },
+    {
+      "d_error_rate": 0.0,
+      "d_fresh_hit_ratio": 0.0,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 60300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 60300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-CO",
+        "supported": false
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-CO",
+        "supported": false
+      },
+      "scenario": "O-CO"
+    },
+    {
+      "d_error_rate": 0.0,
+      "d_fresh_hit_ratio": 0.0,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 395105.6266666667,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 395105.6266666667,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-RT",
+        "supported": false
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-RT",
+        "supported": false
+      },
+      "scenario": "O-RT"
+    },
+    {
+      "d_error_rate": 0.0,
+      "d_fresh_hit_ratio": 0.0,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 60300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 60300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-FL",
+        "supported": false
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-FL",
+        "supported": false
+      },
+      "scenario": "O-FL"
+    },
+    {
+      "d_error_rate": 0.0,
+      "d_fresh_hit_ratio": 0.0,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 146311.56,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 146311.56,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-HET",
+        "supported": false
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-HET",
+        "supported": false
+      },
+      "scenario": "O-HET"
+    },
+    {
+      "d_error_rate": 0.0,
+      "d_fresh_hit_ratio": 0.0,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 151430.83333333334,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 151430.83333333334,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-GRD",
+        "supported": false
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-GRD",
+        "supported": false
+      },
+      "scenario": "O-GRD"
+    }
+  ],
+  "protocol_version": "2.2",
+  "rule_source": "docs/research/preregistration_m6_v2_2_amendment.md section H3 (applied mechanically; no judgement after seeing data)",
+  "run_name": "m6_dry_run_dev_seeds",
+  "seed_set": "D",
+  "tier": "SIMULATED"
+}

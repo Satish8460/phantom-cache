@@ -1,0 +1,10 @@
+{
+  "p_stale_after_ack": 0.0,
+  "phase": "M3-02",
+  "recommendation": "Option A1 (Cache Unification)",
+  "root_cause": "ApiState.cache and VirtualNode.cache are unlinked instances",
+  "scenario": "S3-1",
+  "stale_peer_reads": 0,
+  "total_keys": 5,
+  "total_peer_reads": 10
+}

@@ -1,0 +1,20 @@
+# tier=SIMULATED
+# banner=SIMULATION RESULT (T1 deterministic virtual-time simulation driving the real cache/executor code). NOT A MEASUREMENT of any network, host or process.
+# role=PRIMARY pre-registered: PIE-Retained vs BL-12b; primary P99 includes failed requests at their failure latency (shedding can look like a P99 win; see error-rate constraint)
+scenario,endpoint,treat,ctrl,n_seeds,mean_ctrl,mean_treat,mean_rel_reduction,ci_lo,ci_hi,p,p_holm,supported,practically_null,adverse,EXPLORATORY_log_ratio_rel_reduction,EXPLORATORY_median_rel_reduction,n_ratio_abs_gt_10
+O-DEG,peak_origin_concurrency,PIE-Retained,BL-12b,30,2.0000,2.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-DEG,client_p99_latency_us,PIE-Retained,BL-12b,30,180300.0000,180300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-BRN,peak_origin_concurrency,PIE-Retained,BL-12b,30,2.0000,2.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-BRN,client_p99_latency_us,PIE-Retained,BL-12b,30,60300.0000,60300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-SLW,peak_origin_concurrency,PIE-Retained,BL-12b,30,2.0000,2.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-SLW,client_p99_latency_us,PIE-Retained,BL-12b,30,60300.0000,60300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-CO,peak_origin_concurrency,PIE-Retained,BL-12b,30,2.0000,2.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-CO,client_p99_latency_us,PIE-Retained,BL-12b,30,60300.0000,60300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-RT,peak_origin_concurrency,PIE-Retained,BL-12b,30,2.0000,2.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-RT,client_p99_latency_us,PIE-Retained,BL-12b,30,395105.6267,395105.6267,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-FL,peak_origin_concurrency,PIE-Retained,BL-12b,30,2.0000,2.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-FL,client_p99_latency_us,PIE-Retained,BL-12b,30,60300.0000,60300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-HET,peak_origin_concurrency,PIE-Retained,BL-12b,30,2.0000,2.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-HET,client_p99_latency_us,PIE-Retained,BL-12b,30,146311.5600,146311.5600,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-GRD,peak_origin_concurrency,PIE-Retained,BL-12b,30,2.0000,2.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-GRD,client_p99_latency_us,PIE-Retained,BL-12b,30,151430.8333,151430.8333,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0

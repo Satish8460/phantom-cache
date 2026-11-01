@@ -1,0 +1,573 @@
+{
+  "arms": {
+    "AIMD-CAP": {
+      "cache_status_counts_total": {
+        "COALESCED": 756,
+        "HIT": 25467,
+        "MISS": 31050,
+        "NONE": 11834
+      },
+      "client_latency_ms_pooled_scheduled_time": {
+        "max": 205.337062,
+        "n": 69107,
+        "p50": 21.186968,
+        "p90": 130.386329,
+        "p95": 145.240346,
+        "p99": 162.549004
+      },
+      "client_samples_window_total": 69107,
+      "invalid_runs": [],
+      "per_run_mean": {
+        "client_p50_ms": 21.227787,
+        "client_p99_ms": 162.6722645,
+        "client_success_rate": 0.8288167369921811,
+        "gateway_cap_min_seen": 12.0,
+        "gateway_in_flight_max": 13.8,
+        "gateway_rejections_final": 1227.8,
+        "origin_p99_service_ms": 142.39205,
+        "origin_peak_concurrency_degraded": 13.1,
+        "origin_peak_concurrency_whole_run": 15.6,
+        "origin_peak_concurrency_window": 14.0,
+        "origin_requests_window": 3106.0,
+        "other_5xx_fraction": 0.0,
+        "shed_fraction": 0.171183263007819,
+        "stale_served_total_final": 0.0
+      },
+      "recovery_h_b4": {
+        "error_recovery_s_max": 5.0,
+        "error_recovery_s_median": 1.0,
+        "in_flight_recovery_s_median": 0.0,
+        "note": "seconds after the degraded interval ends until every later 1 s bin (errors) / snapshot (in_flight) is back at the healthy-phase level; null = not recovered within the run",
+        "runs_with_error_recovery": 9,
+        "valid_runs": 10
+      },
+      "runs": 10,
+      "status_counts_total": {
+        "200": 57273,
+        "503": 11834
+      },
+      "valid_runs": 10
+    },
+    "BASE": {
+      "cache_status_counts_total": {
+        "COALESCED": 982,
+        "HIT": 26366,
+        "MISS": 41759
+      },
+      "client_latency_ms_pooled_scheduled_time": {
+        "max": 212.35114,
+        "n": 69107,
+        "p50": 36.976321,
+        "p90": 145.386771,
+        "p95": 153.35215,
+        "p99": 166.938207
+      },
+      "client_samples_window_total": 69107,
+      "invalid_runs": [],
+      "per_run_mean": {
+        "client_p50_ms": 36.9773135,
+        "client_p99_ms": 167.0947125,
+        "client_success_rate": 1.0,
+        "gateway_cap_min_seen": null,
+        "gateway_in_flight_max": 35.3,
+        "gateway_rejections_final": 0.0,
+        "origin_p99_service_ms": 143.82393,
+        "origin_peak_concurrency_degraded": 39.0,
+        "origin_peak_concurrency_whole_run": 39.0,
+        "origin_peak_concurrency_window": 39.0,
+        "origin_requests_window": 4177.5,
+        "other_5xx_fraction": 0.0,
+        "shed_fraction": 0.0,
+        "stale_served_total_final": 0.0
+      },
+      "recovery_h_b4": {
+        "error_recovery_s_max": 0.0,
+        "error_recovery_s_median": 0.0,
+        "in_flight_recovery_s_median": 0.0,
+        "note": "seconds after the degraded interval ends until every later 1 s bin (errors) / snapshot (in_flight) is back at the healthy-phase level; null = not recovered within the run",
+        "runs_with_error_recovery": 10,
+        "valid_runs": 10
+      },
+      "runs": 10,
+      "status_counts_total": {
+        "200": 69107
+      },
+      "valid_runs": 10
+    },
+    "STATIC-CAP": {
+      "cache_status_counts_total": {
+        "COALESCED": 940,
+        "HIT": 26189,
+        "MISS": 38557,
+        "NONE": 3421
+      },
+      "client_latency_ms_pooled_scheduled_time": {
+        "max": 207.674523,
+        "n": 69107,
+        "p50": 32.596952,
+        "p90": 143.038023,
+        "p95": 151.815523,
+        "p99": 166.834642
+      },
+      "client_samples_window_total": 69107,
+      "invalid_runs": [],
+      "per_run_mean": {
+        "client_p50_ms": 32.58556,
+        "client_p99_ms": 166.84983450000001,
+        "client_success_rate": 0.9505301813997727,
+        "gateway_cap_min_seen": 24.0,
+        "gateway_in_flight_max": 23.9,
+        "gateway_rejections_final": 342.0,
+        "origin_p99_service_ms": 144.02636,
+        "origin_peak_concurrency_degraded": 24.0,
+        "origin_peak_concurrency_whole_run": 24.0,
+        "origin_peak_concurrency_window": 24.0,
+        "origin_requests_window": 3858.2,
+        "other_5xx_fraction": 0.0,
+        "shed_fraction": 0.049469818600227235,
+        "stale_served_total_final": 0.0
+      },
+      "recovery_h_b4": {
+        "error_recovery_s_max": 0.0,
+        "error_recovery_s_median": 0.0,
+        "in_flight_recovery_s_median": 0.259,
+        "note": "seconds after the degraded interval ends until every later 1 s bin (errors) / snapshot (in_flight) is back at the healthy-phase level; null = not recovered within the run",
+        "runs_with_error_recovery": 10,
+        "valid_runs": 10
+      },
+      "runs": 10,
+      "status_counts_total": {
+        "200": 65686,
+        "503": 3421
+      },
+      "valid_runs": 10
+    }
+  },
+  "config": {
+    "aimd_max": 32,
+    "aimd_min": 12,
+    "aimd_p99_ceiling_ms": 60,
+    "aimd_window": 30,
+    "arms": [
+      "Base",
+      "StaticCap",
+      "AimdCap"
+    ],
+    "command_line": "D:\\Personal\\_m7_target\\release\\phantom-lab.exe scenario-b --out lab-results\\scenario_b\\20261030T003932Z",
+    "gateway_exe": "D:\\Personal\\_m7_target\\release\\phantom-cache-demo.exe",
+    "max_cache_bytes": 262144,
+    "origin": {
+      "base_service_ms": 20,
+      "body_bytes": 1024,
+      "degrade_len_ms": 10000,
+      "degrade_start_ms": 13000,
+      "degraded_mult": 6.0,
+      "error_rate": 0.0,
+      "max_age_s": 3,
+      "seed": 20261030,
+      "stale_if_error_s": null,
+      "stale_while_revalidate_s": null
+    },
+    "out_dir": "lab-results\\scenario_b\\20261030T003932Z",
+    "phases": {
+      "degraded_ms": 10000,
+      "healthy_ms": 5000,
+      "recovery_ms": 8000,
+      "warmup_ms": 8000
+    },
+    "reps": 10,
+    "seed": 20261030,
+    "snapshot_interval_ms": 250,
+    "static_cap": 24,
+    "workload": {
+      "arrival": "Poisson",
+      "client_deadline_ms": 10000,
+      "duration_ms": 31000,
+      "n_keys": 5000,
+      "path_prefix": "/api/v1/cache/k/",
+      "rate_rps": 300.0,
+      "seed": 20261030,
+      "zipf_alpha": 0.9
+    }
+  },
+  "label": "VALID",
+  "label_reasons": [],
+  "limitations": [
+    "Loopback on one host: no network RTT; load generator, gateway and origin share CPU and the scheduler.",
+    "Scripted origin is a pure delay server (no internal queue or capacity): service time does not grow with load, so the positive-feedback loop of the contract is NOT reproduced; only the concurrency/latency effect of the scripted inflation is.",
+    "Service times and arrival timing use tokio timers; real resolution is host dependent (see manifest timer_probe). Observed service times exceed the nominal value by the timer overshoot.",
+    "Limited key catalogue and a single Zipf shape / arrival rate / degradation shape; results apply to this workload family only.",
+    "Per-run latencies are measured from the SCHEDULED send time (open loop); runs are real time and not bit-deterministic.",
+    "Arms differ by more than the cap: capped arms run PHANTOM_INTELLIGENCE=canary, BASE runs off (the cap is only enforced in canary/active).",
+    "Peak origin concurrency counts requests in service on the origin; connections the gateway abandoned (client disconnect) keep their origin slot until the scripted service time ends.",
+    "No claim about production, WAN, multi-host behaviour; debug-build runs are mechanics only."
+  ],
+  "mechanism_h_b1": {
+    "AIMD-CAP": {
+      "cap_limit_in_force": 32,
+      "max_origin_concurrent_observed_whole_run": 19,
+      "note": "checked over the whole run including warm-up; AIMD limit = configured max (cap can only be lower)",
+      "pass": true,
+      "runs": 10,
+      "violating_reps": []
+    },
+    "STATIC-CAP": {
+      "cap_limit_in_force": 24,
+      "max_origin_concurrent_observed_whole_run": 24,
+      "note": "checked over the whole run including warm-up; AIMD limit = configured max (cap can only be lower)",
+      "pass": true,
+      "runs": 10,
+      "violating_reps": []
+    }
+  },
+  "mechanism_h_b1_all_pass": true,
+  "min_valid_runs_required": 10,
+  "paired_vs_base": {
+    "AIMD-CAP": {
+      "client_p50_ms": {
+        "diff_ci95_bca": [
+          -16.322157999999998,
+          -14.734672799999998
+        ],
+        "mean_base": 36.9773135,
+        "mean_diff_treat_minus_base": -15.749526500000002,
+        "mean_treat": 21.227787,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.40470863837489546,
+          0.43748182889451337
+        ],
+        "relative_reduction_mean": 0.42547833660660883
+      },
+      "client_p95_ms": {
+        "diff_ci95_bca": [
+          -8.555139299999999,
+          -7.563549700000007
+        ],
+        "mean_base": 153.2770183,
+        "mean_diff_treat_minus_base": -7.9988202000000115,
+        "mean_treat": 145.2781981,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.04923589573968508,
+          0.05570970577852445
+        ],
+        "relative_reduction_mean": 0.05217964221708806
+      },
+      "client_p99_ms": {
+        "diff_ci95_bca": [
+          -5.3858792,
+          -3.549930700000007
+        ],
+        "mean_base": 167.0947125,
+        "mean_diff_treat_minus_base": -4.422448000000003,
+        "mean_treat": 162.6722645,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.021060071126753954,
+          0.03219342950356441
+        ],
+        "relative_reduction_mean": 0.02643639861417648
+      },
+      "client_success_rate_pp": {
+        "diff_ci95_bca": [
+          -17.599947523305786,
+          -16.591244579661485
+        ],
+        "mean_base": 100.0,
+        "mean_diff_treat_minus_base": -17.118326300781888,
+        "mean_treat": 82.88167369921811,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.16583307307321826,
+          0.17592552979875775
+        ],
+        "relative_reduction_mean": 0.171183263007819
+      },
+      "origin_p99_service_ms": {
+        "diff_ci95_bca": [
+          -2.430759999999998,
+          -0.3901100000000014
+        ],
+        "mean_base": 143.82393,
+        "mean_diff_treat_minus_base": -1.4318799999999783,
+        "mean_treat": 142.39205,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.03515625,
+        "relative_reduction_ci95_bca": [
+          0.002688013425600606,
+          0.016823929453007588
+        ],
+        "relative_reduction_mean": 0.009871879874218756
+      },
+      "origin_peak_concurrency_degraded": {
+        "diff_ci95_bca": [
+          -27.4,
+          -24.8
+        ],
+        "mean_base": 39.0,
+        "mean_diff_treat_minus_base": -25.9,
+        "mean_treat": 13.1,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.6411323787639578,
+          0.6826363986890304
+        ],
+        "relative_reduction_mean": 0.6635508469718997
+      },
+      "origin_peak_concurrency_window": {
+        "diff_ci95_bca": [
+          -26.3,
+          -24.0
+        ],
+        "mean_base": 39.0,
+        "mean_diff_treat_minus_base": -25.0,
+        "mean_treat": 14.0,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.6248357379936328,
+          0.6534340919867236
+        ],
+        "relative_reduction_mean": 0.6402860972597816
+      },
+      "origin_requests_window": {
+        "diff_ci95_bca": [
+          -1110.9,
+          -1035.7
+        ],
+        "mean_base": 4177.5,
+        "mean_diff_treat_minus_base": -1071.5,
+        "mean_treat": 3106.0,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.25006663025701986,
+          0.2637955123512457
+        ],
+        "relative_reduction_mean": 0.25635335939222725
+      },
+      "shed_fraction_pp": {
+        "diff_ci95_bca": [
+          16.572138752562523,
+          17.577444154679263
+        ],
+        "mean_base": 0.0,
+        "mean_diff_treat_minus_base": 17.1183263007819,
+        "mean_treat": 17.1183263007819,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": null,
+        "relative_reduction_ci95_bca": [
+          null,
+          null
+        ],
+        "relative_reduction_mean": null
+      }
+    },
+    "STATIC-CAP": {
+      "client_p50_ms": {
+        "diff_ci95_bca": [
+          -4.796433100000001,
+          -3.6287904000000006
+        ],
+        "mean_base": 36.9773135,
+        "mean_diff_treat_minus_base": -4.3917535,
+        "mean_treat": 32.58556,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.09808445711815625,
+          0.1281883493751637
+        ],
+        "relative_reduction_mean": 0.11823762814647501
+      },
+      "client_p95_ms": {
+        "diff_ci95_bca": [
+          -2.222619600000013,
+          -0.4878658999999999
+        ],
+        "mean_base": 153.2770183,
+        "mean_diff_treat_minus_base": -1.4363612000000217,
+        "mean_treat": 151.8406571,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.021484375,
+        "relative_reduction_ci95_bca": [
+          0.0030530914204142173,
+          0.014617908059037732
+        ],
+        "relative_reduction_mean": 0.009337801202243336
+      },
+      "client_p99_ms": {
+        "diff_ci95_bca": [
+          -1.1035746999999987,
+          0.4658637999999996
+        ],
+        "mean_base": 167.0947125,
+        "mean_diff_treat_minus_base": -0.24487799999999993,
+        "mean_treat": 166.84983450000001,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.591796875,
+        "relative_reduction_ci95_bca": [
+          -0.0027191303370151217,
+          0.006781750118220553
+        ],
+        "relative_reduction_mean": 0.0014443913418634145
+      },
+      "client_success_rate_pp": {
+        "diff_ci95_bca": [
+          -5.220183273168763,
+          -4.623325104772775
+        ],
+        "mean_base": 100.0,
+        "mean_diff_treat_minus_base": -4.946981860022731,
+        "mean_treat": 95.05301813997727,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.04619219318300609,
+          0.05223199048540413
+        ],
+        "relative_reduction_mean": 0.049469818600227214
+      },
+      "origin_p99_service_ms": {
+        "diff_ci95_bca": [
+          -1.0800700000000092,
+          1.1263399999999961
+        ],
+        "mean_base": 143.82393,
+        "mean_diff_treat_minus_base": 0.20243000000002098,
+        "mean_treat": 144.02636,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.716796875,
+        "relative_reduction_ci95_bca": [
+          -0.008133028530862585,
+          0.00706389220707109
+        ],
+        "relative_reduction_mean": -0.0015001826678751416
+      },
+      "origin_peak_concurrency_degraded": {
+        "diff_ci95_bca": [
+          -16.4,
+          -14.1
+        ],
+        "mean_base": 39.0,
+        "mean_diff_treat_minus_base": -15.0,
+        "mean_treat": 24.0,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.3663705000547105,
+          0.4020358588779641
+        ],
+        "relative_reduction_mean": 0.3832654401075453
+      },
+      "origin_peak_concurrency_window": {
+        "diff_ci95_bca": [
+          -16.4,
+          -14.1
+        ],
+        "mean_base": 39.0,
+        "mean_diff_treat_minus_base": -15.0,
+        "mean_treat": 24.0,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.3672646272646273,
+          0.4018673502884029
+        ],
+        "relative_reduction_mean": 0.3832654401075453
+      },
+      "origin_requests_window": {
+        "diff_ci95_bca": [
+          -339.5,
+          -295.9
+        ],
+        "mean_base": 4177.5,
+        "mean_diff_treat_minus_base": -319.3000000000002,
+        "mean_treat": 3858.2,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": 0.001953125,
+        "relative_reduction_ci95_bca": [
+          0.07107326500571168,
+          0.08075758831426799
+        ],
+        "relative_reduction_mean": 0.07635978632588256
+      },
+      "shed_fraction_pp": {
+        "diff_ci95_bca": [
+          4.619743539259718,
+          5.211488454775873
+        ],
+        "mean_base": 0.0,
+        "mean_diff_treat_minus_base": 4.946981860022723,
+        "mean_treat": 4.946981860022723,
+        "n_pairs": 10,
+        "permutation_p_sign_flip": null,
+        "relative_reduction_ci95_bca": [
+          null,
+          null
+        ],
+        "relative_reduction_mean": null
+      }
+    }
+  },
+  "provenance": {
+    "derived": [
+      "percentiles (nearest rank, raw samples)",
+      "paired differences, BCa 95% CI (10000 resamples), sign-flip permutation p",
+      "recovery times",
+      "verdicts (mechanical rule)"
+    ],
+    "measured": [
+      "client latency/status/X-Cache-Status per request",
+      "origin concurrency/service time per request",
+      "gateway origin_cap snapshots from /api/v1/metrics (same schema-2 payload as /api/events)"
+    ],
+    "not_covered": "no WAN, no multi-host, no real service; adaptive stale-window/admission mechanisms are not part of the live gateway",
+    "simulated": [],
+    "tier": "MEASURED_LOOPBACK",
+    "what_ran": "real phantom-cache-demo gateway process per arm per repetition on 127.0.0.1; scripted raw-TCP origin; open-loop load generator; all in real time on one host (shared CPU)"
+  },
+  "status": "COMPLETE",
+  "summary_version": 1,
+  "tier": "MEASURED_LOOPBACK",
+  "verdicts": {
+    "AIMD-CAP": {
+      "evidence": {
+        "contention_flagged": false,
+        "mechanism_pass": true,
+        "n_valid_pairs": 10,
+        "origin_p99_diff_mean": -1.4318799999999783,
+        "rel_ci_hi": 0.6534340919867236,
+        "rel_ci_lo": 0.6248357379936328,
+        "rel_reduction_mean": 0.6402860972597816,
+        "success_diff_pp_mean": -17.118326300781888
+      },
+      "outcome": "TRADE_OFF_FAILURE",
+      "reasons": [
+        "peak reduction 0.6403 (CI [0.6248, 0.6534]) but client success rate is 17.118 pp below BASE (limit 1 pp; shed 503s count as failures)"
+      ]
+    },
+    "STATIC-CAP": {
+      "evidence": {
+        "contention_flagged": false,
+        "mechanism_pass": true,
+        "n_valid_pairs": 10,
+        "origin_p99_diff_mean": 0.20243000000002098,
+        "rel_ci_hi": 0.4018673502884029,
+        "rel_ci_lo": 0.3672646272646273,
+        "rel_reduction_mean": 0.3832654401075453,
+        "success_diff_pp_mean": -4.946981860022731
+      },
+      "outcome": "TRADE_OFF_FAILURE",
+      "reasons": [
+        "peak reduction 0.3833 (CI [0.3673, 0.4019]) but client success rate is 4.947 pp below BASE (limit 1 pp; shed 503s count as failures)"
+      ]
+    }
+  }
+}

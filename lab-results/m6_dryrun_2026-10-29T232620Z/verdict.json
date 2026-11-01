@@ -1,0 +1,370 @@
+{
+  "H1": {
+    "any_adverse_ci_p99": false,
+    "any_adverse_ci_peak": true,
+    "error_rate_constraint_holds_in_all_scenarios": false,
+    "fewer_than_3_scenarios_supported_on_an_endpoint": true,
+    "fresh_hit_constraint_holds_in_all_scenarios": false,
+    "n_seeds_paired_in_every_hypothesis": true,
+    "not_supported_triggered": true,
+    "supported_rule_met": false,
+    "supported_scenarios_client_p99": 2,
+    "supported_scenarios_peak_concurrency": 0,
+    "verdict": "NOT_SUPPORTED"
+  },
+  "H2": {
+    "compared_cells": 1200,
+    "identical_cells": 1200,
+    "reason": "dynamic stale window inert: PIE-no-stale executes cell-for-cell identically to PIE-Retained",
+    "status": "NOT_TESTABLE_AT_REGISTERED_HORIZON"
+  },
+  "H3": {
+    "note": "overhead is not measurable under T1",
+    "status": "UNVERIFIED"
+  },
+  "H4": {
+    "reason": "the stale window never binds at the registered horizon",
+    "status": "NOT_TESTABLE_AT_REGISTERED_HORIZON"
+  },
+  "H5_H6": {
+    "note": "not evaluated by this protocol",
+    "status": "UNVERIFIED"
+  },
+  "banner": "SIMULATION RESULT (T1 deterministic virtual-time simulation driving the real cache/executor code). NOT A MEASUREMENT of any network, host or process.",
+  "cells": 12000,
+  "completeness_problems": [],
+  "expected_cells": 12000,
+  "falsifiers": {
+    "F-a": {
+      "fires": true,
+      "scenarios_below_0.10_vs_BL-12b": 7,
+      "scenarios_below_0.10_vs_BL-6": 4,
+      "threshold_scenarios": 6
+    },
+    "F-b": {
+      "fires": null,
+      "note": "reported from O-HET and O-GRD rows of analysis_primary.csv; not mechanical"
+    },
+    "F-c": {
+      "fires": false,
+      "scenarios_where_PIE_P99_exceeds_BL-1_by_more_than_5pct": []
+    },
+    "F-d": {
+      "fires": false,
+      "pie_retained_cap_violations": 0,
+      "pie_retained_stale_cap_violations": 0
+    },
+    "F-e": {
+      "fires": false,
+      "rule": "all 16 primary hypotheses practically null or adverse (BCa upper bound < 0.05)"
+    },
+    "F-f": {
+      "fires": null,
+      "note": "prior-art overlap is outside this protocol"
+    }
+  },
+  "generated_utc": "2026-10-29T23:27:57Z",
+  "per_scenario": [
+    {
+      "d_error_rate": -0.015418938966666665,
+      "d_fresh_hit_ratio": 0.014761150600000002,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 180300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 180300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-DEG",
+        "supported": false
+      },
+      "peak": {
+        "adverse": true,
+        "ci_hi": -3.0,
+        "ci_lo": -3.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": -3.0,
+        "mean_treat": 8.0,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": true,
+        "scenario": "O-DEG",
+        "supported": false
+      },
+      "scenario": "O-DEG"
+    },
+    {
+      "d_error_rate": 0.016710832173333322,
+      "d_fresh_hit_ratio": -0.03320709423333336,
+      "error_rate_ok": false,
+      "fresh_hit_ok": false,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 60300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 60300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-BRN",
+        "supported": false
+      },
+      "peak": {
+        "adverse": true,
+        "ci_hi": -2.5966666666666667,
+        "ci_lo": -2.696666666666667,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": -2.65,
+        "mean_treat": 7.3,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": true,
+        "scenario": "O-BRN",
+        "supported": false
+      },
+      "scenario": "O-BRN"
+    },
+    {
+      "d_error_rate": -0.024990263520000004,
+      "d_fresh_hit_ratio": 0.007663291219999999,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 60300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 60300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-SLW",
+        "supported": false
+      },
+      "peak": {
+        "adverse": true,
+        "ci_hi": -2.7133333333333334,
+        "ci_lo": -2.826666666666667,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": -2.770000000000001,
+        "mean_treat": 7.540000000000002,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": true,
+        "scenario": "O-SLW",
+        "supported": false
+      },
+      "scenario": "O-SLW"
+    },
+    {
+      "d_error_rate": -0.21145079874666664,
+      "d_fresh_hit_ratio": 0.11396274381999998,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 60300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 60300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-CO",
+        "supported": false
+      },
+      "peak": {
+        "adverse": true,
+        "ci_hi": -3.0,
+        "ci_lo": -3.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": -3.0,
+        "mean_treat": 8.0,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": true,
+        "scenario": "O-CO",
+        "supported": false
+      },
+      "scenario": "O-CO"
+    },
+    {
+      "d_error_rate": -0.0008428757000000027,
+      "d_fresh_hit_ratio": -0.0037631757200000024,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.044153056336217564,
+        "ci_lo": 0.020629198778973217,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 395105.6266666667,
+        "mean_rel_reduction": 0.03317561778836242,
+        "mean_treat": 381706.1333333334,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": true,
+        "scenario": "O-RT",
+        "supported": false
+      },
+      "peak": {
+        "adverse": true,
+        "ci_hi": -2.99,
+        "ci_lo": -3.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": -2.996666666666667,
+        "mean_treat": 7.993333333333334,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": true,
+        "scenario": "O-RT",
+        "supported": false
+      },
+      "scenario": "O-RT"
+    },
+    {
+      "d_error_rate": 0.032358716833333336,
+      "d_fresh_hit_ratio": -0.04934970470666665,
+      "error_rate_ok": false,
+      "fresh_hit_ok": false,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 60300.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 60300.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-FL",
+        "supported": false
+      },
+      "peak": {
+        "adverse": true,
+        "ci_hi": -1.5099999999999993,
+        "ci_lo": -1.7799999999999998,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": -1.643333333333333,
+        "mean_treat": 5.286666666666667,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": true,
+        "scenario": "O-FL",
+        "supported": false
+      },
+      "scenario": "O-FL"
+    },
+    {
+      "d_error_rate": 0.03873612423333332,
+      "d_fresh_hit_ratio": -0.09258019989999998,
+      "error_rate_ok": false,
+      "fresh_hit_ok": false,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.29574385750489185,
+        "ci_lo": 0.2739185828362193,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 146311.56,
+        "mean_rel_reduction": 0.2853004191729587,
+        "mean_treat": 104562.68666666668,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": false,
+        "scenario": "O-HET",
+        "supported": true
+      },
+      "peak": {
+        "adverse": false,
+        "ci_hi": 0.0,
+        "ci_lo": 0.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": 0.0,
+        "mean_treat": 2.0,
+        "n_seeds": 30,
+        "p": 1.0,
+        "p_holm": 1.0,
+        "practically_null": true,
+        "scenario": "O-HET",
+        "supported": false
+      },
+      "scenario": "O-HET"
+    },
+    {
+      "d_error_rate": -0.05202260851333333,
+      "d_fresh_hit_ratio": 0.04027254824000002,
+      "error_rate_ok": true,
+      "fresh_hit_ok": true,
+      "p99": {
+        "adverse": false,
+        "ci_hi": 0.06139965024282415,
+        "ci_lo": 0.046044387299011724,
+        "endpoint": "client_p99_latency_us",
+        "mean_ctrl": 151430.83333333334,
+        "mean_rel_reduction": 0.0535202437863256,
+        "mean_treat": 143301.77333333332,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": false,
+        "scenario": "O-GRD",
+        "supported": true
+      },
+      "peak": {
+        "adverse": true,
+        "ci_hi": -3.0,
+        "ci_lo": -3.0,
+        "endpoint": "peak_origin_concurrency",
+        "mean_ctrl": 2.0,
+        "mean_rel_reduction": -3.0,
+        "mean_treat": 8.0,
+        "n_seeds": 30,
+        "p": 0.00004999750012499375,
+        "p_holm": 0.0007999600019999,
+        "practically_null": true,
+        "scenario": "O-GRD",
+        "supported": false
+      },
+      "scenario": "O-GRD"
+    }
+  ],
+  "protocol_version": "2.2",
+  "rule_source": "docs/research/preregistration_m6_v2_2_amendment.md section H3 (applied mechanically; no judgement after seeing data)",
+  "run_name": "m6_dry_run_dev_seeds",
+  "seed_set": "D",
+  "tier": "SIMULATED"
+}

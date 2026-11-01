@@ -1,0 +1,281 @@
+{
+  "arm_params": {
+    "aimd_window": 16,
+    "bl12b_cap": 2,
+    "bl12b_stale_ms": 60000,
+    "bl4_max": 8,
+    "bl4_min": 1,
+    "bl4_p99_ceiling_ms": 200,
+    "bl5_err_threshold": 0.5,
+    "bl5_open_ms": 1000,
+    "bl6_by_scenario": {
+      "O-BRN": [
+        1,
+        2000
+      ],
+      "O-CO": [
+        8,
+        2000
+      ],
+      "O-DEG": [
+        1,
+        60000
+      ],
+      "O-FL": [
+        1,
+        2000
+      ],
+      "O-GRD": [
+        2,
+        60000
+      ],
+      "O-HET": [
+        2,
+        60000
+      ],
+      "O-RT": [
+        6,
+        10000
+      ],
+      "O-SLW": [
+        3,
+        10000
+      ]
+    },
+    "pie_base_stale_ms": 60000,
+    "pie_error_threshold": 0.2,
+    "pie_max": 4,
+    "pie_min": 2,
+    "pie_p99_ceiling_ms": 100,
+    "pie_window": 32
+  },
+  "banner": "SIMULATION RESULT (T1 virtual-time simulation on tuning seeds T), NOT A MEASUREMENT",
+  "bl6_notes": [
+    "O-BRN: no grid member met the hit/error constraints; best violation-free score used",
+    "O-FL: no grid member met the hit/error constraints; best violation-free score used"
+  ],
+  "evaluations_per_arm": {
+    "BL-12b": 24,
+    "BL-4": 24,
+    "PIE-Retained": 24
+  },
+  "git_head": "456bb25930004f1896a84c53e776e7b3ef29ee16",
+  "grid": {
+    "BL-12b": {
+      "cap": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        8,
+        16,
+        32
+      ],
+      "configs": 24,
+      "search": "exhaustive",
+      "stale_ms": [
+        2000,
+        10000,
+        60000
+      ]
+    },
+    "BL-4": {
+      "configs": 24,
+      "max": [
+        8,
+        16,
+        32
+      ],
+      "min": [
+        1,
+        2
+      ],
+      "p99_ceiling_ms": [
+        50,
+        100,
+        200,
+        400
+      ],
+      "search": "exhaustive"
+    },
+    "PIE-Retained": {
+      "aimd_window": [
+        8,
+        16,
+        32
+      ],
+      "base_stale_ms": [
+        2000,
+        10000,
+        60000
+      ],
+      "error_threshold": [
+        0.05,
+        0.1,
+        0.2,
+        0.4
+      ],
+      "full_combinations": 2700,
+      "max": [
+        4,
+        8,
+        16,
+        32,
+        64
+      ],
+      "min": [
+        1,
+        2,
+        4
+      ],
+      "p99_ceiling_ms": [
+        50,
+        100,
+        200,
+        400,
+        800
+      ],
+      "search": "deterministic coordinate search (axis order max, p99 ceiling, min, error threshold, window, base stale; pass 1 sweeps each axis around the incumbent, later passes probe +-1 neighbours, then diagonal neighbours) from the start point, exactly `budget` distinct evaluations",
+      "start_point_indices": [
+        1,
+        2,
+        2,
+        2,
+        1,
+        1
+      ]
+    },
+    "budget_per_tuned_arm": 24
+  },
+  "grid_boundary": [
+    {
+      "arm": "BL-12b",
+      "at_grid_maximum": false,
+      "at_grid_minimum": false,
+      "minimum_is_natural_floor": false,
+      "param": "cap",
+      "value": "2"
+    },
+    {
+      "arm": "BL-12b",
+      "at_grid_maximum": true,
+      "at_grid_minimum": false,
+      "minimum_is_natural_floor": false,
+      "param": "stale_ms",
+      "value": "60000"
+    },
+    {
+      "arm": "BL-4",
+      "at_grid_maximum": false,
+      "at_grid_minimum": false,
+      "minimum_is_natural_floor": false,
+      "param": "p99_ceiling_ms",
+      "value": "200"
+    },
+    {
+      "arm": "BL-4",
+      "at_grid_maximum": false,
+      "at_grid_minimum": true,
+      "minimum_is_natural_floor": false,
+      "param": "max",
+      "value": "8"
+    },
+    {
+      "arm": "BL-4",
+      "at_grid_maximum": false,
+      "at_grid_minimum": true,
+      "minimum_is_natural_floor": true,
+      "param": "min",
+      "value": "1"
+    },
+    {
+      "arm": "PIE-Retained",
+      "at_grid_maximum": false,
+      "at_grid_minimum": false,
+      "minimum_is_natural_floor": false,
+      "param": "min",
+      "value": "2"
+    },
+    {
+      "arm": "PIE-Retained",
+      "at_grid_maximum": false,
+      "at_grid_minimum": true,
+      "minimum_is_natural_floor": false,
+      "param": "max",
+      "value": "4"
+    },
+    {
+      "arm": "PIE-Retained",
+      "at_grid_maximum": false,
+      "at_grid_minimum": false,
+      "minimum_is_natural_floor": false,
+      "param": "p99_ceiling_ms",
+      "value": "100"
+    },
+    {
+      "arm": "PIE-Retained",
+      "at_grid_maximum": false,
+      "at_grid_minimum": false,
+      "minimum_is_natural_floor": false,
+      "param": "error_threshold",
+      "value": "0.2"
+    },
+    {
+      "arm": "PIE-Retained",
+      "at_grid_maximum": true,
+      "at_grid_minimum": false,
+      "minimum_is_natural_floor": false,
+      "param": "aimd_window",
+      "value": "32"
+    },
+    {
+      "arm": "PIE-Retained",
+      "at_grid_maximum": true,
+      "at_grid_minimum": false,
+      "minimum_is_natural_floor": false,
+      "param": "base_stale_ms",
+      "value": "60000"
+    }
+  ],
+  "notes": [
+    "BL-12b: best feasible score 0.1536 at cap=2 stale_ms=60000",
+    "BL-4: best feasible score 0.2222",
+    "PIE-Retained: best feasible score 0.1724 after 24 evaluations"
+  ],
+  "pie_distinct_configs_evaluated": 24,
+  "protocol_version": "2.2",
+  "tier": "SIMULATED",
+  "tuned_at_utc": "2026-10-29T22:49:46Z",
+  "tuning_families": [
+    "W-Z",
+    "W-FC",
+    "W-SC"
+  ],
+  "tuning_scenarios": [
+    "O-DEG",
+    "O-BRN",
+    "O-SLW",
+    "O-CO",
+    "O-RT",
+    "O-FL",
+    "O-HET",
+    "O-GRD"
+  ],
+  "tuning_seeds": [
+    10001,
+    10002,
+    10003,
+    10004,
+    10005,
+    10006,
+    10007,
+    10008
+  ],
+  "untuned_arms": [
+    "BL-0",
+    "BL-1",
+    "BL-5 (fixed defaults)"
+  ],
+  "wording": "each arm's parameters are the best configuration found in the documented grid on tuning seeds T; not claimed to be the best deployable static policy"
+}

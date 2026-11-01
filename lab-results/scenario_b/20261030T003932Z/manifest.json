@@ -1,0 +1,116 @@
+{
+  "arm_configs": {
+    "AIMD-CAP": {
+      "PHANTOM_INTELLIGENCE": "canary",
+      "max": 32,
+      "min": 12,
+      "p99_ceiling_ms": 60,
+      "window": 30
+    },
+    "BASE": {
+      "PHANTOM_INTELLIGENCE": "off",
+      "cap": null
+    },
+    "STATIC-CAP": {
+      "PHANTOM_INTELLIGENCE": "canary",
+      "max": 24,
+      "min": 24
+    }
+  },
+  "arms": [
+    "BASE",
+    "STATIC-CAP",
+    "AIMD-CAP"
+  ],
+  "command_line": "D:\\Personal\\_m7_target\\release\\phantom-lab.exe scenario-b --out lab-results\\scenario_b\\20261030T003932Z",
+  "ended_utc": "2026-10-30T00:57:12Z",
+  "exit_code": 0,
+  "extra": {
+    "timer_probe": {
+      "samples": 100,
+      "sleep_1ms_overshoot_ms_p50": 7.3862000000000005,
+      "sleep_1ms_overshoot_ms_p99": 29.0373
+    }
+  },
+  "gateway": {
+    "env_keys_set": [
+      "PHANTOM_MODE=development",
+      "PHANTOM_BIND_ADDR=127.0.0.1:<free port>",
+      "ORIGIN_URL=http://127.0.0.1:<origin port>",
+      "PHANTOM_MAX_CACHE_BYTES",
+      "PHANTOM_INTELLIGENCE (off | canary)",
+      "PHANTOM_ORIGIN_CAP_{MAX,MIN,P99_CEILING_MS,WINDOW} (capped arms only)"
+    ],
+    "exe": "D:\\Personal\\_m7_target\\release\\phantom-cache-demo.exe",
+    "exe_sha256": "3e3451b741f64cc6682db890a95ef772b1863d476180f98bdd82384dc4f52574",
+    "inherited_phantom_env_removed": true
+  },
+  "git": {
+    "dirty_entries": 67,
+    "head": "456bb25930004f1896a84c53e776e7b3ef29ee16"
+  },
+  "host": {
+    "arch": "x86_64",
+    "available_parallelism": 24,
+    "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "logical_cpus_env": "24",
+    "os": "windows",
+    "os_version": "Microsoft Windows [Version 10.0.26300.9711]",
+    "ram": "not collected"
+  },
+  "label_planned": "VALID",
+  "label_reasons": [],
+  "manifest_version": 1,
+  "max_cache_bytes": 262144,
+  "origin_script": {
+    "base_service_ms": 20,
+    "body_bytes": 1024,
+    "degrade_len_ms": 10000,
+    "degrade_start_ms": 13000,
+    "degraded_mult": 6.0,
+    "error_rate": 0.0,
+    "max_age_s": 3,
+    "seed": 20261030,
+    "stale_if_error_s": null,
+    "stale_while_revalidate_s": null
+  },
+  "phases": {
+    "degraded_ms": 10000,
+    "healthy_ms": 5000,
+    "recovery_ms": 8000,
+    "warmup_ms": 8000
+  },
+  "profile": {
+    "driver_profile": "release",
+    "gateway_profile": "release"
+  },
+  "reps": 10,
+  "scenario": "B (origin slowdown)",
+  "seed": 20261030,
+  "seed_note": "repetition r uses seed + r for arrivals/keys/origin; identical across arms of the repetition; never a sealed M6 seed",
+  "snapshot_interval_ms": 250,
+  "source_sha256": {
+    "src/bin/phantom-lab.rs": "14691c8293d2bf095a47226c40ad5154c278c14b4cfbc4d0c21f50ffc5b4840a",
+    "src/lab_live/analysis.rs": "2c238c96bb34451830f2c9f2039835da3d1b00a3a0db296b217512cd01fec8ea",
+    "src/lab_live/cli.rs": "3d3ae7663ee71db4f3ceab3c450a0213af7637e30f2ba521f4b1cc64c342efd5",
+    "src/lab_live/gateway.rs": "9fc0df0e97855bbf05d79a0fd7096e000bc6d182b0682fd7225c556ed9a1e6db",
+    "src/lab_live/http.rs": "64fe3b9a79b7f93cefa733cc2e0c908b20b9f5a19ce310c79d8b0f5f774701e7",
+    "src/lab_live/loadgen.rs": "7fb49036f3e611c13cd796d84694ae75f4272c1ded9b45d35cd527f6a949c039",
+    "src/lab_live/mod.rs": "0fa0e2279987a83c2ecc8c1f394fe2f4a34abcf06c2cf4939d3b0dea2dba3325",
+    "src/lab_live/origin.rs": "073136ea464b512d750c1eed4c785c72b2512227b0091bd2c02371b1f11a5065",
+    "src/lab_live/scenario_b.rs": "6bbbf0aead2815d7d540902788f6380b40e170148cfe3476beeba5f24d237f7f"
+  },
+  "started_utc": "2026-10-30T00:41:16Z",
+  "status": "COMPLETE",
+  "tier": "MEASURED_LOOPBACK",
+  "workload": {
+    "arrival": "Poisson",
+    "client_deadline_ms": 10000,
+    "duration_ms": 31000,
+    "n_keys": 5000,
+    "path_prefix": "/api/v1/cache/k/",
+    "rate_rps": 300.0,
+    "seed": 20261030,
+    "zipf_alpha": 0.9
+  }
+}

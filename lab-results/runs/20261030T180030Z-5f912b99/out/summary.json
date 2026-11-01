@@ -1,0 +1,379 @@
+{
+  "arms": {
+    "BASE": {
+      "cache_status_counts_total": {
+        "COALESCED": 2,
+        "HIT": 115,
+        "MISS": 51
+      },
+      "client_latency_ms_pooled_scheduled_time": {
+        "max": 148.276243,
+        "n": 168,
+        "p50": 11.654702,
+        "p90": 123.218367,
+        "p95": 135.221561,
+        "p99": 144.868805
+      },
+      "client_samples_window_total": 168,
+      "invalid_runs": [],
+      "per_run_mean": {
+        "client_p50_ms": 11.654702,
+        "client_p99_ms": 144.868805,
+        "client_success_rate": 1.0,
+        "gateway_cap_min_seen": null,
+        "gateway_in_flight_max": 5.0,
+        "gateway_rejections_final": 0.0,
+        "origin_p99_service_ms": 126.74,
+        "origin_peak_concurrency_degraded": 6.0,
+        "origin_peak_concurrency_whole_run": 6.0,
+        "origin_peak_concurrency_window": 6.0,
+        "origin_requests_window": 51.0,
+        "other_5xx_fraction": 0.0,
+        "shed_fraction": 0.0,
+        "stale_served_total_final": 0.0
+      },
+      "recovery_h_b4": {
+        "error_recovery_s_max": 0.0,
+        "error_recovery_s_median": 0.0,
+        "in_flight_recovery_s_median": 0.0,
+        "note": "seconds after the degraded interval ends until every later 1 s bin (errors) / snapshot (in_flight) is back at the healthy-phase level; null = not recovered within the run",
+        "runs_with_error_recovery": 1,
+        "valid_runs": 1
+      },
+      "runs": 1,
+      "status_counts_total": {
+        "200": 168
+      },
+      "valid_runs": 1
+    },
+    "STATIC-CAP": {
+      "cache_status_counts_total": {
+        "COALESCED": 2,
+        "HIT": 116,
+        "MISS": 50
+      },
+      "client_latency_ms_pooled_scheduled_time": {
+        "max": 155.445739,
+        "n": 168,
+        "p50": 11.180514,
+        "p90": 127.751265,
+        "p95": 135.089829,
+        "p99": 151.299771
+      },
+      "client_samples_window_total": 168,
+      "invalid_runs": [],
+      "per_run_mean": {
+        "client_p50_ms": 11.180514,
+        "client_p99_ms": 151.299771,
+        "client_success_rate": 1.0,
+        "gateway_cap_min_seen": 24.0,
+        "gateway_in_flight_max": 4.0,
+        "gateway_rejections_final": 0.0,
+        "origin_p99_service_ms": 125.4143,
+        "origin_peak_concurrency_degraded": 5.0,
+        "origin_peak_concurrency_whole_run": 5.0,
+        "origin_peak_concurrency_window": 5.0,
+        "origin_requests_window": 50.0,
+        "other_5xx_fraction": 0.0,
+        "shed_fraction": 0.0,
+        "stale_served_total_final": 0.0
+      },
+      "recovery_h_b4": {
+        "error_recovery_s_max": 0.0,
+        "error_recovery_s_median": 0.0,
+        "in_flight_recovery_s_median": 0.0,
+        "note": "seconds after the degraded interval ends until every later 1 s bin (errors) / snapshot (in_flight) is back at the healthy-phase level; null = not recovered within the run",
+        "runs_with_error_recovery": 1,
+        "valid_runs": 1
+      },
+      "runs": 1,
+      "status_counts_total": {
+        "200": 168
+      },
+      "valid_runs": 1
+    }
+  },
+  "config": {
+    "aimd_max": 32,
+    "aimd_min": 12,
+    "aimd_p99_ceiling_ms": 60,
+    "aimd_window": 30,
+    "arms": [
+      "Base",
+      "StaticCap"
+    ],
+    "command_line": "lab-api scenario_b",
+    "gateway_exe": "D:\\Personal\\phantom-cache\\target\\release\\phantom-cache-demo.exe",
+    "max_cache_bytes": 262144,
+    "origin": {
+      "base_service_ms": 20,
+      "body_bytes": 1024,
+      "degrade_len_ms": 1000,
+      "degrade_start_ms": 2000,
+      "degraded_mult": 6.0,
+      "error_rate": 0.0,
+      "max_age_s": 3,
+      "seed": 20261030,
+      "stale_if_error_s": null,
+      "stale_while_revalidate_s": null
+    },
+    "out_dir": "lab-results\\runs\\20261030T180030Z-5f912b99\\out",
+    "phases": {
+      "degraded_ms": 1000,
+      "healthy_ms": 1000,
+      "recovery_ms": 1000,
+      "warmup_ms": 1000
+    },
+    "reps": 1,
+    "seed": 20261030,
+    "snapshot_interval_ms": 250,
+    "static_cap": 24,
+    "workload": {
+      "arrival": "Poisson",
+      "client_deadline_ms": 10000,
+      "duration_ms": 4000,
+      "n_keys": 100,
+      "path_prefix": "/api/v1/cache/k/",
+      "rate_rps": 50.0,
+      "seed": 20261030,
+      "zipf_alpha": 0.9
+    }
+  },
+  "interpretation_notes": [
+    "AIMD-CAP effective cap: the nominal range [aimd_min, aimd_max] is not necessarily the cap in force, and with other aimd_min/aimd_max or workloads it may behave as a static cap near aimd_min. In the retained experiment (12-32, ceiling 60 ms, window 30) the controller fell from 32 to about 12 within ~2 s, stayed there in every phase and shed about 2% of requests even in the healthy phase, so AIMD-CAP vs BASE was effectively a static cap near 12 versus no cap and does not show adaptive-controller effectiveness or ineffectiveness; check gateway_cap_min_seen / cap_final per run. The controller's 30-sample 'p99' is the window maximum.",
+    "Arms differ by more than the cap: capped arms run PHANTOM_INTELLIGENCE=canary and BASE runs off (the cap is enforced only in canary/active). Fairness of canary versus off is excluded by code reading only; no cap-free canary arm and no overhead measurement exists.",
+    "Client latency percentiles (client_p50/p95/p99) are computed over ALL window requests, including fast-failing 503 sheds; they are NOT evidence of improved latency for served clients. Success-only latency is recorded per run (client_success_p99_ms in run_metrics.json) and must be reported separately.",
+    "The scripted origin has no load-dependent latency (a pure delay server), so the contract's origin-p99 clause is untestable here; observed origin_p99 differences are timer noise.",
+    "Stale-serving code exists but the workload did not exercise it (the origin sends only max-age=3; stale-while-revalidate and stale-if-error are not run; stale_served_total = 0), so nothing about stale-serving is established.",
+    "Cap values and thresholds are not pre-registered. The retained experiment chose its caps (static 24; AIMD 12-32) after a single-repetition pilot with the same seed as repetition 1; any run whose parameters were chosen after looking at pilot data is likewise unregistered.",
+    "Not established by Scenario B: adaptive-control merit; production, WAN or multi-host behaviour; origin-p99 benefits; stale-serving effectiveness; pre-registered cap selection; a served-client latency improvement."
+  ],
+  "label": "EXPLORATORY",
+  "label_meaning": "Label VALID means only: release-profile gateway and driver binaries (gateway profile inferred from the directory directly above the executable), >= 10 repetitions per arm, BASE and at least one capped arm present, workload parameters within tolerance of the documented experiment (phases >= half of 8/5/10/8 s, arrival rate and key catalogue within 0.5x..2x of 300 rps and 5000 keys), and the registered caps and origin parameters unchanged (static cap 24; AIMD 12-32, ceiling 60 ms, window 30), one host, scripted origin. It is not a statement of statistical validity beyond the mechanical rule, of generality, or of adaptive-control merit.",
+  "label_planned": "EXPLORATORY",
+  "label_reasons": [
+    "1 repetitions per arm < 10 required",
+    "deviates_from_retained_experiment_parameters: warmup 1000 ms < 4000 ms (half of the default 8000 ms); healthy 1000 ms < 2500 ms (half of the default 5000 ms); degraded 1000 ms < 5000 ms (half of the default 10000 ms); recovery 1000 ms < 4000 ms (half of the default 8000 ms); arrival rate 50 rps outside 0.5x..2x of the default 300 rps; key catalogue 100 outside 0.5x..2x of the default 5000"
+  ],
+  "limitations": [
+    "Loopback on one host: no network RTT; load generator, gateway and origin share CPU and the scheduler.",
+    "Scripted origin is a pure delay server (no internal queue or capacity): service time does not grow with load, so the positive-feedback loop of the contract is NOT reproduced; only the concurrency/latency effect of the scripted inflation is.",
+    "Service times and arrival timing use tokio timers; real resolution is host dependent (see manifest timer_probe). Observed service times exceed the nominal value by the timer overshoot.",
+    "Limited key catalogue and a single Zipf shape / arrival rate / degradation shape; results apply to this workload family only.",
+    "Per-run latencies are measured from the SCHEDULED send time (open loop); runs are real time and not bit-deterministic.",
+    "Arms differ by more than the cap: capped arms run PHANTOM_INTELLIGENCE=canary and BASE runs off (the cap is enforced only in canary/active). Fairness of canary versus off is excluded by code reading only; no cap-free canary arm and no overhead measurement exists.",
+    "AIMD-CAP effective cap: the nominal range [aimd_min, aimd_max] is not necessarily the cap in force, and with other aimd_min/aimd_max or workloads it may behave as a static cap near aimd_min. In the retained experiment (12-32, ceiling 60 ms, window 30) the controller fell from 32 to about 12 within ~2 s, stayed there in every phase and shed about 2% of requests even in the healthy phase, so AIMD-CAP vs BASE was effectively a static cap near 12 versus no cap and does not show adaptive-controller effectiveness or ineffectiveness; check gateway_cap_min_seen / cap_final per run. The controller's 30-sample 'p99' is the window maximum.",
+    "Client latency percentiles (client_p50/p95/p99) are computed over ALL window requests, including fast-failing 503 sheds; they are NOT evidence of improved latency for served clients. Success-only latency is recorded per run (client_success_p99_ms in run_metrics.json) and must be reported separately.",
+    "The scripted origin has no load-dependent latency (a pure delay server), so the contract's origin-p99 clause is untestable here; observed origin_p99 differences are timer noise.",
+    "Stale-serving code exists but the workload did not exercise it (the origin sends only max-age=3; stale-while-revalidate and stale-if-error are not run; stale_served_total = 0), so nothing about stale-serving is established.",
+    "Cap values and thresholds are not pre-registered. The retained experiment chose its caps (static 24; AIMD 12-32) after a single-repetition pilot with the same seed as repetition 1; any run whose parameters were chosen after looking at pilot data is likewise unregistered.",
+    "Peak origin concurrency counts requests in service on the origin; connections the gateway abandoned (client disconnect) keep their origin slot until the scripted service time ends.",
+    "No claim about production, WAN, multi-host behaviour; debug-build runs are mechanics only."
+  ],
+  "mechanism_h_b1": {
+    "STATIC-CAP": {
+      "cap_limit_in_force": 24,
+      "max_origin_concurrent_observed_whole_run": 5,
+      "note": "checked over the whole run including warm-up; AIMD limit = configured max (cap can only be lower)",
+      "pass": true,
+      "runs": 1,
+      "violating_reps": []
+    }
+  },
+  "mechanism_h_b1_all_pass": true,
+  "min_valid_runs_required": 10,
+  "paired_vs_base": {
+    "STATIC-CAP": {
+      "client_p50_ms": {
+        "diff_ci95_bca": [
+          -0.47418799999999983,
+          -0.47418799999999983
+        ],
+        "mean_base": 11.654702,
+        "mean_diff_treat_minus_base": -0.47418799999999983,
+        "mean_treat": 11.180514,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": 1.0,
+        "relative_reduction_ci95_bca": [
+          0.0406864113728519,
+          0.0406864113728519
+        ],
+        "relative_reduction_mean": 0.0406864113728519
+      },
+      "client_p95_ms": {
+        "diff_ci95_bca": [
+          -0.13173199999999952,
+          -0.13173199999999952
+        ],
+        "mean_base": 135.221561,
+        "mean_diff_treat_minus_base": -0.13173199999999952,
+        "mean_treat": 135.089829,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": 1.0,
+        "relative_reduction_ci95_bca": [
+          0.0009741937530213803,
+          0.0009741937530213803
+        ],
+        "relative_reduction_mean": 0.0009741937530213803
+      },
+      "client_p99_ms": {
+        "diff_ci95_bca": [
+          6.430965999999984,
+          6.430965999999984
+        ],
+        "mean_base": 144.868805,
+        "mean_diff_treat_minus_base": 6.430965999999984,
+        "mean_treat": 151.299771,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": 1.0,
+        "relative_reduction_ci95_bca": [
+          -0.044391654918393114,
+          -0.044391654918393114
+        ],
+        "relative_reduction_mean": -0.044391654918393114
+      },
+      "client_success_rate_pp": {
+        "diff_ci95_bca": [
+          0.0,
+          0.0
+        ],
+        "mean_base": 100.0,
+        "mean_diff_treat_minus_base": 0.0,
+        "mean_treat": 100.0,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": 1.0,
+        "relative_reduction_ci95_bca": [
+          0.0,
+          0.0
+        ],
+        "relative_reduction_mean": 0.0
+      },
+      "origin_p99_service_ms": {
+        "diff_ci95_bca": [
+          -1.3256999999999977,
+          -1.3256999999999977
+        ],
+        "mean_base": 126.74,
+        "mean_diff_treat_minus_base": -1.3256999999999977,
+        "mean_treat": 125.4143,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": 1.0,
+        "relative_reduction_ci95_bca": [
+          0.010459996843932442,
+          0.010459996843932442
+        ],
+        "relative_reduction_mean": 0.010459996843932442
+      },
+      "origin_peak_concurrency_degraded": {
+        "diff_ci95_bca": [
+          -1.0,
+          -1.0
+        ],
+        "mean_base": 6.0,
+        "mean_diff_treat_minus_base": -1.0,
+        "mean_treat": 5.0,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": 1.0,
+        "relative_reduction_ci95_bca": [
+          0.16666666666666666,
+          0.16666666666666666
+        ],
+        "relative_reduction_mean": 0.16666666666666666
+      },
+      "origin_peak_concurrency_window": {
+        "diff_ci95_bca": [
+          -1.0,
+          -1.0
+        ],
+        "mean_base": 6.0,
+        "mean_diff_treat_minus_base": -1.0,
+        "mean_treat": 5.0,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": 1.0,
+        "relative_reduction_ci95_bca": [
+          0.16666666666666666,
+          0.16666666666666666
+        ],
+        "relative_reduction_mean": 0.16666666666666666
+      },
+      "origin_requests_window": {
+        "diff_ci95_bca": [
+          -1.0,
+          -1.0
+        ],
+        "mean_base": 51.0,
+        "mean_diff_treat_minus_base": -1.0,
+        "mean_treat": 50.0,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": 1.0,
+        "relative_reduction_ci95_bca": [
+          0.0196078431372549,
+          0.0196078431372549
+        ],
+        "relative_reduction_mean": 0.0196078431372549
+      },
+      "shed_fraction_pp": {
+        "diff_ci95_bca": [
+          0.0,
+          0.0
+        ],
+        "mean_base": 0.0,
+        "mean_diff_treat_minus_base": 0.0,
+        "mean_treat": 0.0,
+        "n_pairs": 1,
+        "permutation_p_sign_flip": null,
+        "relative_reduction_ci95_bca": [
+          null,
+          null
+        ],
+        "relative_reduction_mean": null
+      }
+    }
+  },
+  "provenance": {
+    "derived": [
+      "percentiles (nearest rank, raw samples)",
+      "paired differences, BCa 95% CI (10000 resamples), sign-flip permutation p",
+      "recovery times",
+      "verdicts (mechanical rule)"
+    ],
+    "measured": [
+      "client latency/status/X-Cache-Status per request",
+      "origin concurrency/service time per request",
+      "gateway origin_cap snapshots from /api/v1/metrics (same schema-2 payload as /api/events)"
+    ],
+    "not_covered": "no WAN, no multi-host, no real service; adaptive stale-window/admission mechanisms are not part of the live gateway",
+    "simulated": [],
+    "tier": "MEASURED_LOOPBACK",
+    "what_ran": "real phantom-cache-demo gateway process per arm per repetition on 127.0.0.1; scripted raw-TCP origin; open-loop load generator; all in real time on one host (shared CPU)"
+  },
+  "run_completeness": {
+    "complete": true,
+    "completed_runs": 2,
+    "incomplete_reason": null,
+    "planned_runs": 2
+  },
+  "status": "COMPLETE",
+  "summary_version": 2,
+  "tier": "MEASURED_LOOPBACK",
+  "verdicts": {
+    "STATIC-CAP": {
+      "evidence": {
+        "contention_flagged": false,
+        "mechanism_pass": true,
+        "n_valid_pairs": 1,
+        "origin_p99_diff_mean": -1.3256999999999977,
+        "rel_ci_hi": 0.16666666666666666,
+        "rel_ci_lo": 0.16666666666666666,
+        "rel_reduction_mean": 0.16666666666666666,
+        "success_diff_pp_mean": 0.0
+      },
+      "outcome": "INCONCLUSIVE",
+      "reasons": [
+        "only 1 valid paired runs; 10 required"
+      ]
+    }
+  },
+  "verdicts_reason": null,
+  "verdicts_status": "computed"
+}

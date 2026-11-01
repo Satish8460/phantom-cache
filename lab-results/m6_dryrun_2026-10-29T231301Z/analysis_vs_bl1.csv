@@ -1,0 +1,20 @@
+# tier=SIMULATED
+# banner=SIMULATION RESULT (T1 deterministic virtual-time simulation driving the real cache/executor code). NOT A MEASUREMENT of any network, host or process.
+# role=falsifier F-c input: PIE-Retained vs BL-1 (single-flight only)
+scenario,endpoint,treat,ctrl,n_seeds,mean_ctrl,mean_treat,mean_rel_reduction,ci_lo,ci_hi,p,p_holm,supported,practically_null,adverse,EXPLORATORY_log_ratio_rel_reduction,EXPLORATORY_median_rel_reduction,n_ratio_abs_gt_10
+O-DEG,peak_origin_concurrency,PIE-Retained,BL-1,30,149.4333,2.0000,0.986613,0.986546,0.986687,0.000050,0.000800,true,false,false,0.986615,0.986586,0
+O-DEG,client_p99_latency_us,PIE-Retained,BL-1,30,1000000.0000,180300.0000,0.819700,0.819700,0.819700,0.000050,0.000800,true,false,false,0.819700,0.819700,0
+O-BRN,peak_origin_concurrency,PIE-Retained,BL-1,30,43.7267,2.0000,0.954243,0.953916,0.954566,0.000050,0.000800,true,false,false,0.954252,0.954128,0
+O-BRN,client_p99_latency_us,PIE-Retained,BL-1,30,262109.6467,60300.0000,0.769903,0.768904,0.771090,0.000050,0.000800,true,false,false,0.769923,0.769189,0
+O-SLW,peak_origin_concurrency,PIE-Retained,BL-1,30,116.6133,2.0000,0.982821,0.982571,0.983078,0.000050,0.000800,true,false,false,0.982835,0.982759,0
+O-SLW,client_p99_latency_us,PIE-Retained,BL-1,30,983985.1133,60300.0000,0.938696,0.938214,0.939079,0.000050,0.000800,true,false,false,0.938707,0.939172,0
+O-CO,peak_origin_concurrency,PIE-Retained,BL-1,30,95.8600,2.0000,0.979049,0.978511,0.979491,0.000050,0.000800,true,false,false,0.979093,0.979210,0
+O-CO,client_p99_latency_us,PIE-Retained,BL-1,30,624492.4067,60300.0000,0.902957,0.900173,0.905229,0.000050,0.000800,true,false,false,0.903203,0.903328,0
+O-RT,peak_origin_concurrency,PIE-Retained,BL-1,30,141.6400,2.0000,0.985876,0.985801,0.985959,0.000050,0.000800,true,false,false,0.985878,0.985836,0
+O-RT,client_p99_latency_us,PIE-Retained,BL-1,30,2930110.5600,395105.6267,0.865135,0.863797,0.866595,0.000050,0.000800,true,false,false,0.865189,0.864860,0
+O-FL,peak_origin_concurrency,PIE-Retained,BL-1,30,47.4667,2.0000,0.957839,0.957492,0.958228,0.000050,0.000800,true,false,false,0.957852,0.957627,0
+O-FL,client_p99_latency_us,PIE-Retained,BL-1,30,283438.7200,60300.0000,0.787145,0.785449,0.788904,0.000050,0.000800,true,false,false,0.787200,0.786789,0
+O-HET,peak_origin_concurrency,PIE-Retained,BL-1,30,87.1133,2.0000,0.976947,0.976398,0.977463,0.000050,0.000800,true,false,false,0.976994,0.977063,0
+O-HET,client_p99_latency_us,PIE-Retained,BL-1,30,802524.9733,146311.5600,0.817104,0.813123,0.820642,0.000050,0.000800,true,false,false,0.817406,0.817405,0
+O-GRD,peak_origin_concurrency,PIE-Retained,BL-1,30,146.8133,2.0000,0.986372,0.986285,0.986469,0.000050,0.000800,true,false,false,0.986375,0.986376,0
+O-GRD,client_p99_latency_us,PIE-Retained,BL-1,30,1000000.0000,151430.8333,0.848569,0.847714,0.849454,0.000050,0.000800,true,false,false,0.848589,0.848478,0
