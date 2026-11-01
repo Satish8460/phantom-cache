@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhantomCache Demo Hub</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg:#f4f6fa; --panel:#ffffff; --panel2:#eef2f7; --line:#cfd9e5; --text:#1b2733; --mute:#4a5b6c; --ok:#1a7f37; --warn:#9a6700; --bad:#b42318; --blue:#0b5cad; --violet:#6b46c1; --btn:#e4ebf4; --focus:#b86e00; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui,"Segoe UI",sans-serif; overflow-x:hidden; }
+  :focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+  header.top { position:sticky; top:0; z-index:20; background:#ffffff; border-bottom:1px solid var(--line); padding:8px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  header.top h1 { font-size:17px; margin:0 8px 0 0; }
+  .pill { display:inline-flex; gap:6px; align-items:center; padding:3px 10px; border:1px solid var(--line); border-radius:14px; font-size:13px; background:var(--panel); }
+  .pill.ok { border-color:#6bbf84; } .pill.bad { border-color:#d98080; color:#b42318; }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--mute); } .ok .dot { background:var(--ok); } .bad .dot { background:var(--bad); }
+  button, select { background:var(--btn); color:var(--text); border:1px solid #9fb3c8; border-radius:8px; padding:8px 14px; font:inherit; cursor:pointer; min-height:40px; }
+  button:hover:not(:disabled) { background:#d3e0ee; } button:disabled { opacity:.5; cursor:not-allowed; }
+  button.primary { background:#1f6feb; border-color:#4c94ff; font-weight:700; } button.primary:hover:not(:disabled) { background:#3a82f2; }
+  button.go { background:#1a7f37; border-color:#2a9d57; font-weight:700; } button.danger { background:#b42318; border-color:#8f1f14; } button.small { padding:4px 10px; min-height:32px; font-size:13px; }
+  main { max-width:1500px; margin:0 auto; padding:14px 16px 60px; display:grid; gap:14px; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); }
+  .hero, .banner, .full { grid-column:1 / -1; }
+  section, .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; min-width:0; }
+  h2 { margin:0 0 8px; font-size:18px; } h3 { margin:0 0 6px; font-size:16px; } .grp { color:var(--mute); text-transform:uppercase; letter-spacing:.07em; font-size:12px; margin:14px 0 6px; }
+  .mute { color:var(--mute); } .small { font-size:13px; }
+  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin:10px 0; }
+  .step { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px; } .step b { color:var(--blue); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .banner { background:#fff4d6; border-color:#e0b84d; } .banner.err { background:#fde8e8; border-color:#d98080; }
+  .cards { display:grid; gap:10px; grid-column:1; grid-row:3 / span 2; align-content:start; } .feedcol { grid-column:2; grid-row:3 / span 2; } .card.active { border-color:var(--blue); box-shadow:0 0 0 1px var(--blue); }
+  .card p { margin:4px 0; } .look { color:var(--mute); font-size:13px; }
+  .verdict { display:inline-block; padding:2px 10px; border-radius:6px; font-weight:700; font-size:13px; }
+  .v-passed { background:#d8f3e0; color:#14532d; } .v-shows { background:#d7e8fb; color:#0b3d75; } .v-attention { background:#fdebc8; color:#7a4b00; } .v-stopped,.v-blocked,.v-failed { background:#e5e7eb; color:#374151; }
+  .nums { margin:6px 0 0; padding:0; list-style:none; font-size:13px; } .nums li { padding:2px 0; border-bottom:1px dotted var(--line); }
+  .tag { font-size:11px; padding:0 6px; border:1px solid var(--line); border-radius:9px; color:var(--mute); white-space:nowrap; } .tag.measured { color:#14532d; border-color:#6bbf84; } .tag.derived { color:#0b3d75; border-color:#8fb4e0; } .tag.unavailable { color:#9a6700; border-color:#e0b84d; }
+  .feedcol { position:sticky; top:62px; align-self:start; max-height:calc(100vh - 76px); display:flex; flex-direction:column; }
+  #feed { display:flex; flex-direction:column; min-height:0; flex:1; }
+  #timeline { overflow:auto; flex:1; min-height:200px; max-height:calc(100vh - 380px); border:1px solid var(--line); border-radius:8px; background:var(--panel2); margin:8px 0; padding:4px; }
+  .ev { padding:4px 6px; border-bottom:1px solid #e3e9f0; font-size:13px; overflow-wrap:anywhere; }
+  .ev .t { color:var(--mute); font-family:ui-monospace,Consolas,monospace; font-size:11px; margin-right:6px; }
+  .ev .k { display:inline-block; min-width:1.4em; font-weight:700; } .k-action { color:var(--violet); } .k-observation { color:var(--blue); } .k-check.pass { color:var(--ok); } .k-check.fail { color:var(--bad); }
+  .ev.fail { background:#fdeaea; } .ev .means { color:var(--mute); display:block; margin-left:1.6em; font-size:12px; } .ev details { margin-left:1.6em; font-size:12px; } .ev pre { margin:2px 0; white-space:pre-wrap; font-size:11px; color:#3b4a5a; }
+  .bar { height:10px; background:#e9eef4; border-radius:5px; overflow:hidden; border:1px solid var(--line); } .bar > i { display:block; height:100%; width:0; background:var(--blue); transition:width .2s; }
+  .bar.indet > i { width:35%; animation:slide 1.2s infinite ease-in-out; } @keyframes slide { 0% { margin-left:-35%; } 100% { margin-left:100%; } }
+  @media (prefers-reduced-motion: reduce) { .bar.indet > i { animation:none; width:100%; opacity:.5; } html { scroll-behavior:auto; } }
+  .counters { display:flex; gap:6px 12px; flex-wrap:wrap; font-size:13px; }
+  .tip { border-bottom:1px dotted var(--mute); cursor:help; position:relative; } .tip:hover::after, .tip:focus::after { content:attr(data-tip); position:absolute; left:0; top:1.6em; z-index:30; width:max-content; max-width:min(280px,80vw); background:#ffffff; border:1px solid var(--blue); border-radius:6px; padding:6px 8px; font-size:12px; color:var(--text); font-weight:400; white-space:normal; }
+  .nodes { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; } .node { border:1px solid var(--line); border-radius:6px; padding:8px; font-size:13px; } .node.dead { border-color:#d98080; background:#fdeeee; }
+  .gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; } .tile { border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--panel2); font-size:11px; } .tile .img { height:90px; display:flex; align-items:center; justify-content:center; background:#e9eef4; } .tile img { max-width:100%; max-height:100%; } .tile .meta { padding:4px 6px; }
+  .badge { display:inline-block; padding:0 6px; border-radius:3px; font-weight:700; font-size:11px; } .b-local{background:#d8f3e0;color:#14532d} .b-origin{background:#fdebc8;color:#7a4b00} .b-peer{background:#d7e8fb;color:#0b3d75} .b-coalesced{background:#e8dcfa;color:#4c2a8a} .b-stale{background:#f6f0c4;color:#6b5b00} .b-none{background:#e5e7eb;color:#374151}
+  .tick { color:var(--ok); font-weight:700; } .cross { color:var(--bad); font-weight:700; }
+  dialog { background:var(--panel); color:var(--text); border:1px solid var(--blue); border-radius:12px; max-width:min(720px,94vw); padding:18px; } dialog::backdrop { background:rgba(20,30,45,.35); }
+  #toast { position:fixed; right:12px; bottom:12px; background:#ffffff; border:1px solid #9fb3c8; padding:8px 12px; border-radius:6px; max-width:min(420px,90vw); display:none; z-index:40; }
+  dl dt { font-weight:700; margin-top:6px; } dl dd { margin:0 0 4px 0; color:var(--mute); }
+  @media (max-width: 1050px) { main { grid-template-columns:minmax(0,1fr); } .cards, .feedcol { grid-column:1; grid-row:auto; } .feedcol { position:static; max-height:none; order:-1; } #timeline { max-height:55vh; } }
+
+  :root { color-scheme:light; }
+  button.primary, button.go, button.danger { color:#fff; }
+  .pill.bad { background:#fdeeee; }
+  .banner { color:#3d2f00; } .banner.err { color:#5a1a1a; }
+  header.top { box-shadow:0 1px 3px rgba(20,30,45,.08); }
+  section, .card { box-shadow:0 1px 2px rgba(20,30,45,.05); }
+</style>
+</head>
+<body>
+<header class="top" role="banner">
+  <h1>PhantomCache Demo Hub</h1>
+  <span id="health" class="row" aria-live="polite"></span>
+  <span class="pill">Acting as <select id="user" aria-label="Act as user"></select> <button id="b-actas" class="small" type="button" aria-haspopup="dialog" title="How acting as a user works">?</button> <span id="actas-note" class="small mute"></span></span>
+  <span class="pill" id="originpill">Origin requests: <b id="originn">-</b> <span class="tag measured">measured by the origin</span></span>
+  <span style="flex:1"></span>
+  <button id="b-reset" class="small" title="Stops everything and starts a fresh cluster">Reset demo</button>
+  <button id="b-help" class="small">Help</button>
+</header>
+
+<main>
+  <section class="hero" id="start" aria-labelledby="h-start">
+    <h2 id="h-start">Start here</h2>
+    <p><b>PhantomCache</b> is a caching gateway: it sits in front of a slow server (the <b class="tip" tabindex="0" data-g="origin">origin</b>) and remembers answers, so the same question is answered fast the next time and the slow server is bothered less. This page lets you watch it work, live, with real pictures and real requests. Nothing here is simulated.</p>
+    <div class="steps">
+      <div class="step"><b>1. Start the cluster.</b><br>Three gateways (<b class="tip" tabindex="0" data-g="node">nodes</b>) and one origin run on this machine. One button starts them.</div>
+      <div class="step"><b>2. Press "Demonstrate" on any card.</b><br>The real test runs and every step appears in the live feed, with what it means in plain words.</div>
+      <div class="step"><b>3. Read the verdict.</b><br>Each card ends with Passed, Shows ..., or Needs attention, plus the real numbers.</div>
+    </div>
+    <div class="row"><button class="primary" id="b-tour">Take the 5-minute guided tour</button><button class="go" id="b-all">Demonstrate everything</button><span class="mute small">about 6-8 minutes for all cards</span></div>
+  </section>
+
+  <section class="banner" id="banner" hidden></section>
+  <section class="full" id="session" aria-label="Session summary"><b>Session summary</b> <span id="sess-text" class="mute">no scenario run yet</span></section>
+
+  <div id="catalogue" class="full" style="display:contents"></div>
+
+  <aside class="feedcol" aria-label="Live feed">
+    <section id="feed">
+      <div class="row" style="justify-content:space-between"><h2 id="feed-title" style="margin:0">Live feed</h2><span id="feed-verdict"></span></div>
+      <div class="mute small" id="feed-sub">Press Demonstrate on a card. Each step appears here the moment it happens.</div>
+      <div class="bar" id="feed-bar" style="margin-top:8px"><i></i></div>
+      <div class="counters" id="feed-counters" aria-live="polite"></div>
+      <div id="timeline" role="log" aria-live="polite" tabindex="0" aria-label="Timeline of steps"></div>
+      <div class="row">
+        <button class="danger small" id="b-stop" disabled>Stop</button>
+        <button class="small" id="b-pause" disabled>Pause queue</button>
+        <button class="small" id="b-copy">Copy the log</button>
+        <span class="mute small" id="feed-elapsed"></span>
+      </div>
+      <details style="margin-top:6px"><summary class="small">Raw log (exact script output)</summary><pre id="rawlog" class="small" style="max-height:200px;overflow:auto;white-space:pre-wrap;margin:4px 0"></pre></details>
+    </section>
+  </aside>
+
+  <section class="full" id="hand">
+    <h2>Explore by hand</h2>
+    <div class="row"><button id="b-load">Load the picture gallery</button><button id="b-msgs">Load messages</button>
+      <span class="mute small">through gateway <select id="gw" aria-label="Gateway to use"></select> as the user chosen at the top. Each tile shows where the answer came from (<b class="tip" tabindex="0" data-g="source">source</b>), size, milliseconds and a tick when the picture's checksum matches the origin's.</span></div>
+    <div id="identity" class="small mute" style="margin:8px 0"></div>
+    <div class="gallery" id="gallery"></div><div class="gallery" id="huge" style="margin-top:8px"></div>
+    <div id="msgs" style="display:grid;gap:6px;margin-top:8px"></div>
+  </section>
+
+  <section class="full" id="cc">
+    <h2>Open the Control Center</h2>
+    <p class="mute small">The Control Center is the detailed monitoring app. It asks this page for a token through a one-time message; the token never appears in the address bar. It needs the UI to be running (<span id="uibase"></span>).</p>
+    <div class="row" id="cclinks"></div>
+  </section>
+</main>
+
+<dialog id="tour" aria-labelledby="tour-h"><h2 id="tour-h"></h2><div id="tour-body"></div><div id="tour-result" class="small" style="margin:8px 0"></div>
+  <div class="row"><button id="t-back">Back</button><button id="t-run" class="go">Run this step</button><button id="t-next" class="primary">Next</button><button id="t-skip">Skip tour</button><span class="mute small" id="t-pos"></span></div></dialog>
+<dialog id="actas" aria-labelledby="actas-h"><h2 id="actas-h">Acting as: who is asking?</h2><div id="actas-body"></div><div class="row"><button id="actas-close" type="button">Close</button></div></dialog>
+<dialog id="help" aria-labelledby="help-h"><h2 id="help-h">Help</h2><div id="help-body"></div><div class="row"><button id="help-close">Close</button></div></dialog>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const GLOSS = {
+  miss: 'MISS: the gateway did not have the answer and had to get it from somewhere else.', hit: 'HIT: the gateway already had the answer and gave it straight away.',
+  origin: 'Origin: the slow server whose answers PhantomCache remembers. It counts every request it receives.', node: 'Node: one gateway process. This demo runs three.',
+  peer: 'Peer: another gateway in the cluster. A peer fill means a neighbour supplied the answer, not the origin.', coalesced: 'Coalesced: many identical requests arrived together; one went to the origin and the rest waited for that answer.',
+  stale: 'Stale: an answer past its freshness time that is served briefly while it is refreshed or the origin is down.', tenant: 'Tenant: a customer. Each tenant has its own private cache, even for the same address.',
+  token: 'Token: a signed pass (JWT) that says who you are and what you may do. The page shows its decoded claims, never the token itself.', source: 'Source (X-Cache-Source): local = from this gateway, peer = from a neighbour, origin = from the slow server, coalesced = waited for another request, stale = served past freshness.',
+  gateway: 'Gateway: the PhantomCache process that answers requests.', cache: 'Cache: memory that keeps answers so they need not be fetched again.', sha256: 'sha256: a fingerprint of the bytes. If it matches the origin\'s, the bytes are identical.'
+};
+document.querySelectorAll('[data-g]').forEach((e) => { e.dataset.tip = GLOSS[e.dataset.g] || ''; });
+const toast = (t) => { const e = $('#toast'); e.textContent = t; e.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => { e.style.display = 'none'; }, 5000); };
+const api = (p, body) => fetch(p, body !== undefined ? { method: 'POST', body: JSON.stringify(body) } : {}).then((r) => r.json()).catch(() => ({ error: 'The hub could not be reached.' }));
+const fmtB = (n) => n == null ? '-' : n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MiB';
+const fmtS = (ms) => (ms / 1000).toFixed(1) + ' s';
+
+let S = null, user = 'tenantA', gw = 1, manifest = null, viewJob = null, runningScenario = null;
+const events = new Map(); // job id -> [events]
+const raw = new Map();
+let allText = [];
+
+// ---------------------------------------------------------------- state and header
+async function refresh() { const s = await api('/api/state'); if (s.error && !s.catalogue) return; S = s; renderState(); }
+function renderState() {
+  const c = S.cluster;
+  $('#health').innerHTML = c ? c.nodes.map((n) => `<span class="pill ${n.running ? 'ok' : 'bad'}"><span class="dot"></span>node ${n.n}: ${n.running ? 'Active' : 'Stopped'}</span>`).join('') : '<span class="pill bad"><span class="dot"></span>cluster not running</span>';
+  $('#originn').textContent = S.origin ? S.origin.requests : '-';
+  const us = (S.users || []);
+  if (us.length && !$('#user').options.length) { $('#user').innerHTML = us.map((u) => `<option value="${u.user}">${esc(u.label)}</option>`).join(''); $('#user').value = user; actasNote(); }
+  const me = us.find((u) => u.user === user);
+  $('#identity').innerHTML = me ? (me.claims ? `Acting as <b>${esc(me.claims.sub)}</b> · tenant <b>${esc(me.claims.tenant_id)}</b> · roles <b>${esc((me.claims.roles || []).join(', '))}</b> · ${me.expired ? '<b class="bad">token EXPIRED</b>' : 'token valid'} <span class="tag derived">derived from decoded claims, not verified by this page</span>. The token string is never shown.` : `Acting as <b>${esc(me.label)}</b>: ${esc(me.note || '')}`) : '';
+  if (c && !$('#gw').options.length) $('#gw').innerHTML = c.nodes.map((n) => `<option value="${n.n}">node ${n.n} (port ${n.port})</option>`).join('');
+  const allUp = c && c.nodes.every((n) => n.running), anyDown = c && c.nodes.some((n) => !n.running);
+  const b = $('#banner'); const cj = S.clusterJob || {};
+  if (cj.state === 'running') { b.hidden = false; b.className = 'banner'; b.innerHTML = `<b>Starting the demo cluster...</b> this takes about 10-20 seconds. <span class="mute small">${esc((S.launcherLog || []).slice(-1)[0] || '')}</span>`; }
+  else if (!c) { b.hidden = false; b.className = 'banner'; b.innerHTML = `<b>The demo cluster is not running yet.</b> That is normal on a first visit. <button class="primary" id="b-up">Start the demo cluster</button> ${S.exeKnown ? '' : '<span class="bad">The gateway program was not given to the hub (--exe).</span>'}`; }
+  else if (anyDown && !allUp && !(S.job && S.job.state === 'running')) { b.hidden = false; b.className = 'banner'; b.innerHTML = `<b>${c.nodes.filter((n) => !n.running).map((n) => 'Node ' + n.n).join(', ')} ${c.nodes.filter((n) => !n.running).length > 1 ? 'are' : 'is'} stopped.</b> Scenarios that need the cluster will not run until it is whole. ${c.nodes.filter((n) => !n.running).map((n) => `<button class="go small" data-node="${n.n}" data-act="start">Restart node ${n.n}</button>`).join(' ')} or <button class="small" id="b-reset2">Reset demo</button>`; }
+  else if (cj.state === 'error') { b.hidden = false; b.className = 'banner err'; b.innerHTML = `<b>The cluster did not start.</b> ${esc((S.launcherLog || []).slice(-1)[0] || '')} A port may be in use by another program. Close other copies of the demo and press <button class="small" id="b-up">Start the demo cluster</button> again.`; }
+  else b.hidden = true;
+  if (!$('#catalogue').children.length || S.catalogue.length !== $('#catalogue').dataset.n * 1) buildCatalogue();
+  updateCards();
+  const j = S.job;
+  $('#b-stop').disabled = !(j && j.state === 'running') && !S.queue.running;
+  $('#b-pause').disabled = !S.queue.running; $('#b-pause').textContent = S.queue.paused ? 'Resume queue' : 'Pause queue';
+  $('#b-all').disabled = Boolean(j && j.state === 'running') || S.queue.running;
+  $('#uibase').textContent = S.uiBase;
+  const hasCluster = Boolean(c);
+  $('#cclinks').innerHTML = hasCluster ? [['tenantA', 'Tenant A'], ['tenantB', 'Tenant B'], ['readonly', 'Read-only']].map(([u, l]) => c.nodes.slice(0, 3).map((n) => `<button class="small" data-cc="${u}" data-node="${n.n}">${l} on node ${n.n}</button>`).join('')).join('') : '<span class="mute small">Start the cluster first.</span>';
+  const done = (S.jobs || []).filter((j) => j.state === 'done' || j.state === 'stopped' || j.state === 'blocked');
+  const okc = done.filter((j) => j.verdict === 'passed' || j.verdict === 'shows').length, bad = done.filter((j) => j.verdict === 'attention').length;
+  const uniq = new Set(done.map((j) => j.scenario)).size;
+  $('#sess-text').innerHTML = done.length ? `${done.length} run(s) of ${uniq} different scenario(s) of ${S.catalogue.length}: <b class="ok" style="color:var(--ok)">${okc} passed or showed</b>, <b style="color:${bad ? 'var(--warn)' : 'var(--mute)'}">${bad} need attention</b>, ${done.length - okc - bad} not run or stopped. Total measured run time ${fmtS(done.reduce((a, j) => a + (j.elapsedMs || 0), 0))}.` : 'no scenario run yet. Run them in order, 1 to ' + S.catalogue.length + ', or press Demonstrate everything.';
+  if (S.opensslOk === false) { const b2 = $('#banner'); b2.hidden = false; b2.className = 'banner err'; b2.innerHTML = '<b>One program is missing: OpenSSL.</b> The demo needs it once to create test certificates for the cluster. Install OpenSSL (for example with Git for Windows, which includes it, or from slproweb.com), make sure <span class="mono">openssl</span> works in a terminal, then restart the demo.'; }
+  renderFeedHeader();
+}
+
+// ---------------------------------------------------------------- catalogue
+function buildCatalogue() {
+  const host = $('#catalogue'); host.dataset.n = S.catalogue.length;
+  const groups = []; for (const sc of S.catalogue) { let g = groups.find((x) => x.name === sc.group); if (!g) groups.push(g = { name: sc.group, items: [] }); g.items.push(sc); }
+  const left = document.createElement('div'); left.className = 'cards'; left.id = 'cards';
+  left.innerHTML = '<h2 style="margin:0">Scenarios</h2>' + groups.map((g) => `<div class="grp">${esc(g.name)} ${g.items.filter((x) => !x.client && !x.native).length > 1 ? `<button class="small" data-rungroup="${esc(g.items.filter((x) => !x.client && !x.native).map((x) => x.id).join(','))}">Run all in this group</button>` : ''}</div>` + g.items.map((sc) => `<div class="card" id="card-${sc.id}" data-sc="${sc.id}"><h3><span class="tag" style="font-size:13px">${sc.n}</span> ${esc(sc.title)} <span class="tag">about ${esc(sc.est)}</span></h3>
+    <p>${esc(sc.what)}</p><p class="look"><b>What to look at:</b> ${esc(sc.look)}</p><p class="look"><b>What this proves:</b> ${esc(sc.proves || '')}</p>${sc.pie ? PIE_LEGEND : ''}
+    <div class="row"><button class="primary" data-run="${sc.id}">Demonstrate</button><span class="mute small" id="note-${sc.id}">${sc.client ? (sc.id === 'tour' ? 'opens the guided tour' : 'runs every scenario above, in order') : sc.native ? 'opens two Control Center windows' : sc.needsCluster ? 'uses the demo cluster' : 'starts its own gateway on separate ports and removes it afterwards'}</span></div>
+    <div class="res" id="res-${sc.id}"></div></div>`).join('')).join('');
+  host.innerHTML = ''; host.style.display = 'contents'; host.appendChild(left);
+}
+const nextOf = (sc) => S.catalogue.find((c) => c.n === sc.n + 1);
+const PIE_LEGEND = '<p class="small" style="margin:4px 0"><b>OBSERVED</b> measured from real traffic · <b>SHADOW-EVALUATED</b> a what-if computed beside serving · <b>PROPOSED</b> advice only<br><b>APPLIED: none: the engine never changes how requests are served</b></p>';
+function lastJob(id) { return (S.jobs || []).filter((j) => j.scenario === id).slice(-1)[0]; }
+function verdictBadge(v, sc) {
+  const t = { passed: 'Passed', shows: 'Shows: ' + (sc ? sc.shows : ''), attention: 'Needs attention', stopped: 'Stopped', blocked: 'Not run', failed: 'Failed to start' }[v] || v;
+  const ic = { passed: '✓ ', shows: '▸ ', attention: '! ', stopped: '■ ', blocked: '— ', failed: '✗ ' }[v] || '';
+  return `<span class="verdict v-${v}">${ic}${esc(t)}</span>`;
+}
+function updateCards() {
+  const running = S.job && S.job.state === 'running';
+  for (const sc of S.catalogue) {
+    const card = $('#card-' + sc.id); if (!card) continue;
+    card.classList.toggle('active', Boolean(running && S.job.scenario === sc.id));
+    card.querySelectorAll('[data-run]').forEach((b) => { b.disabled = Boolean(running); });
+    document.querySelectorAll('#cards [data-run]').forEach((b) => { b.disabled = Boolean(running); });
+    const j = lastJob(sc.id); const r = $('#res-' + sc.id);
+    if (!j) { r.innerHTML = ''; continue; }
+    if (j.state === 'running') { r.innerHTML = `<div class="small mute">Running... watch the live feed.</div>`; continue; }
+    r.innerHTML = `<div style="margin-top:8px">${verdictBadge(j.verdict, sc)} <span class="mute small">${fmtS(j.elapsedMs || 0)} · ${j.checks.pass} checks passed, ${j.checks.fail} failed</span> <button class="small" data-view="${j.id}">Show the log</button> <button class="small" data-run="${sc.id}">Run again</button>${nextOf(sc) ? ` <button class="small go" data-run="${nextOf(sc).id}">Next scenario: ${esc(nextOf(sc).title)}</button>` : ''}</div>
+      ${(j.numbers || []).length ? `<ul class="nums">${j.numbers.map((n) => `<li>${esc(n.label)}: <b>${esc(n.value)}</b> <span class="tag ${n.tag}">${esc(n.tag)}</span></li>`).join('')}</ul>` : ''}`;
+  }
+}
+
+// ---------------------------------------------------------------- live feed (Server-Sent Events)
+function connect() {
+  const es = new EventSource('/api/stream');
+  es.onmessage = (m) => { let e; try { e = JSON.parse(m.data); } catch { return; } onEvent(e); };
+  es.onerror = () => { /* the browser reconnects with Last-Event-ID */ };
+}
+function onEvent(e) {
+  if (e.kind === 'raw') { const a = raw.get(e.job) || []; a.push(e.text); if (a.length > 3000) a.shift(); raw.set(e.job, a); if (e.job === viewJob) $('#rawlog').textContent = a.slice(-300).join('\n'); return; }
+  const a = events.get(e.job) || []; a.push(e); if (a.length > 4000) a.splice(0, 1000); events.set(e.job, a);
+  if (e.kind === 'job-start') { if (user !== 'tenantA') { user = 'tenantA'; $('#user').value = 'tenantA'; } viewJob = e.job; runningScenario = e.scenario; $('#timeline').innerHTML = ''; $('#rawlog').textContent = ''; $('#feed').scrollIntoView({ block: 'nearest' }); }
+  if (e.job !== viewJob && e.kind !== 'queue-end') return;
+  appendEvent(e);
+  if (e.kind === 'job-end') { refresh(); tourOnEnd(e); }
+  renderFeedHeader();
+}
+const KICON = { action: '▶', observation: '•', check: '✓', 'job-start': '▶', 'job-end': '■', 'queue-end': '■' };
+function appendEvent(e) {
+  if (e.kind === 'progress') return;
+  const tl = $('#timeline'); const stick = tl.scrollTop + tl.clientHeight >= tl.scrollHeight - 40;
+  const d = document.createElement('div'); const failed = e.kind === 'check' && !e.pass;
+  d.className = 'ev' + (failed ? ' fail' : '');
+  const time = (e.t || '').slice(11, 23);
+  let icon = KICON[e.kind] || '•', cls = 'k-' + e.kind + (e.kind === 'check' ? (e.pass ? ' pass' : ' fail') : '');
+  if (failed) icon = '✗';
+  let text = e.text;
+  if (e.kind === 'job-start') text = 'Started: ' + e.text;
+  if (e.kind === 'job-end') text = `Finished in ${fmtS(e.elapsedMs)}: ${({ passed: 'Passed', shows: 'Shows', attention: 'Needs attention', stopped: 'Stopped', blocked: 'Not run' })[e.verdict] || e.verdict}`;
+  const blocked = e.kind === 'check' && e.pass && /(-> 40[0-9]|refus|blocked|rejected|NO cluster response|exit code 2|not (read|serve)|did NOT|never reach)/i.test(text);
+  const rib = e.ribbon ? `<b class="tag" style="color:#1d4ed8;border-color:#93b4f0;margin-right:4px">${esc(e.ribbon)}</b>` : '';
+  let html = `${rib ? '' : ''}<span class="t">${esc(time)}</span><span class="k ${cls}">${icon}</span>${rib}${e.kind === 'check' ? (e.pass ? (blocked ? '<b class="tag" style="color:#14532d;border-color:#6bbf84">Blocked as expected</b> ' : '<b>OK</b> ') : '<b>NEEDS ATTENTION</b> ') : ''}${esc(text)}`;
+  if (blocked && !e.means) e.means = 'This is the security working.';
+  if (e.detail) html += ` <span class="mute">(${esc(e.detail)})</span>`;
+  if (e.means) html += `<span class="means">→ ${esc(e.means)}</span>`;
+  if (e.request || e.response) html += `<details><summary>request and response</summary><pre>${esc(JSON.stringify({ request: e.request, response: e.response }, null, 1))}</pre></details>`;
+  d.innerHTML = html; tl.appendChild(d);
+  while (tl.children.length > 700) tl.removeChild(tl.firstChild);
+  if (stick) tl.scrollTop = tl.scrollHeight;
+  allText.push(`${e.t} ${e.kind}${e.kind === 'check' ? (e.pass ? ' PASS' : ' FAIL') : ''} ${text}${e.detail ? ' (' + e.detail + ')' : ''}${e.means ? ' -> ' + e.means : ''}`);
+  if (allText.length > 20000) allText.shift();
+}
+let tick = null;
+function renderFeedHeader() {
+  if (!S) return;
+  const evs = events.get(viewJob) || [];
+  const start = evs.find((e) => e.kind === 'job-start'), end = evs.find((e) => e.kind === 'job-end');
+  const jr = S && S.jobs ? S.jobs.find((j) => j.id === viewJob) : null;
+  if (!start) return;
+  const sc = S.catalogue.find((c) => c.id === start.scenario);
+  $('#feed-title').textContent = sc ? sc.title : 'Live feed';
+  const running = !end; const bar = $('#feed-bar');
+  const prog = [...evs].reverse().find((e) => e.kind === 'progress');
+  bar.classList.toggle('indet', running && !prog);
+  bar.firstElementChild.style.width = end ? '100%' : prog ? Math.round(prog.done / prog.total * 100) + '%' : '';
+  $('#feed-verdict').innerHTML = end ? verdictBadge(end.verdict, sc) : '<span class="verdict v-shows">running</span>';
+  const checks = evs.filter((e) => e.kind === 'check'); const pass = checks.filter((e) => e.pass).length;
+  const originNow = S && S.origin ? S.origin.requests : null; const o0 = jr ? jr.originAtStart : (end ? end.originAtStart : (S && S.job ? S.job.originAtStart : null));
+  const c = prog ? prog.counters : null;
+  $('#feed-counters').innerHTML = [
+    c ? `requests sent <b>${c.sent}</b> <span class="tag measured">measured</span>` : '', c ? `errors <b>${c.errors}</b>` : '', c ? `integrity failures <b>${c.integrityFailures}</b>` : '',
+    c ? `local ${c.local || 0} · peer ${c.peer || 0} · origin ${c.origin || 0} · coalesced ${c.coalesced || 0}` : '',
+    checks.length ? `checks <b>${pass}/${checks.length}</b> passed` : '',
+    originNow !== null && o0 !== null && o0 !== undefined ? `origin requests since start <b>${originNow - o0}</b> <span class="tag measured">counted by the origin</span>` : '',
+  ].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
+  clearInterval(tick);
+  const t0 = new Date(start.t).getTime();
+  const upd = () => { $('#feed-elapsed').textContent = end ? `elapsed ${fmtS(end.elapsedMs)}` : `elapsed ${fmtS(Date.now() - t0)}`; };
+  upd(); if (!end) tick = setInterval(upd, 500);
+  $('#feed-sub').textContent = sc ? sc.what : '';
+}
+
+// ---------------------------------------------------------------- actions
+document.addEventListener('click', async (e) => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.rungroup) { await api('/api/run-all', { ids: t.dataset.rungroup.split(',') }); setTimeout(refresh, 300); return; }
+  if (t.dataset.run === 'tour') { startTour(); return; }
+  if (t.dataset.run === 'everything') { await api('/api/run-all', {}); toast('Running the whole storyline in order. Use Stop at any time.'); setTimeout(refresh, 300); return; }
+  if (t.dataset.run === 'multiuser' && S.cluster) { openCC('tenantA', 1); showCC2(); }
+  if (t.dataset.run) { const r = await api('/api/run', { id: t.dataset.run }); if (r.error) toast(r.error); setTimeout(refresh, 200); }
+  else if (t.dataset.view) { viewJob = t.dataset.view; $('#timeline').innerHTML = ''; (events.get(viewJob) || []).forEach(appendEvent); $('#rawlog').textContent = (raw.get(viewJob) || []).slice(-300).join('\n'); renderFeedHeader(); $('#feed').scrollIntoView({ block: 'nearest' }); }
+  else if (t.dataset.cc) openCC(t.dataset.cc, Number(t.dataset.node));
+  else if (t.dataset.node && t.dataset.act) { const r = await api('/api/node', { node: Number(t.dataset.node), action: t.dataset.act }); toast(r.out || 'done'); setTimeout(refresh, 500); }
+  else if (t.dataset.del) { const r = await api('/api/delete', { node: gw, path: t.dataset.del, as: user }); toast(`DELETE ${t.dataset.del} as ${user}: HTTP ${r.status}${r.xAuthError ? ' (' + r.xAuthError + ')' : ''}. Reload the gallery to see the next request.`); }
+  else if (t.id === 'b-up') { await api('/api/cluster', { action: 'up' }); setTimeout(refresh, 300); }
+  else if (t.id === 'b-reset' || t.id === 'b-reset2') { if (confirm('Reset the demo? This stops everything and starts a fresh cluster (about 20 seconds).')) { await api('/api/cluster', { action: 'reset' }); setTimeout(refresh, 300); } }
+  else if (t.id === 'b-all') { await api('/api/run-all', {}); toast('Running the whole catalogue in order. Use Stop at any time.'); setTimeout(refresh, 300); }
+  else if (t.id === 'b-stop') { await api('/api/stop', {}); setTimeout(refresh, 300); }
+  else if (t.id === 'b-pause') { await api('/api/pause', { paused: !S.queue.paused }); setTimeout(refresh, 200); }
+  else if (t.id === 'b-copy') { const txt = allText.join('\n'); try { await navigator.clipboard.writeText(txt); toast('Log copied (' + allText.length + ' lines).'); } catch { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Log copied.'); } }
+  else if (t.id === 'b-help') { buildHelp(); $('#help').showModal(); } else if (t.id === 'b-cc2') { openCC('tenantB', 2); hideCC2(); } else if (t.id === 'b-cc2x') { hideCC2(); } else if (t.id === 'b-actas') { buildActAs(); $('#actas').showModal(); } else if (t.id === 'actas-close') { $('#actas').close(); }
+  else if (t.id === 'help-close') $('#help').close();
+  else if (t.id === 'b-tour') startTour();
+  else if (t.id === 'b-load') loadGallery();
+  else if (t.id === 'b-msgs') loadMsgs();
+});
+const ACTAS = {
+  tenantA: { who: 'Tenant A (alice)', is: 'a customer account called tenant-a, allowed to read, delete and see metrics', note: 'Customer A: can read, delete and see metrics.', tryit: 'Run "Cold vs warm gallery" as Tenant A, then switch to Tenant B and run it again: B gets its own copy of every picture.' },
+  tenantB: { who: 'Tenant B (bob)', is: 'a different customer account (tenant-b) with the same permissions', note: 'Customer B: same rights, separate data.', tryit: 'Ask for the same pictures Tenant A just loaded. B starts cold: each customer has its own cache and never sees the other\'s data (isolation).' },
+  readonly: { who: 'Read-only (carol)', is: 'a user of Tenant A who may read and see metrics but not delete', note: 'Can read, cannot delete.', tryit: 'Press a DELETE button or run "Roles": the gateway answers 403. That refusal is the protection working.' },
+  expired: { who: 'Expired token', is: 'a real token whose time has run out', note: 'Old credentials: must be refused.', tryit: 'Any request is refused with 401: old credentials stop working. Shown as "Blocked as expected".' },
+  wrongAudience: { who: 'Wrong audience', is: 'a token that was issued for a different service', note: 'Token for another service: refused.', tryit: 'Refused with 401: a token only works for the service it was made for.' },
+  none: { who: 'No token', is: 'no credentials at all', note: 'No credentials: refused.', tryit: 'Refused with 401: on a secure gateway you have to sign in first.' },
+};
+function actasNote() { const a = ACTAS[user]; $('#actas-note').textContent = a ? '(' + a.note + ')' : ''; }
+function buildActAs() {
+  const rows = Object.keys(ACTAS).map((k) => '<tr' + (k === user ? ' style="background:#eef6ff"' : '') + '><td><b>' + esc(ACTAS[k].who) + '</b></td><td>' + esc(ACTAS[k].is) + '</td><td>' + esc(ACTAS[k].tryit) + '</td></tr>').join('');
+  $('#actas-body').innerHTML = '<p><b>What this is.</b> Every request PhantomCache serves is made by someone. The gateways here are <b>secure</b>: they only answer people who show a valid <b>token</b> (a signed pass). "Acting as" chooses whose pass the demo uses for everything you run. The token itself is never shown on this page.</p>' +
+    '<p><b>How to use it.</b></p><ol><li>Pick who you are in the list at the top. The note beside it says what that person may do.</li><li>Press <b>Demonstrate</b> on any card: the real requests are sent as that person.</li><li>Switch to another person and run the same card again to see the difference.</li></ol>' +
+    '<p class="mute small">Cards that are about a particular person (for example Who may come in, Roles, Tenant isolation) choose the right people themselves. Every new run starts as Tenant A. "Open Control Center" windows are signed in the same way, without putting a token in the address.</p>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left"><th>Person</th><th>Who they are</th><th>What to try</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+$('#user').addEventListener('change', (e) => { user = e.target.value; renderState(); actasNote(); });
+$('#gw').addEventListener('change', (e) => { gw = Number(e.target.value); });
+
+// Control Center hand-off: the opened window asks us (window.opener) for a token; we answer only that window, only at its own
+// loopback origin, only with the token of the user chosen on the button. The token is never put in a URL or on this page.
+const ccWins = new Map();
+function openCC(u, node) {
+  const port = S.cluster.nodes.find((n) => n.n === node).port;
+  const w = window.open(`${S.uiBase}/?gateway=http://127.0.0.1:${port}#/cluster`, '_blank');
+  if (!w) { toast('The browser blocked the new window. Allow pop-ups for this page and click again.'); return; }
+  ccWins.set(w, { user: u, port });
+}
+// A browser lets ONE new window open per click, so the second Control Center window needs its own click.
+let cc2Timer = null;
+function hideCC2() { const el = document.getElementById('cc2'); if (el) el.remove(); if (cc2Timer) { clearTimeout(cc2Timer); cc2Timer = null; } }
+function showCC2() {
+  hideCC2();
+  const el = document.createElement('div'); el.id = 'cc2'; el.setAttribute('role', 'status');
+  el.style.cssText = 'position:fixed;right:16px;top:84px;z-index:60;background:#fff;border:2px solid #0b5cad;border-radius:12px;padding:14px 16px;max-width:340px;box-shadow:0 8px 24px rgba(20,30,45,.25)';
+  el.innerHTML = '<b>Window 1 is open: Tenant A (node 1).</b><p class="small" style="margin:6px 0 10px">Your browser opens one new window per click. Click below to open window 2 as Tenant B (node 2), then put the two windows side by side.</p><button id="b-cc2" class="primary" type="button">Open window 2 as Tenant B</button> <button id="b-cc2x" class="small" type="button">Not now</button>';
+  document.body.appendChild(el);
+  cc2Timer = setTimeout(hideCC2, 55000);
+}
+window.addEventListener('message', async (e) => {
+  const info = ccWins.get(e.source); if (!info) return;
+  if (!e.data || e.data.type !== 'phantomcache:token-request') return;
+  let host = ''; try { host = new URL(e.origin).hostname; } catch { return; }
+  if (!['localhost', '127.0.0.1'].includes(host)) return;
+  const r = await fetch(`/api/token?user=${encodeURIComponent(info.user)}`, { headers: { 'x-hub': '1' } }).then((x) => x.json()).catch(() => ({}));
+  if (r.token) { e.source.postMessage({ type: 'phantomcache:token', v: 1, gateway: `http://127.0.0.1:${info.port}`, token: r.token }, e.origin); api('/api/ack', { user: info.user }); }
+});
+
+// ---------------------------------------------------------------- hand exploration (gallery, messages)
+async function sha256Hex(buf) { if (!crypto.subtle) return null; const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); }
+const badge = (src, st) => { const s = src || 'none'; return `<span class="badge b-${['local', 'origin', 'peer', 'coalesced', 'stale'].includes(s) ? s : 'none'}">${esc(s)}</span> <span class="mute">${esc(st || '')}</span>`; };
+async function fetchObject(path) {
+  const r = await fetch(`/proxy/${gw}${path}?as=${user}`); const buf = await r.arrayBuffer(); const want = r.headers.get('x-demo-expected-sha256'); const got = await sha256Hex(buf);
+  return { status: r.status, buf, type: r.headers.get('content-type') || '', src: r.headers.get('x-cache-source'), cstat: r.headers.get('x-cache-status'), ms: r.headers.get('x-demo-ms'), authErr: r.headers.get('x-auth-error'), err: r.headers.get('x-demo-error'), ok: r.status === 200 && want && got === want };
+}
+const errWords = (o) => o.err ? 'gateway not reachable' : o.status === 401 ? '401: this gateway requires a valid token (' + (o.authErr || 'refused') + ')' : o.status === 403 ? '403: not allowed (' + (o.authErr || 'role') + ')' : 'HTTP ' + o.status;
+async function loadTile(path, host) {
+  const id = 't' + path.replace(/\W/g, '_'); let el = document.getElementById(id);
+  if (!el) { el = document.createElement('div'); el.className = 'tile'; el.id = id; host.appendChild(el); }
+  const label = (manifest[path] && manifest[path].label) || path; el.innerHTML = `<div class="img mute">loading</div><div class="meta"><b>${esc(label)}</b></div>`;
+  const o = await fetchObject(path);
+  if (o.status !== 200) { el.innerHTML = `<div class="img bad" style="padding:6px;text-align:center">${esc(errWords(o))}</div><div class="meta"><b>${esc(label)}</b></div>`; return; }
+  const url = URL.createObjectURL(new Blob([o.buf], { type: o.type }));
+  el.innerHTML = `<div class="img"><img src="${url}" alt="${esc(label)}"></div><div class="meta"><b>${esc(label)}</b><div>${badge(o.src, o.cstat)}</div><div>${fmtB(o.buf.byteLength)} · ${o.ms} ms</div><div>${o.ok ? '<span class="tick">✓ checksum matches</span>' : '<span class="cross">✗ MISMATCH</span>'}</div><button data-del="${esc(path)}" class="small danger">DELETE key</button></div>`;
+}
+async function loadGallery() {
+  if (!manifest || !Object.keys(manifest).length) manifest = await api('/api/manifest');
+  if (!Object.keys(manifest).length) { toast('The cluster is not running yet.'); return; }
+  const imgs = Object.keys(manifest).filter((p) => p.startsWith('/img/') && !p.includes('huge')).slice(0, 12);
+  const g = $('#gallery'); g.innerHTML = ''; $('#huge').innerHTML = '';
+  const q = imgs.slice(); const lane = async () => { while (q.length) await loadTile(q.shift(), g); };
+  await Promise.all([lane(), lane(), lane(), lane()]); await loadTile('/img/huge-1.2mb.png', $('#huge'));
+}
+async function loadMsgs() {
+  if (!manifest || !Object.keys(manifest).length) manifest = await api('/api/manifest');
+  const host = $('#msgs'); host.innerHTML = '';
+  for (const p of ['/msg/001.json', '/msg/002.json', '/text/001.txt', '/page/001.html']) {
+    const o = await fetchObject(p); const d = document.createElement('div'); d.className = 'ev';
+    d.innerHTML = o.status !== 200 ? `<b>${esc(p)}</b> <span class="bad">${esc(errWords(o))}</span>` : `<b>${esc(p)}</b> ${badge(o.src, o.cstat)} <span class="mute">${fmtB(o.buf.byteLength)} · ${o.ms} ms</span> ${o.ok ? '<span class="tick">✓</span>' : '<span class="cross">✗</span>'}<pre>${esc(new TextDecoder().decode(o.buf).slice(0, 300))}</pre>`;
+    host.appendChild(d);
+  }
+}
+
+// ---------------------------------------------------------------- guided tour
+const TOUR = [
+  { title: 'Welcome', body: 'PhantomCache remembers answers from a slow server. In about five minutes you will watch it save work, stay safe and survive a crash, using real pictures and real requests on this machine. Press Next.', run: null },
+  { title: 'Cold versus warm', body: 'We load twelve real pictures twice. The first time every picture must come from the slow origin; the second time none should.', run: 'gallery', after: 'The second load came from the gateway\'s memory: that is the saving, and every picture was checked byte for byte.' },
+  { title: 'A crowd arrives at once', body: 'Three hundred people ask for the same new picture at the same moment.', run: 'stampede', after: 'Only one request reached the origin; the rest waited for its answer. That protects a slow server from a stampede.' },
+  { title: 'Thousands of real requests', body: 'Now 1,000, 5,000 and 10,000 requests, with a few very popular pictures like a real site.', run: 'scale', after: 'Zero errors and zero damaged files; most requests never touched the origin.' },
+  { title: 'Is it safe?', body: 'We try to get in without a token, with an expired one, with a read-only one, as another customer, and with unsafe addresses.', run: 'auth', after: 'Every attempt was refused or isolated as it should be. The gaps that are still open are listed at the end of the log.' },
+  { title: 'Delete everywhere', body: 'A picture is cached on three gateways and then deleted through one.', run: 'invalidation', after: 'The other gateways stopped serving the old copy within the milliseconds shown (measured here, not a guarantee).' },
+  { title: 'A gateway crashes', body: 'Traffic is running; we kill node 3 and later restart it.', run: 'deadnode', after: 'The healthy gateways kept answering correctly and the cluster noticed, then welcomed node 3 back.' },
+  { title: 'Where to go next', body: 'Browse the other scenarios (freshness, memory, operability, benchmark), press "Demonstrate everything", or open the Control Center for the detailed screens. Close this window to continue.', run: null },
+];
+let tourI = -1, tourWait = null;
+function startTour() { tourI = 0; showTour(); $('#tour').showModal(); }
+function showTour() {
+  const s = TOUR[tourI]; $('#tour-h').textContent = `Step ${tourI + 1} of ${TOUR.length}: ${s.title}`; $('#tour-body').textContent = s.body;
+  $('#tour-result').innerHTML = ''; $('#t-run').hidden = !s.run; $('#t-run').disabled = false; $('#t-back').disabled = tourI === 0; $('#t-next').textContent = tourI === TOUR.length - 1 ? 'Finish' : 'Next'; $('#t-pos').textContent = '';
+}
+document.addEventListener('keydown', (e) => { const d = $('#tour'); if (!d.open) return; if (e.key === 'ArrowRight') $('#t-next').click(); if (e.key === 'ArrowLeft' && !$('#t-back').disabled) $('#t-back').click(); });
+$('#t-back').onclick = () => { tourI = Math.max(0, tourI - 1); showTour(); };
+$('#t-next').onclick = () => { if (tourI >= TOUR.length - 1) { $('#tour').close(); return; } tourI += 1; showTour(); };
+$('#t-skip').onclick = () => $('#tour').close();
+$('#t-run').onclick = async () => { const s = TOUR[tourI]; $('#t-run').disabled = true; $('#tour-result').textContent = 'Running the real scenario... the live feed behind this window shows each step.'; const r = await api('/api/run', { id: s.run }); if (r.error) { $('#tour-result').textContent = r.error; $('#t-run').disabled = false; } tourWait = s.run; };
+function tourOnEnd(e) {
+  if (!$('#tour').open || !tourWait || e.scenario !== tourWait) return; tourWait = null; const s = TOUR[tourI]; $('#t-run').disabled = false;
+  $('#tour-result').innerHTML = `${verdictBadge(e.verdict, S.catalogue.find((c) => c.id === e.scenario))} ${esc(s.after)}`;
+}
+
+function buildHelp() {
+  $('#help-body').innerHTML = `<p><b>What is real?</b> Everything. The gateways, the origin and the traffic client run on this machine; every number is <span class="tag measured">measured</span> by a process here, <span class="tag derived">derived</span> from measured values, or marked <span class="tag unavailable">unavailable</span>. Nothing is simulated or canned. Timings are one host, loopback, not a benchmark of other hardware.</p>
+  <dl>${Object.entries({ MISS: 'miss', HIT: 'hit', Origin: 'origin', Node: 'node', Peer: 'peer', Coalesced: 'coalesced', Stale: 'stale', Tenant: 'tenant', Token: 'token', Source: 'source', Cache: 'cache', Checksum: 'sha256' }).map(([k, v]) => `<dt>${k}</dt><dd>${esc(GLOSS[v].replace(/^[^:]+: /, ''))}</dd>`).join('')}</dl>
+  <p class="small mute">If something looks wrong: "Reset demo" restarts everything. If a scenario says Needs attention, open the raw log: it contains the exact lines.</p>`;
+}
+
+connect(); refresh(); setInterval(refresh, 1500);
+</script>
+</body>
+</html>
