@@ -1,0 +1,28 @@
+id: 1
+event: state
+data: {"state":"queued","tier":"SIMULATED"}
+
+id: 2
+event: state
+data: {"state":"running"}
+
+id: 3
+event: progress
+data: {"done":1,"tier":"SIMULATED","total":4}
+
+id: 4
+event: progress
+data: {"done":4,"tier":"SIMULATED","total":4}
+
+id: 5
+event: result
+data: {"cells":4,"cells_csv_sha256":"0ea1926af10bb76e897ac2f666610829fbc03dbbccb2e7cb3f6edf13ca343811","note":"virtual-time simulation on the real cache/executor; not a measurement","tier":"SIMULATED"}
+
+id: 6
+event: state
+data: {"state":"completed"}
+
+id: 7
+event: done
+data: {"exit_code":0,"state":"completed"}
+

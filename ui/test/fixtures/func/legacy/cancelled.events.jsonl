@@ -1,0 +1,10 @@
+{"data":{"state":"queued","tier":"MEASURED_LOOPBACK"},"event":"state","id":1,"ts":"2026-10-30T08:59:20Z"}
+{"data":{"state":"running"},"event":"state","id":2,"ts":"2026-10-30T08:59:20Z"}
+{"data":{"arm":"BASE","done":0,"gateway_pid":0,"phase":"starting","rep":1,"tier":"MEASURED_LOOPBACK","total":2},"event":"progress","id":3,"ts":"2026-10-30T08:59:22Z"}
+{"data":{"arm":"BASE","done":0,"gateway_pid":8332,"phase":"warmup","rep":1,"tier":"MEASURED_LOOPBACK","total":2},"event":"progress","id":4,"ts":"2026-10-30T08:59:22Z"}
+{"data":{"arm":"BASE","done":0,"gateway_pid":8332,"phase":"healthy","rep":1,"tier":"MEASURED_LOOPBACK","total":2},"event":"progress","id":5,"ts":"2026-10-30T08:59:42Z"}
+{"data":{"arm":"BASE","done":0,"gateway_pid":8332,"phase":"degraded","rep":1,"tier":"MEASURED_LOOPBACK","total":2},"event":"progress","id":6,"ts":"2026-10-30T09:00:02Z"}
+{"data":{"state":"cancelling"},"event":"state","id":7,"ts":"2026-10-30T09:00:04Z"}
+{"data":{"arm":"BASE","done":0,"gateway_pid":8332,"phase":"collect","rep":1,"tier":"MEASURED_LOOPBACK","total":2},"event":"progress","id":8,"ts":"2026-10-30T09:00:04Z"}
+{"data":{"state":"cancelled"},"event":"state","id":9,"ts":"2026-10-30T09:00:05Z"}
+{"data":{"exit_code":130,"state":"cancelled"},"event":"done","id":10,"ts":"2026-10-30T09:00:05Z"}

@@ -1,0 +1,100 @@
+/* Page-level structure shared by the non-Lab pages (increment I4), imported by shell.css. Tokens only.
+   Hierarchy comes from type, spacing and grouping, not from boxes (spec sections 0 and 4; skill S15, S16 Simplicity, grouping).
+   Tiers: display (h1) > headline (h2, .section) > title/dense (h3, chart titles) > body/dense/caption. */
+
+/* ---------- Page header: where you are (group caption), the one display title, one-line purpose ---------- */
+.page-head { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.page-head .page-head__group { color: var(--text-3); font-size: var(--type-eyebrow); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; }
+.page-head p { color: var(--text-2); max-width: 70ch; }
+
+/* ---------- Sections: a heading and whitespace, no box ---------- */
+.section__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-1) var(--space-3); }
+.section__note { color: var(--text-2); font-size: var(--type-dense); line-height: var(--type-dense-lh); max-width: 70ch; }
+.section__more { font-size: var(--type-dense); }
+
+/* One plain sentence about the stream, in the connection words. Not a health verdict. */
+.status-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.status-line p { color: var(--text-2); font-size: var(--type-dense); line-height: var(--type-dense-lh); flex: 1 1 min(100%, 14rem); max-width: 70ch; }
+
+/* ---------- Not reported: a quiet list instead of a wall of empty tiles ---------- */
+.not-reported { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--border); }
+.not-reported li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--border); font-size: var(--type-dense); line-height: var(--type-dense-lh); }
+.not-reported__label { font-weight: var(--weight-medium); min-width: 0; }
+.not-reported__reason { color: var(--text-2); flex: 1 1 min(100%, 12rem); min-width: 0; }
+
+/* ---------- Key/value lists (Overview gateway facts): the value column wraps its badges under the value on narrow screens ---------- */
+.kv--wide { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); row-gap: var(--space-2); }
+.kv--wide dd { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
+.kv--wide dt, .kv--wide dd { min-width: 0; }
+@media (max-width: 30rem) {
+  .kv--wide { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+  .kv--wide dd { margin-bottom: var(--space-2); }
+}
+
+/* ---------- Plain lists, footnote ---------- */
+.plain-list { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-1); font-size: var(--type-body); line-height: var(--type-body-lh); }
+.footnote { color: var(--text-3); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+
+/* ---------- Capacity bar: the track always shows its scale (0 at the left, the budget at the right) so an empty bar still reads ---------- */
+.capacity { display: flex; flex-direction: column; gap: var(--space-1); }
+.capacity__track { height: 0.75rem; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden; } /* a static scale: the budget at the right end, zero at the left; never animated (data is not tweened) */
+.capacity__ends { display: flex; justify-content: space-between; color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+
+/* Disclosure on a page section: summary in the dense tier, content separated by whitespace. */
+.section > .disclosure > :not(summary) { margin-top: var(--space-2); }
+
+@media (forced-colors: active) {
+  .capacity__track { border-color: CanvasText; }
+  .not-reported, .not-reported li { border-color: CanvasText; }
+}
+
+/* ---------- Connection UI (V2B): header indicator, popover, notices, confirmation. Tokens only. ---------- */
+.conn__btn { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--target); padding: 0 var(--space-1); border: 0; background: transparent; color: var(--text); font: inherit; cursor: pointer; border-radius: var(--radius-control); max-width: 100%; }
+.conn__btn:hover { background: var(--tint-hover); }
+.conn__host { color: var(--text-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 12rem; }
+@media (max-width: 36rem) { .conn__host { display: none; } }
+.conn-popover { position: fixed; top: calc(var(--header-h) + var(--space-1)); right: var(--space-3); z-index: 20; width: min(28rem, calc(100vw - 2 * var(--space-3))); max-height: calc(100vh - var(--header-h) - var(--space-5)); overflow-y: auto; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.conn-popover:focus { outline: none; }
+.conn-popover__title { font-size: var(--type-title); line-height: var(--type-title-lh); letter-spacing: var(--type-title-ls); font-weight: var(--type-title-wt); }
+.conn-channels { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--border); }
+.conn-channels li { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); padding: var(--space-2) 0; border-bottom: 1px solid var(--border); font-size: var(--type-dense); line-height: var(--type-dense-lh); }
+.conn-channel__label { font-weight: var(--weight-semibold); }
+.conn-channel__cause { color: var(--text-2); max-width: 70ch; }
+.conn-form { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+.conn-form__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.conn-msgs { display: flex; flex-direction: column; gap: var(--space-1); }
+.conn-note { color: var(--text-2); font-size: var(--type-dense); line-height: var(--type-dense-lh); }
+.conn-note--warn { color: var(--text); border-left: 3px solid var(--warn); padding-left: var(--space-2); }
+.conn-test__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); font-size: var(--type-dense); line-height: var(--type-dense-lh); }
+.link-actions, .link-actions-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.link-actions-row { flex-direction: row; }
+.link-why { font-size: var(--type-dense); }
+.link-why .kv { margin-top: var(--space-2); }
+.banner__body .link-actions { margin-top: var(--space-1); }
+.confirm-gate { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5); background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: var(--radius-card); max-width: 44rem; }
+.confirm-gate__title { font-size: var(--type-headline); line-height: var(--type-headline-lh); letter-spacing: var(--type-headline-ls); font-weight: var(--type-headline-wt); }
+.confirm-gate__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+/* Hide the Shell's own status pill once the connection control has taken over the slot (data-linked is set by App; the pill stays as the fallback). */
+.app-header__status[data-linked] > .pill { display: none; }
+
+/* Origin concurrency controller reading */
+.gate { display: flex; flex-direction: column; gap: var(--space-3); }
+.gate__state { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--type-body); line-height: var(--type-body-lh); font-weight: var(--weight-medium); max-width: 70ch; }
+.gate__na { color: var(--text-2); }
+
+@media (forced-colors: active) {
+  .conn-popover, .confirm-gate, .conn-channels, .conn-channels li { border-color: CanvasText; }
+}
+
+/* Sign-in surfaces (screens/authUi.jsx): layout only, colours come from the tokens used by .state-block and .pill. */
+.auth-banner { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
+.auth-form { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
+.auth-form .field__row input { flex: 1 1 14rem; min-width: 0; }
+.app-header__status[data-linked] { gap: var(--space-2); flex-wrap: wrap; }
+
+/* Start here, welcome banner and help line (screens/StartHere.jsx, components/HubParts.jsx): layout only. */
+.help-line { max-width: 70ch; color: var(--text-2); margin: 0; }
+.help-line a { margin-left: var(--space-2); }
+.welcome { border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+.welcome p { margin: 0; }

@@ -1,0 +1,132 @@
+/* App shell: header, navigation, main column, footer (increment I4; V1 foundations v2). Tokens only (tokens.css). Spec: docs/design/phantomcache_design_system_spec.md sections 2, 7, 8, 12 and DD v2 section 7.
+   Skill citations: S16 wayfinding (where am I, where can I go, what is here), S16 specific labels, S1 press feedback on pointer-down (tint on nav rows),
+   S14 reduced motion (cross-fade only), S7 the menu opens from and returns to its button.
+   Materials: the header (all widths) and the rail (820 px and up) are glass-1 chrome; their glass background, fallbacks and contrast guarantee are in app.css ("Materials").
+   Below 820 px the menu sheet is SOLID and the header is the only glass surface. Page-level structure (headers, sections, lists, capacity bar) is in pages.css. */
+@import './pages.css';
+
+/* ---------- Grid: header over [nav | main] over footer. Named areas keep the footer at the bottom while the phone nav is closed. ---------- */
+.app {
+  --gutter: 1rem;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas: "header" "nav" "main" "footer";
+}
+.app > * { min-width: 0; }
+
+/* ---------- Header: sticky glass-1, 56 px. One row on phones (brand, status, Menu), brand / status / theme menu on desktop ---------- */
+.app-header {
+  grid-area: header;
+  position: sticky; top: 0; z-index: 6;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3);
+  min-height: 3.5rem; padding: var(--space-1) var(--gutter);
+  border-bottom: 1px solid var(--glass-hair);
+}
+.app-header__brand { margin-right: auto; display: flex; align-items: center; gap: var(--space-2); font-size: var(--type-title); line-height: var(--type-title-lh); letter-spacing: var(--type-title-ls); font-weight: var(--type-title-wt); }
+.ghost-mark { width: 1.5rem; height: 1.5rem; flex: none; color: var(--text); }
+.app-header__brand-more { color: var(--text-3); font-size: var(--type-eyebrow); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; }
+.app-header__status, .app-header__theme { display: flex; align-items: center; }
+.app-header__theme { display: none; position: relative; }
+.app-header .app-nav__toggle { flex: none; }
+
+/* Theme menu: a native <details> (works without script) whose panel is a SOLID raised popover, because it opens from the glass header (glass never sits on glass). */
+.theme-menu > summary { list-style: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--target); min-width: var(--target); padding: 0 var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-control); color: var(--text); background-image: linear-gradient(transparent, transparent); cursor: pointer; }
+.theme-menu > summary::-webkit-details-marker { display: none; }
+.theme-menu > summary:hover { background-image: linear-gradient(var(--tint-hover), var(--tint-hover)); }
+.theme-menu > summary:active { background-image: linear-gradient(var(--tint-press), var(--tint-press)); }
+.theme-menu > summary svg { width: 1rem; height: 1rem; flex: none; }
+.theme-menu[open] > summary { background-color: var(--surface-3); }
+.theme-menu__panel { position: absolute; top: calc(100% + var(--space-2)); right: 0; z-index: 7; width: max-content; max-width: calc(100vw - 2 * var(--gutter)); padding: var(--space-2); --origin: top right; }
+.theme-menu__panel .seg { background: var(--surface-2); }
+
+/* ---------- Navigation: a SOLID sheet opened by the header Menu button below 820 px; the sticky glass side rail from 820 px ---------- */
+.app-nav { grid-area: nav; display: none; background: var(--surface-raised); border-bottom: 1px solid var(--border); box-shadow: var(--shadow-2); }
+/* The sheet is anchored under the sticky header (fixed), so it is reachable at any scroll position and never covers the header (Escape / link closes it, see App.jsx).
+   Opened by a button many times a day: a short opacity fade only (remove-animations review: tens of times a day -> the near-imperceptible version). */
+.app-nav.is-open { display: block; position: fixed; top: var(--header-h); left: 0; right: 0; z-index: 5; max-height: calc(100vh - var(--header-h)); overflow-y: auto; animation: pc-fade var(--d-fast) var(--ease-out); }
+.app-nav__panel { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-2) var(--gutter) var(--space-4); }
+.app-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.app-nav__groups { gap: var(--space-3); }
+.app-nav__group-label { display: block; padding: var(--space-2) var(--space-3) var(--space-1); color: var(--text-3); font-size: var(--type-eyebrow); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; }
+/* "Not available yet" folds into one disclosure that shows its count (DD 7.1). Open by default; the choice is remembered per viewer in Shell.jsx (try/catch). */
+.app-nav__fold > summary { color: var(--text-3); list-style: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: var(--target-desktop); border-radius: var(--radius-sm); cursor: pointer; }
+.app-nav__fold > summary::-webkit-details-marker { display: none; }
+.app-nav__fold > summary:hover { background-image: linear-gradient(var(--tint-hover), var(--tint-hover)); }
+.app-nav__fold > summary .app-nav__group-label { padding-right: 0; }
+.app-nav__group-count { margin-right: var(--space-3); color: var(--text-3); font-size: var(--type-caption); font-weight: var(--weight-semibold); }
+.app-nav__fold > summary::after { content: ""; flex: none; width: 0.5rem; height: 0.5rem; margin-right: var(--space-2); border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform var(--d-base) var(--ease-out); }
+.app-nav__fold[open] > summary::after { transform: rotate(45deg); }
+.app-nav__fold > summary > span:first-child { flex: 1 1 auto; }
+.app-nav a {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
+  min-height: var(--target-touch); padding: 0 var(--space-3); border-radius: var(--radius-control);
+  color: var(--text-2); text-decoration: none; font-size: var(--type-dense); font-weight: var(--weight-medium);
+  background-image: linear-gradient(transparent, transparent);
+  transition: background-color var(--dur-fast) var(--ease-in-out), color var(--dur-fast) var(--ease-in-out);
+}
+.app-nav a svg { width: 1rem; height: 1rem; flex: none; }
+.app-nav a:hover { background-image: linear-gradient(var(--tint-hover), var(--tint-hover)); color: var(--text); }
+.app-nav a:active { background-image: linear-gradient(var(--tint-press), var(--tint-press)); } /* S1: feedback on pointer-down; a tint, not scale, on dense rows */
+/* Current page: a neutral selected ground, a leading ink bar and heavier weight (aria-current is the semantic carrier); never colour alone, and no hue (hue is meaning only). */
+.app-nav a[aria-current="page"] { background-color: var(--surface-3); color: var(--text); font-weight: var(--weight-semibold); box-shadow: inset 3px 0 0 var(--text); }
+/* Short visible tag for entries that are not live telemetry ("Simulated", "Not available"). Solid border: dashed and dotted are reserved for provenance badges. */
+.app-nav__tag { flex: none; padding: 0 var(--space-2); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); font-weight: var(--weight-medium); letter-spacing: var(--type-caption-ls); }
+.app-nav__foot { display: flex; flex-direction: column; gap: var(--space-3); margin-top: auto; padding-top: var(--space-3); border-top: 1px solid var(--border); color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); }
+.app-nav__foot-theme { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+.app-nav__foot-gateway { display: flex; flex-direction: column; gap: var(--space-1); }
+.app-nav__foot-label { color: var(--text-3); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; }
+
+/* ---------- Main column and footer ---------- */
+.app-main { grid-area: main; width: 100%; max-width: calc(var(--content-max) + 2 * var(--gutter)); margin: 0 auto; padding: var(--space-5) var(--gutter); display: flex; flex-direction: column; gap: var(--space-section); min-width: 0; }
+.app-footer { grid-area: footer; padding: var(--space-3) var(--gutter); border-top: 1px solid var(--border); color: var(--text-3); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+
+/* ---------- 820 px and up: glass side rail, header theme menu, wider gutter. No Menu button. ---------- */
+@media (min-width: 820px) {
+  .app {
+    --gutter: 1.5rem;
+    grid-template-columns: var(--nav-width) minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "header header" "nav main" "footer footer";
+  }
+  .app-header { padding: var(--space-2) var(--gutter); }
+  .app-header__theme { display: flex; }
+  /* .btn is inline-flex, so this hide rule must be more specific than .btn. */
+  .app-header .app-nav__toggle { display: none; }
+  .app-main { padding-top: var(--space-region); }
+  /* The nav cell stretches the full row height; the panel inside is the sticky, self-scrolling glass rail, offset below the sticky header. */
+  .app-nav, .app-nav.is-open { display: block; position: static; align-self: stretch; background: transparent; border-bottom: 0; box-shadow: none; max-height: none; overflow: visible; animation: none; }
+  .app-nav__panel { position: sticky; top: var(--header-h); height: calc(100vh - var(--header-h)); overflow-y: auto; padding: var(--space-3) var(--space-2); border-right: 1px solid var(--glass-hair); }
+  .app-nav a { min-height: var(--target-desktop); }
+  .app-nav__foot-theme { display: none; }
+}
+
+/* Brand drops its second word on narrow phones so the header stays one row. */
+@media (max-width: 30rem) {
+  .app-header__brand-more { display: none; }
+}
+
+/* Short viewports (landscape phones): a sticky header would take too much of the screen, so it scrolls away (WCAG 2.4.11). */
+@media (max-height: 30rem) {
+  .app-header { position: static; }
+  .app-nav.is-open { position: static; max-height: none; overflow: visible; }
+  .app-nav__panel { position: static; height: auto; }
+}
+
+/* Phone menu: theme control rows reach the 44 px touch size through the shared .seg__btn rule in app.css. */
+@media (prefers-reduced-motion: reduce) {
+  .app-nav.is-open { animation-name: pc-fade; }
+  .app-nav a { transition: none; }
+  .app-nav__fold > summary::after { transition: none; }
+}
+@media (forced-colors: active) {
+  .app-header, .app-nav, .app-footer { border-color: CanvasText; }
+  .app-nav__panel { border-right-color: CanvasText; }
+  /* A11Y-11: current page = a filled Highlight ground (not a ring), so it cannot be confused with the CanvasText focus ring set in app.css. */
+  .app-nav a[aria-current="page"] { forced-color-adjust: none; background: Highlight; color: HighlightText; box-shadow: none; outline: none; }
+  .app-nav__tag { border-color: CanvasText; }
+  .ghost-mark { color: CanvasText; }
+  .theme-menu > summary { border-color: CanvasText; }
+  .theme-menu[open] > summary { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+}

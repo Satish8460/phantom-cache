@@ -1,0 +1,42 @@
+/* Simulation explainer page (increment I3). Tokens only: no literal colours, no literal font sizes, no double borders. */
+.sim-page { display: flex; flex-direction: column; gap: var(--space-group); min-width: 0; }
+.sim-page .prose { max-width: 70ch; }
+.sim-page .prose ul, .sim-page .prose ol { padding-left: var(--space-5); }
+.sim-page .prose li + li { margin-top: var(--space-2); }
+
+.sim-lead { font-size: var(--type-headline); line-height: var(--type-headline-lh); letter-spacing: var(--type-headline-ls); font-weight: var(--type-headline-wt); max-width: 60ch; }
+
+.sim-links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.sim-links .btn { text-decoration: none; }
+
+.sim-compare { display: grid; gap: var(--space-group); grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.sim-compare h3 { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+
+/* Static illustration of single-flight coalescing. No numbers, no data, no motion. */
+.sim-flow { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); counter-reset: sim-step; }
+.sim-flow li { counter-increment: sim-step; display: grid; grid-template-columns: 2rem 1fr; gap: var(--space-3); align-items: start; padding-top: var(--space-3); border-top: 1px solid var(--border); font-size: var(--type-body); line-height: var(--type-body-lh); }
+.sim-flow li::before { content: counter(sim-step); display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border: 1px solid var(--border-strong); border-radius: 50%; font-size: var(--type-dense); font-weight: var(--weight-semibold); }
+.sim-flow strong { display: block; }
+.sim-diagram { width: 100%; max-width: 28rem; height: auto; color: var(--text-2); }
+.sim-diagram .sim-line { stroke: currentColor; stroke-width: 2; fill: none; }
+.sim-diagram .sim-dot { fill: var(--text-2); }
+.sim-diagram .sim-origin { fill: var(--prov-simulated); }
+
+/* ---------- Illustrations (V2B; rule 12). Ink strokes only, dashes by stroke-dasharray, no state colours, no motion, no numbers. ---------- */
+.illus { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); max-width: 30rem; padding: var(--space-3); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); color: var(--text-2); }
+.illus__svg { display: block; width: 100%; height: auto; color: var(--text-2); overflow: visible; }
+.illus__box { fill: var(--surface-2); stroke: var(--text-2); stroke-width: 1.5; }
+.illus__box--ghost { stroke-dasharray: 5 4; fill: transparent; }
+.illus__line { stroke: var(--text-2); stroke-width: 1.5; fill: none; }
+.illus__head { fill: var(--text-2); }
+.illus__dot { fill: none; stroke: var(--text-2); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.illus__text { fill: var(--text); font-size: var(--type-dense); font-weight: var(--weight-medium); }
+.illus__sub { fill: var(--text-2); font-size: var(--type-caption); }
+.illus__caption { display: flex; flex-direction: column; gap: var(--space-1); }
+.illus__tag { color: var(--text-2); font-size: var(--type-eyebrow); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; }
+.illus__alt { color: var(--text-2); font-size: var(--type-dense); line-height: var(--type-dense-lh); max-width: 70ch; }
+@media (forced-colors: active) {
+  .illus { border-color: CanvasText; }
+  .illus__box, .illus__line, .illus__dot { stroke: CanvasText; }
+  .illus__text, .illus__sub, .illus__head { fill: CanvasText; }
+}

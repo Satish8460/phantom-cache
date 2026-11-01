@@ -1,0 +1,14 @@
+{
+ "status": "ok",
+ "intelligence_mode": "Off",
+ "active_candidate": null,
+ "revert_count": 0,
+ "truthful": true,
+ "truthful_basis": "computed",
+ "v2": {
+  "schema": "pie-api-v1",
+  "installed": false,
+  "src": "unavailable",
+  "reason": "intelligence_v2_not_installed"
+ }
+}

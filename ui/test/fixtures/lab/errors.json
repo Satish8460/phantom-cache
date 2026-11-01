@@ -1,0 +1,18 @@
+{
+  "_note": "Responses recorded from the real gateway (debug build D:/Personal/_m7_target/debug/phantom-cache-demo.exe, built 2026-10-30 09:03 +05:30) on 2026-10-30; JWT cases from a second instance with PHANTOM_JWT_SECRET set. Only headers relevant to error mapping are kept.",
+  "lab_off_404": { "status": 404, "headers": {}, "body": "" },
+  "unauthorized_missing": { "status": 401, "headers": { "x-auth-error": "MissingToken", "www-authenticate": "Bearer" }, "body": "Missing Bearer authorization token" },
+  "unauthorized_expired": { "status": 401, "headers": { "x-auth-error": "ExpiredToken", "www-authenticate": "Bearer" }, "body": "Authentication failed" },
+  "forbidden_operator_only_read": { "status": 403, "headers": { "x-auth-error": "InsufficientPermissions" }, "body": "Forbidden: telemetry:read role required" },
+  "forbidden_observer_post": { "status": 403, "headers": { "x-auth-error": "InsufficientPermissions" }, "body": "" },
+  "run_active_409": { "status": 409, "headers": {}, "body": "{\"error\":{\"code\":\"run_active\",\"message\":\"a run is already active\"},\"schema\":\"lab-1\"}" },
+  "bad_origin_403": { "status": 403, "headers": {}, "body": "{\"error\":{\"code\":\"bad_origin\",\"message\":\"the Origin header is not allowed in anonymous mode\"},\"schema\":\"lab-1\"}" },
+  "bad_host_421": { "status": 421, "headers": {}, "body": "{\"error\":{\"code\":\"bad_host\",\"message\":\"the Host header is not allowed in anonymous mode\"},\"schema\":\"lab-1\"}" },
+  "sealed_422": { "status": 422, "headers": {}, "body": "{\"error\":{\"code\":\"invalid_spec\",\"message\":\"the sealed seed set S is refused by the lab runner (gated evaluation path only)\"},\"schema\":\"lab-1\"}" },
+  "reps_422": { "status": 422, "headers": {}, "body": "{\"error\":{\"code\":\"invalid_spec\",\"message\":\"repetitions must be in 1..=30\"},\"schema\":\"lab-1\"}" },
+  "unsupported_media_415": { "status": 415, "headers": {}, "body": "{\"error\":{\"code\":\"unsupported_media_type\",\"message\":\"Content-Type must be application/json\"},\"schema\":\"lab-1\"}" },
+  "not_found_404": { "status": 404, "headers": {}, "body": "{\"error\":{\"code\":\"not_found\",\"message\":\"not found\"},\"schema\":\"lab-1\"}" },
+  "limit_400": { "status": 400, "headers": {}, "body": "{\"error\":{\"code\":\"bad_request\",\"message\":\"limit must be between 1 and 200\"},\"schema\":\"lab-1\"}" },
+  "cancel_first_202": { "status": 202, "headers": {}, "body": "{\"changed\":true,\"run_id\":\"20261030T034142Z-a4de24b6\",\"schema\":\"lab-1\",\"state\":\"cancelling\"}" },
+  "cancel_second_200": { "status": 200, "headers": {}, "body": "{\"changed\":false,\"run_id\":\"20261030T034142Z-a4de24b6\",\"schema\":\"lab-1\",\"state\":\"cancelled\"}" }
+}

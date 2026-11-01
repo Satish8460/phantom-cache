@@ -1,0 +1,12 @@
+{
+ "status": "ok",
+ "schema": "pie-api-v1",
+ "installed": true,
+ "total_recorded": 0,
+ "retained": 0,
+ "limit": 20,
+ "offset": 0,
+ "returned": 0,
+ "ordering": "oldest_first",
+ "records": []
+}

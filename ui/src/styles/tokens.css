@@ -1,0 +1,200 @@
+/* PhantomCache UI design tokens (V1 foundations v2, 2026-10-30). Specification: docs/design/phantomcache_design_system_spec.md and
+   docs/design/phantomcache_design_direction_v2.md (DD v2; sections 4, 6, 12).
+   Direction "Instrument and evidence": warm paper (light) and blue-black ink (dark), designed separately and not inverted;
+   hue carries meaning only (provenance, state, link); the primary action is ink, not blue; there is no brand accent.
+   Contrast of every colour pair below is verified by `npm run check:contrast` (both themes; solid surfaces, and the glass tokens
+   blended over BOTH extremes, pure black and pure white, so the guarantee does not depend on what scrolls underneath).
+
+   Theme model (spec section 3): ONE declaration per colour token, written as light-dark(<light>, <dark>).
+   `color-scheme: light dark` follows the OS; <html data-theme="light"|"dark"> overrides it (src/lib/theme.js).
+   Browser baseline for light-dark(): Chrome 123, Safari 17.5, Firefox 120. There is deliberately no @supports fallback:
+   a second copy of the palette would bring back the duplicated dark block this file removed (see tokens.md). */
+
+:root {
+  color-scheme: light dark;
+
+  /* ---- Typography (S15): system stacks only (no font files, no network); rem so text scaling works; size, leading and tracking move together ---- */
+  --font-sans: system-ui, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas, Menlo, monospace;
+
+  --type-display: 2rem;        --type-display-lh: 1.1;     --type-display-ls: -0.03em;   --type-display-wt: 650;
+  --type-headline: 1.25rem;    --type-headline-lh: 1.2;    --type-headline-ls: -0.02em;  --type-headline-wt: 650;
+  --type-title: 1.0625rem;     --type-title-lh: 1.25;      --type-title-ls: -0.01em;     --type-title-wt: 650;
+  --type-body: 0.9375rem;      --type-body-lh: 1.5;        --type-body-ls: 0;            --type-body-wt: 400;
+  --type-dense: 0.8125rem;     --type-dense-lh: 1.4;       --type-dense-ls: 0;           --type-dense-wt: 400;
+  --type-caption: 0.75rem;     --type-caption-lh: 1.35;    --type-caption-ls: 0.01em;    --type-caption-wt: 500;
+  --type-metric: 1.875rem;     --type-metric-lh: 1.05;     --type-metric-ls: -0.03em;    --type-metric-wt: 650;
+  --type-mono: 0.8125rem;      --type-mono-lh: 1.4;        --type-mono-ls: 0;            --type-mono-wt: 400;
+  /* Eyebrow: group captions and field headers. DD v2 4.4 proposes 11 px; the project floor is 12 px (tokens test, "no tiny metadata"), so 12 px with wide tracking. */
+  --type-eyebrow: 0.75rem;     --type-eyebrow-lh: 1.3;     --type-eyebrow-ls: 0.08em;    --type-eyebrow-wt: 650;
+  /* Uppercase badge labels need more tracking than lower-case captions. */
+  --tracking-label: 0.04em;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Deprecated aliases (spec section 1): kept until every consumer is migrated. New code uses --type-*. */
+  --text-xs: var(--type-caption);
+  --text-sm: var(--type-dense);
+  --text-md: var(--type-body);
+  --text-xl: var(--type-headline);
+  --text-metric: var(--type-metric);
+  --leading-tight: 1.25;
+  --leading-body: var(--type-body-lh);
+
+  /* ---- Spacing (4 px grid). Page rhythm (DD 4.5): 8 / 16 / 24 / 40 for tight / group / section / region ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --gutter: 1rem;
+  /* Semantic spacing (spec section 2) */
+  --space-label: 0.5rem;     /* label to its field */
+  --space-group: 1rem;       /* inside a panel / between fields */
+  --space-section: 1.5rem;   /* between sections of a page */
+  --space-region: 2.5rem;    /* between regions: top of the page column */
+
+  /* ---- Radius (DD 4.5): 5-6 controls and marks, 10 cards, 14 floating bars and dialogs. Pills (999px) are retired. ---- */
+  --radius-sm: 5px;
+  --radius-control: 6px;
+  --radius-md: 8px;
+  --radius-card: 10px;
+  --radius-lg: 14px;
+
+  /* ---- Motion (DD 6.1): transform and opacity only; nothing above 300 ms ---- */
+  /* Tier names from DD 6.1 (the 280 ms "slow" tier is not defined: no V1 pattern needs it, and nothing may exceed 300 ms). */
+  --d-press: 90ms;
+  --d-fast: 140ms;
+  --d-base: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);        /* default: arrivals */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);       /* state changes in place */
+  --ease-spring: var(--ease-out);                    /* replaced by a critically damped linear() curve below where supported; no overshoot */
+  /* Deprecated duration names (values are pinned by test/tokens.test.mjs until the lead retires them; lab.css and sim.css still use them). */
+  --dur-press: 100ms;
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 300ms;
+
+  /* ---- Targets ---- */
+  --target-touch: 44px;
+  --target-desktop: 32px;
+  --target-min: 24px;
+  --target: 36px;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /* ---- Layout ---- */
+  --nav-width: 14.5rem;
+  --header-h: 3.5rem;        /* sticky header height: scroll-padding-top and the rail offset follow it (WCAG 2.4.11) */
+  --content-max: 72rem;
+
+  /* ---- Colour: surfaces, one declaration per token: light-dark(light, dark). Light = warm paper, dark = blue-black ink (DD 4.2) ---- */
+  --bg: light-dark(#f3f2ee, #0b0e13);               /* L0 page */
+  --surface: light-dark(#fbfbf9, #12161d);          /* L1 panels, tables, forms: solid always */
+  --surface-2: light-dark(#ecebe6, #181d26);        /* wells: metric tiles, chart plot, table header */
+  --surface-3: light-dark(#e2e1db, #1f2531);        /* selected and pressed state of navigation and tabs */
+  --surface-raised: light-dark(#fefefc, #1a202b);   /* menus, popovers, the phone menu sheet: solid, dark steps up instead of casting heavy shadow */
+  --surface-overlay: light-dark(#fefefc, #202733);  /* dialogs on the phone and under fallbacks */
+  --border: light-dark(#d9d8d1, #262d3a);           /* decorative hairline */
+  --border-strong: light-dark(#6c7080, #8591a6);    /* UI boundary: 3:1 against every surface (WCAG 1.4.11) */
+  --text: light-dark(#14181f, #eef1f6);
+  --text-2: light-dark(#3d4452, #bcc4d1);
+  --text-3: light-dark(#4f5766, #a3adbd);
+  --accent: light-dark(#0b5fd1, #6aa8ff);           /* link blue and text selection; NOT the primary button (ink) */
+  --accent-contrast: light-dark(#ffffff, #0b1220);
+  --primary: light-dark(#14181f, #eef1f6);          /* ink-filled primary action (DD 4.1 item 6) */
+  --on-primary: light-dark(#fbfbf9, #0b0e13);
+  --focus: light-dark(#0b5fd1, #8bbcff);
+
+  /* Interaction tints: translucent overlays drawn on top of any solid surface (hover, pointer-down on rows, tabs, buttons). */
+  --tint-hover: light-dark(rgb(16 24 40 / 0.05), rgb(255 255 255 / 0.06));
+  --tint-press: light-dark(rgb(16 24 40 / 0.1), rgb(255 255 255 / 0.11));
+  /* Dimming layer behind modal dialogs (S12 "dim to focus"; no blur on the scrim: DD 12.4 measured it as the costly variant). */
+  --scrim: rgb(0 0 0 / 0.4);
+  /* Technical grid on the page ground only (DD 4.1 item 4): static, never behind data (solid surfaces cover it). */
+  --grid-line: light-dark(rgb(20 24 31 / 0.04), rgb(255 255 255 / 0.035));
+  /* Hatched ground: marks a region that is not a live value (SIMULATED / UNAVAILABLE / empty). A ground, not a border style, so it does not disturb the dashed/dotted-borders-only-on-badges rule. */
+  --hatch: light-dark(rgb(20 24 31 / 0.10), rgb(255 255 255 / 0.10));
+
+  /* ---- Materials (DD 4.3). Glass is application chrome only: header, rail, run bar, dialog. NEVER on data, charts, tables, evidence or cards.
+     Alpha is chosen so text passes at the WORST backdrop (pure black behind light glass, pure white behind dark glass).
+     glass-1 (header, rail, dialog) may carry --text-3 and link text: alpha >= 0.90 light / 0.88 dark. glass-2 (run bar) carries --text and --text-2 (and state text, see check-contrast). ---- */
+  --glass-1: light-dark(rgb(251 251 249 / 0.90), rgb(18 22 29 / 0.88));
+  --glass-2: light-dark(rgb(251 251 249 / 0.90), rgb(24 29 38 / 0.88));
+  --glass-edge: light-dark(rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.09));   /* lighter top edge of a floating layer */
+  --glass-hair: light-dark(rgb(20 24 31 / 0.10), rgb(255 255 255 / 0.08));      /* replaces the 1 px border on chrome */
+  --blur-1: 14px;            /* maximum radius (DD 12.4); never animated */
+  --blur-2: 10px;
+  --sat: 1.25;
+
+  /* ---- Elevation (spec section 4). Solid surfaces; shadows are static (never animated). Light cards have no shadow; dark L1 has none either.
+     --shadow-2 / --shadow-3 belong to floating layers only. ---- */
+  --shadow-1: none;
+  --shadow-2: 0 8px 24px light-dark(rgb(20 24 31 / 0.14), rgb(0 0 0 / 0.45));
+  --shadow-3: 0 16px 40px light-dark(rgb(20 24 31 / 0.22), rgb(0 0 0 / 0.55));
+
+  /* ---- Colour: state (feedback kinds: status, completion, warning, error) ---- */
+  --ok: light-dark(#14702e, #5fd48a);
+  --ok-bg: light-dark(#e3f1e7, #12301f);
+  --warn: light-dark(#8a5300, #e8b04a);
+  --warn-bg: light-dark(#faefd7, #36280d);
+  --critical: light-dark(#b3261e, #ff8f86);
+  --critical-bg: light-dark(#fbe9e5, #3d1714);
+  --info: light-dark(#0b5fd1, #8bbcff);
+  --info-bg: light-dark(#e4ecf8, #14284a);
+
+  /* ---- Colour: provenance (spec section 11): REAL, SIMULATED, REPLAYED, PREDICTED, DERIVED, UNAVAILABLE.
+     --prov-measured is the REAL hue (token name kept: the DOM and data attributes keep "measured"). Hues unchanged from v1; light grounds warmed slightly. ---- */
+  --prov-measured: light-dark(#0f6b3a, #7fdba2);
+  --prov-measured-bg: light-dark(#e1f2e6, #12301f);
+  --prov-derived: light-dark(#0b57a8, #8fc0ff);
+  --prov-derived-bg: light-dark(#e3ecf8, #14284a);
+  --prov-simulated: light-dark(#8a4b00, #ffc27a);
+  --prov-simulated-bg: light-dark(#faecd3, #3d2a0f);
+  --prov-replayed: light-dark(#006a73, #6fd6dd);      /* reserved: rendered only when the backend supplies replayed data */
+  --prov-replayed-bg: light-dark(#dcf0f0, #0f3036);
+  --prov-predicted: light-dark(#5d3a9e, #c7b0ff);     /* reserved: no predictive data exists today */
+  --prov-predicted-bg: light-dark(#ece6f6, #2a2048);
+  --prov-unavailable: light-dark(#4a5260, #aab2c0);
+  --prov-unavailable-bg: light-dark(#e6e6e1, #242a34);
+  /* Deprecated: INFERRED is displayed as DERIVED with the qualifier "inferred" (spec section 11). */
+  --prov-inferred: var(--prov-derived);
+  --prov-inferred-bg: var(--prov-derived-bg);
+
+  --chart-line: light-dark(#0b57a8, #8fc0ff);
+  --chart-grid: light-dark(#d9d8d1, #2c3340);
+}
+
+/* Manual override from the theme switch (src/lib/theme.js). Without data-theme the OS preference applies. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* Display tier steps down on phones (spec section 1). */
+@media (max-width: 30rem) {
+  :root { --type-display: 1.5rem; }
+}
+
+/* Critically damped spring curve, 1-(1+8t)e^-8t, computed (DD 6.1): no overshoot, because no gesture carries momentum. Plain ease-out elsewhere. */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root { --ease-spring: linear(0, 0.144, 0.385, 0.594, 0.745, 0.845, 0.908, 0.947, 0.969, 0.983, 0.99, 0.995, 1); }
+}
+
+/* Higher-contrast preference (S14): strong borders, no shadows, no grid. Glass becomes solid in app.css. */
+@media (prefers-contrast: more) {
+  :root {
+    --border: var(--border-strong);
+    --shadow-1: none;
+    --shadow-2: none;
+    --shadow-3: none;
+    --grid-line: transparent;
+  }
+}
+
+/* Reduced transparency (S14): a more opaque scrim. Glass surfaces become solid in app.css. Only Chromium supports this query (DD 4.3); the contrast guarantee does not depend on it. */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --scrim: rgb(0 0 0 / 0.7); }
+}
+
+/* Reduced motion (S14): movement is replaced by an opacity cross-fade (rules in app.css); durations stay as tokens. */
