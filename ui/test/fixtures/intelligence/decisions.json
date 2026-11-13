@@ -1,0 +1,166 @@
+{
+ "status": "ok",
+ "schema": "pie-api-v1",
+ "installed": true,
+ "total_recorded": 31,
+ "retained": 3,
+ "limit": 20,
+ "offset": 0,
+ "returned": 3,
+ "ordering": "oldest_first",
+ "records": [
+  {
+   "decision_id": 7,
+   "timestamp_ms": 300500,
+   "registry_version": "1.0.0",
+   "policy_id": "POL-STAMPEDE-1",
+   "policy_version": "1.0.0",
+   "mode": "advisory",
+   "verdict": "NoAction",
+   "reason_code": "below_threshold",
+   "inputs": [
+    {
+     "feature": "F13",
+     "value": 1.2,
+     "src": "derived",
+     "samples": 240,
+     "window_ms": 1000
+    }
+   ],
+   "candidates": [],
+   "constraints": [],
+   "recommendation": null,
+   "guardrail_events": [],
+   "conflict": {
+    "lever": "none",
+    "role": "none",
+    "with": []
+   },
+   "observed_effect": {
+    "value": null,
+    "src": "unavailable",
+    "samples": 0,
+    "reason": "not_implemented"
+   },
+   "simulated": false,
+   "explanation": "Waiters per origin fetch stayed under the warning threshold."
+  },
+  {
+   "decision_id": 19,
+   "timestamp_ms": 380500,
+   "registry_version": "1.0.0",
+   "policy_id": "POL-EVICT-1",
+   "policy_version": "1.0.0",
+   "mode": "advisory",
+   "verdict": "Recommend",
+   "reason_code": "shadow_margin_exceeded",
+   "inputs": [
+    {
+     "feature": "F2",
+     "value": 0.41,
+     "src": "derived",
+     "samples": 512,
+     "window_ms": 1000
+    },
+    {
+     "feature": "F10",
+     "value": 120.5,
+     "src": "measured",
+     "samples": 512,
+     "window_ms": 1000
+    }
+   ],
+   "candidates": [
+    {
+     "candidate_id": "S3-FIFO",
+     "status": "selected",
+     "rejection_reason": null,
+     "estimated_effect": {
+      "metric": "hit_ratio_delta",
+      "value": 0.05,
+      "ci95": [
+       0.02,
+       0.08
+      ],
+      "src": "derived",
+      "basis": "shadow_sampled_stream"
+     }
+    },
+    {
+     "candidate_id": "LRU",
+     "status": "rejected",
+     "rejection_reason": "below_margin",
+     "estimated_effect": {
+      "metric": "hit_ratio_delta",
+      "value": 0.004,
+      "ci95": [
+       -0.01,
+       0.018
+      ],
+      "src": "derived",
+      "basis": "shadow_sampled_stream"
+     }
+    }
+   ],
+   "constraints": [
+    {
+     "name": "stale_cap_unchanged",
+     "value": "not_touched",
+     "holds": true
+    }
+   ],
+   "recommendation": {
+    "text": "S3-FIFO would have kept about 5 points more hits on the sampled stream.",
+    "structured": {
+     "policy": "S3-FIFO"
+    },
+    "applied": false,
+    "label": "advisory, not applied"
+   },
+   "guardrail_events": [
+    "provenance_refused:F10"
+   ],
+   "conflict": {
+    "lever": "cache_replacement",
+    "role": "primary",
+    "with": []
+   },
+   "observed_effect": {
+    "value": null,
+    "src": "unavailable",
+    "samples": 0,
+    "reason": "not_implemented"
+   },
+   "simulated": false,
+   "explanation": "On the sampled stream the shadow S3-FIFO cache hit more often than the incumbent by more than the required margin; LRU did not clear the margin."
+  },
+  {
+   "decision_id": 31,
+   "timestamp_ms": 410500,
+   "registry_version": "1.0.0",
+   "policy_id": "PIE-RUNTIME",
+   "policy_version": "1.0.0",
+   "mode": "advisory",
+   "verdict": "Fault",
+   "reason_code": "clock_jump",
+   "inputs": [],
+   "candidates": [],
+   "constraints": [],
+   "recommendation": null,
+   "guardrail_events": [],
+   "conflict": {
+    "lever": "none",
+    "role": "none",
+    "with": []
+   },
+   "observed_effect": {
+    "value": null,
+    "src": "unavailable",
+    "samples": 0,
+    "reason": "not_implemented"
+   },
+   "simulated": false,
+   "explanation": "The clock moved backwards; the engine stopped itself."
+  }
+ ]
+}

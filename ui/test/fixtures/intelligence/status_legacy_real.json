@@ -1,0 +1,1 @@
+{"active_candidate":null,"intelligence_mode":"Off","revert_count":0,"status":"ok","truthful":true,"truthful_basis":"computed: true only when PHANTOM_SIMULATION is not enabled. It says the status fields come from the executor, not that any decision is correct."}

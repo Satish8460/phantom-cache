@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" width="900" height="640" role="img" aria-labelledby="t1 d1">
+<title id="t1">PhantomCache component map</title>
+<desc id="d1">One gateway process contains an Axum router, handlers, JWT auth, a sharded cache, an origin fetcher, background tasks, an optional Lab API and optional cluster machinery. Clients and the browser UI sit on the left, the origin server and peer gateways on the right.</desc>
+<defs>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111}
+.h{font-size:15px;font-weight:bold}
+.s{font-size:13px;fill:#333}
+.b{fill:#fff;stroke:#222;stroke-width:1.5}
+.g{fill:#e4e4e4;stroke:#222;stroke-width:1.5}
+.k{fill:#c8c8c8;stroke:#222;stroke-width:2}
+.d{fill:#fff;stroke:#222;stroke-width:1.5;stroke-dasharray:6 4}
+.p{fill:#f6f6f6;stroke:#222;stroke-width:2}
+.a{stroke:#222;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+.ad{stroke:#222;stroke-width:1.6;fill:none;stroke-dasharray:6 4;marker-end:url(#ar)}
+</style>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker>
+</defs>
+<rect x="0" y="0" width="900" height="640" fill="#fff"/>
+<!-- left column -->
+<rect class="b" x="15" y="95" width="150" height="62" rx="4"/>
+<text x="25" y="118" class="h">HTTP client</text><text x="25" y="138" class="s">curl, app, test</text>
+<rect class="d" x="15" y="205" width="150" height="92" rx="4"/>
+<text x="25" y="228" class="h">React UI</text><text x="25" y="247" class="s">Vite dev server :3000</text><text x="25" y="266" class="s">talks to gateway :8085</text><text x="25" y="285" class="s">(ui/src/lib/config.js)</text>
+<!-- gateway process -->
+<rect class="p" x="195" y="30" width="470" height="590" rx="8"/>
+<text x="210" y="54" class="h">phantom-cache-demo (one OS process, Tokio runtime)</text>
+<text x="210" y="72" class="s">src/main.rs builds state, then api::server::start_server_with_cors</text>
+<rect class="b" x="212" y="88" width="436" height="40" rx="4"/>
+<text x="222" y="106" class="h">Axum router, CORS layer, 512 KiB body limit</text><text x="222" y="122" class="s">create_app_with_lab (src/api/server.rs)</text>
+<rect class="g" x="212" y="146" width="212" height="62" rx="4"/>
+<text x="222" y="166" class="h">Cache handlers</text><text x="222" y="184" class="s">get_cache_handler</text><text x="222" y="200" class="s">delete_cache_handler</text>
+<rect class="b" x="436" y="146" width="212" height="62" rx="4"/>
+<text x="446" y="166" class="h">Observe / control</text><text x="446" y="184" class="s">/api/events, /api/v1/metrics,</text><text x="446" y="200" class="s">/api/control, /health*</text>
+<rect class="b" x="212" y="224" width="212" height="52" rx="4"/>
+<text x="222" y="244" class="h">JWT auth (optional)</text><text x="222" y="262" class="s" style="font-size:11px">on if PHANTOM_JWT_SECRET set</text>
+<rect class="d" x="436" y="224" width="212" height="52" rx="4"/>
+<text x="446" y="244" class="h">Lab API /api/v1/lab/*</text><text x="446" y="262" class="s" style="font-size:11px">only if PHANTOM_LAB_ENABLED</text>
+<rect class="k" x="212" y="294" width="212" height="96" rx="4"/>
+<text x="222" y="314" class="h">PartitionedCache</text><text x="222" y="332" class="s">8 shards, each a Mutex</text><text x="222" y="348" class="s">entries, generations, epochs,</text><text x="222" y="364" class="s">in-flight table, byte budget</text><text x="222" y="380" class="s">src/core/cache.rs</text>
+<rect class="g" x="436" y="294" width="212" height="96" rx="4"/>
+<text x="446" y="314" class="h">Origin fetcher</text><text x="446" y="332" class="s">SSRF policy, pinned IP,</text><text x="446" y="348" class="s">5 s timeouts, 2 MiB body cap,</text><text x="446" y="364" class="s">HTTP/1.1, Connection: close</text><text x="446" y="380" class="s">fetch_origin_raw</text>
+<rect class="b" x="212" y="408" width="212" height="62" rx="4"/>
+<text x="222" y="428" class="h">Background tasks</text><text x="222" y="446" class="s">sweeper 100 ms, metrics 1 s,</text><text x="222" y="462" class="s">SSE stream 100 ms per client</text>
+<rect class="b" x="436" y="408" width="212" height="62" rx="4"/>
+<text x="446" y="428" class="h">Intelligence executor</text><text x="446" y="446" class="s">default mode off; origin permit</text><text x="446" y="462" class="s">gate (cap only canary/active)</text>
+<rect class="d" x="212" y="488" width="436" height="118" rx="4"/>
+<text x="222" y="508" class="h">Cluster mode only (mTLS configuration)</text>
+<text x="222" y="527" class="s">RendezvousRouter: route_key, invalidate_key_across_cluster,</text>
+<text x="222" y="544" class="s">repair, anti-entropy (250 ms) and prewarm workers, connection pool</text>
+<text x="222" y="561" class="s">Local VirtualNode (new_with_cache) shares the serving cache above</text>
+<text x="222" y="578" class="s">Cluster listener: binary frames over mutual TLS (own port)</text>
+<text x="222" y="595" class="s">Remote members are address-only descriptors (src/main.rs)</text>
+<!-- right column -->
+<rect class="b" x="700" y="300" width="185" height="80" rx="4"/>
+<text x="710" y="324" class="h">Origin server</text><text x="710" y="344" class="s">ORIGIN_URL (HTTP/1.1)</text><text x="710" y="362" class="s">your system of record</text>
+<rect class="d" x="700" y="500" width="185" height="96" rx="4"/>
+<text x="710" y="524" class="h">Peer gateways</text><text x="710" y="544" class="s">same binary, other hosts</text><text x="710" y="562" class="s">static membership file,</text><text x="710" y="580" class="s">certificate fingerprints</text>
+<!-- arrows -->
+<path class="a" d="M165 126 L212 108"/>
+<path class="ad" d="M165 251 L205 251 L205 118 L212 112"/>
+<path class="a" d="M318 128 L318 146"/>
+<path class="a" d="M318 208 L318 224"/>
+<path class="a" d="M268 276 L268 294"/>
+<path class="a" d="M424 340 L436 340"/>
+<path class="a" d="M648 340 L700 340"/>
+<path class="ad" d="M648 560 L700 560"/>
+<text x="705" y="290" class="s">miss, revalidation</text>
+<text x="705" y="620" class="s">solid arrow: always present</text>
+<text x="705" y="636" class="s">dashed: optional or cluster only</text>
+</svg>

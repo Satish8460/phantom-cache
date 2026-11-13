@@ -1,0 +1,10 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -351,3 +351,7 @@
+ [[test]]
+ name = "lab_live_scenario_b_tests"
+ path = "tests/integration/lab_live_scenario_b_tests.rs"
++
++[[test]]
++name = "m3_invalidation_durability_tests"
++path = "tests/integration/m3_invalidation_durability_tests.rs"

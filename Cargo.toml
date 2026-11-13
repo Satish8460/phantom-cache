@@ -14,6 +14,22 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 futures-util = "0.3"
 tokio-stream = { version = "0.1", features = ["net"] }
+axum-server = { version = "0.7", features = ["tls-rustls"] }
+jsonwebtoken = "9"
+rustls = "0.23"
+tokio-rustls = "0.26"
+rustls-pemfile = "2.2"
+webpki-roots = "0.26"
+url = "2.5"
+ring = "0.17"
+
+[dev-dependencies]
+jsonwebtoken = "9"
+rcgen = "0.13"
+reqwest = { version = "0.12", features = ["json"] }
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+hdrhistogram = "7.5"
+proptest = "1.6"
 
 [[test]]
 name = "wp1_tests"
@@ -31,3 +47,307 @@ path = "tests/unit/wp3_tests.rs"
 name = "wp4_tests"
 path = "tests/unit/wp4_tests.rs"
 
+[[test]]
+name = "m1_http_tests"
+path = "tests/integration/m1_http_tests.rs"
+
+[[test]]
+name = "p3_traffic_tests"
+path = "tests/integration/p3_traffic_tests.rs"
+
+[[test]]
+name = "p4_pie_tests"
+path = "tests/integration/p4_pie_tests.rs"
+
+[[test]]
+name = "p2_dist_network_tests"
+path = "tests/integration/p2_dist_network_tests.rs"
+
+[[test]]
+name = "coalesce_tradeoffs_tests"
+path = "tests/integration/coalesce_tradeoffs_tests.rs"
+
+[[test]]
+name = "security_phase1_tests"
+path = "tests/integration/security_phase1_tests.rs"
+
+[[test]]
+name = "security_phase2_upstream_tests"
+path = "tests/integration/security_phase2_upstream_tests.rs"
+
+[[test]]
+name = "security_phase3_cluster_tests"
+path = "tests/integration/security_phase3_cluster_tests.rs"
+
+[[test]]
+name = "security_phase3b_framing_tests"
+path = "tests/integration/security_phase3b_framing_tests.rs"
+
+[[test]]
+name = "security_phase3c_pooling_tests"
+path = "tests/integration/security_phase3c_pooling_tests.rs"
+
+[[test]]
+name = "security_phase4a_invalidation_tests"
+path = "tests/integration/security_phase4a_invalidation_tests.rs"
+
+[[test]]
+name = "security_phase4b_router_tests"
+path = "tests/integration/security_phase4b_router_tests.rs"
+
+[[test]]
+name = "security_phase4c_antientropy_tests"
+path = "tests/integration/security_phase4c_antientropy_tests.rs"
+
+[[test]]
+name = "known_gaps"
+path = "tests/integration/known_gaps.rs"
+
+[[test]]
+name = "telemetry_truth_tests"
+path = "tests/integration/telemetry_truth_tests.rs"
+
+[[test]]
+name = "byte_accounting_tests"
+path = "tests/integration/byte_accounting_tests.rs"
+
+[[test]]
+name = "serving_contract_tests"
+path = "tests/integration/serving_contract_tests.rs"
+
+[[test]]
+name = "freshness_matrix_tests"
+path = "tests/integration/freshness_matrix_tests.rs"
+
+[[test]]
+name = "stale_serving_tests"
+path = "tests/integration/stale_serving_tests.rs"
+
+[[test]]
+name = "invalidation_contract_tests"
+path = "tests/integration/invalidation_contract_tests.rs"
+
+[[test]]
+name = "latency_resolution_tests"
+path = "tests/integration/latency_resolution_tests.rs"
+
+[[test]]
+name = "eviction_contract_tests"
+path = "tests/integration/eviction_contract_tests.rs"
+
+[[test]]
+name = "epoch_contention_tests"
+path = "tests/integration/epoch_contention_tests.rs"
+
+[[test]]
+name = "telemetry_redesign_tests"
+path = "tests/integration/telemetry_redesign_tests.rs"
+
+[[test]]
+name = "concurrency_verification_tests"
+path = "tests/integration/concurrency_verification_tests.rs"
+
+[[test]]
+name = "memory_bound_soak_tests"
+path = "tests/integration/memory_bound_soak_tests.rs"
+
+[[test]]
+name = "parser_robustness_tests"
+path = "tests/integration/parser_robustness_tests.rs"
+
+[[test]]
+name = "schema_deprecation_tests"
+path = "tests/integration/schema_deprecation_tests.rs"
+
+[[test]]
+name = "cluster_harness_controls_tests"
+path = "tests/integration/cluster_harness_controls_tests.rs"
+
+[[test]]
+name = "cluster_characterization_tests"
+path = "tests/integration/cluster_characterization_tests.rs"
+
+[[test]]
+name = "distributed_consistency_tests"
+path = "tests/integration/distributed_consistency_tests.rs"
+
+[[test]]
+name = "protocol_model_tests"
+path = "tests/integration/protocol_model_tests.rs"
+
+[[test]]
+name = "lab_core_tests"
+path = "tests/integration/lab_core_tests.rs"
+
+[[test]]
+name = "lab_workload_tests"
+path = "tests/integration/lab_workload_tests.rs"
+
+[[test]]
+name = "lab_origin_tests"
+path = "tests/integration/lab_origin_tests.rs"
+
+[[test]]
+name = "lab_t2_controls_tests"
+path = "tests/integration/lab_t2_controls_tests.rs"
+
+[[test]]
+name = "lab_gateway_conformance_tests"
+path = "tests/integration/lab_gateway_conformance_tests.rs"
+
+[[test]]
+name = "lab_baselines_tests"
+path = "tests/integration/lab_baselines_tests.rs"
+
+[[test]]
+name = "lab_eviction_tests"
+path = "tests/integration/lab_eviction_tests.rs"
+
+[[test]]
+name = "lab_tuning_tests"
+path = "tests/integration/lab_tuning_tests.rs"
+
+[[test]]
+name = "lab_matrix_and_agreement_tests"
+path = "tests/integration/lab_matrix_and_agreement_tests.rs"
+
+[[test]]
+name = "lab_reproduction_tests"
+path = "tests/integration/lab_reproduction_tests.rs"
+
+[[test]]
+name = "lab_cluster_scenario_tests"
+path = "tests/integration/lab_cluster_scenario_tests.rs"
+
+[[test]]
+name = "intel_signals_tests"
+path = "tests/integration/intel_signals_tests.rs"
+
+[[test]]
+name = "intel_shadow_tests"
+path = "tests/integration/intel_shadow_tests.rs"
+
+[[test]]
+name = "intel_executor_tests"
+path = "tests/integration/intel_executor_tests.rs"
+
+[[test]]
+name = "intel_engine_tests"
+path = "tests/integration/intel_engine_tests.rs"
+
+[[test]]
+name = "intel_audit_tests"
+path = "tests/integration/intel_audit_tests.rs"
+
+[[test]]
+name = "intel_safety_and_replay_tests"
+path = "tests/integration/intel_safety_and_replay_tests.rs"
+
+[[test]]
+name = "intel_lab_integration_tests"
+path = "tests/integration/intel_lab_integration_tests.rs"
+
+[[test]]
+name = "intel_candidates_tests"
+path = "tests/integration/intel_candidates_tests.rs"
+
+[[test]]
+name = "m6_research_evaluation_tests"
+path = "tests/integration/m6_research_evaluation_tests.rs"
+
+[[test]]
+name = "m7_config_tests"
+path = "tests/integration/m7_config_tests.rs"
+
+[[test]]
+name = "m7_security_review_tests"
+path = "tests/integration/m7_security_review_tests.rs"
+
+[[test]]
+name = "m7_sec_fixes_tests"
+path = "tests/integration/m7_sec_fixes_tests.rs"
+
+[[test]]
+name = "m7_health_tests"
+path = "tests/integration/m7_health_tests.rs"
+
+[[bench]]
+name = "b1_hit_path"
+harness = false
+
+[[bench]]
+name = "b2_concurrency"
+harness = false
+
+[[bench]]
+name = "b6_telemetry"
+harness = false
+
+[[bench]]
+name = "b8e_gateway"
+harness = false
+
+[[bench]]
+name = "b3_coalesce"
+harness = false
+
+[[bench]]
+name = "b4_eviction"
+harness = false
+
+[[bench]]
+name = "b7_memory"
+harness = false
+
+[[test]]
+name = "origin_cap_tests"
+path = "tests/integration/origin_cap_tests.rs"
+
+
+[[test]]
+name = "revalidation_304_tests"
+path = "tests/integration/revalidation_304_tests.rs"
+
+[[test]]
+name = "telemetry_honesty_tests"
+path = "tests/integration/telemetry_honesty_tests.rs"
+
+[[test]]
+name = "lab_runner_lib_tests"
+path = "tests/integration/lab_runner_lib_tests.rs"
+
+[[test]]
+name = "idle_sweeper_tests"
+path = "tests/integration/idle_sweeper_tests.rs"
+
+[[bin]]
+name = "phantom-lab"
+path = "src/bin/phantom-lab.rs"
+
+[[test]]
+name = "cluster_propagation_latency_tests"
+path = "tests/integration/cluster_propagation_latency_tests.rs"
+
+[[test]]
+name = "cluster_prewarm_repair_tests"
+path = "tests/integration/cluster_prewarm_repair_tests.rs"
+
+[[test]]
+name = "cluster_followup_tests"
+path = "tests/integration/cluster_followup_tests.rs"
+
+[[test]]
+name = "canonical_key_roundtrip_tests"
+path = "tests/integration/canonical_key_roundtrip_tests.rs"
+
+[[test]]
+name = "m7_sec_round2_tests"
+path = "tests/integration/m7_sec_round2_tests.rs"
+
+[[test]]
+name = "m7_sec_round3_tests"
+path = "tests/integration/m7_sec_round3_tests.rs"
+
+[[test]]
+name = "lab_live_scenario_b_tests"
+path = "tests/integration/lab_live_scenario_b_tests.rs"

@@ -2,6 +2,13 @@
 
 > **AUTHORITATIVE NOTICE:** Prior handoff claims regarding distributed consistency, anti-entropy, and PIE adaptive caching have been audited and corrected. See [`docs/handoff/CORRECTIONS.md`](CORRECTIONS.md) for the verified status of all architectural and performance claims.
 
+> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged).** Checked against the current tree:
+> - "64-Partition Lock Striping" (here and in files 01 and 02): the binary builds `PartitionedCache::new(8)` (`src/main.rs:204`), that is 8 shards. 64 is not the configured value.
+> - "Phase 4 Remediated, Verified, and Formally Accepted", "ACCEPTED" in the table, "100% PASS" and "Phase 4 is accepted and closed": these are agent self-reports. No dated owner acceptance of any milestone is recorded in the repository (an evidence gap, not proof that none was given; see `docs/STATUS.md` section 1).
+> - "242 / 242 tests, 19 targets": the 2026-10-28 baseline. The later baseline, with its command and profile, is in `docs/STATUS.md` section 3 (75 targets, 851 passed, 8 ignored, debug).
+> - "enterprise-grade": no production deployment, release-profile benchmark or independent security assessment supports the adjective; the README describes the project as a research prototype with experimental distributed operation.
+> - "canonical primary invalidation (T_stale = 0)" and "ensures distributed cache consistency": the implemented and tested property is per gateway: `DELETE` purges the local cache first, then asks the canonical primary, and other members are updated best effort. There is no linearizability proof or checker, no cross-gateway staleness bound, and the issuer's in-memory repair ledger is lost if the issuer dies (`docs/user/limitations.md`, `docs/research/claims_ledger.md` C6).
+
 **Document ID:** `docs/handoff/00_START_HERE.md`  
 **Purpose:** Primary entry point for incoming AI coding assistants.  
 **Repository:** `D:\Personal\phantom-cache`  

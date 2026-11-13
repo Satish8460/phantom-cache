@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhantomCache direction v2 preview (prototype)</title>
+<!--
+  DESIGN PROTOTYPE, not part of ui/src, not wired to any gateway. Static markup only.
+  Every number below is COPIED from the retained Scenario B display shown in docs/design/remediation/after/evidence_scenario_b__1280__light__full.png
+  (REAL, loopback, one host, retained; VALID is a narrow run class). It exists to test layout, hierarchy, materials and chart forms.
+  Toggle theme with the button or ?theme=dark|light. Materials degrade: @supports, prefers-reduced-transparency, prefers-contrast, forced-colors.
+-->
+<style>
+/* ---------- tokens (proposal; names map to docs/design/phantomcache_design_direction_v2.md) ---------- */
+:root{color-scheme:light dark;
+ --font-sans:system-ui,"Segoe UI Variable Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+ --font-mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+ /* paper (light) and ink (dark) neutrals: warm paper vs blue-black ink; not grey-on-white */
+ --bg:light-dark(#f3f2ee,#0b0e13);
+ --bg-grid:light-dark(rgb(20 24 31/.045),rgb(255 255 255/.035));
+ --surface:light-dark(#fbfbf9,#12161d);
+ --surface-2:light-dark(#ecebe6,#181d26);
+ --surface-3:light-dark(#e2e1db,#1f2531);
+ --line:light-dark(#d9d8d1,#262d3a);
+ --line-strong:light-dark(#6c7080,#8591a6);
+ --ink:light-dark(#14181f,#eef1f6);
+ --ink-2:light-dark(#3d4452,#bcc4d1);
+ --ink-3:light-dark(#575f6e,#a3adbd);
+ --primary:light-dark(#14181f,#eef1f6);       /* primary action is ink-filled: blue is reserved for DERIVED and info */
+ --on-primary:light-dark(#fbfbf9,#0b0e13);
+ --focus:light-dark(#0b5fd1,#8bbcff);
+ --real:light-dark(#0f6b3a,#7fdba2);   --real-bg:light-dark(#e0f1e6,#12301f);
+ --derived:light-dark(#0b57a8,#8fc0ff);--derived-bg:light-dark(#e0ebf8,#14284a);
+ --sim:light-dark(#8a4b00,#ffc27a);    --sim-bg:light-dark(#faead2,#3d2a0f);
+ --unavail:light-dark(#4a5260,#aab2c0);--unavail-bg:light-dark(#e6e5df,#242a34);
+ --crit:light-dark(#b3261e,#ff8f86);   --crit-bg:light-dark(#fbe6e3,#3d1714);
+ --warn:light-dark(#8a5300,#e8b04a);   --warn-bg:light-dark(#fbefd4,#36280d);
+ /* material levels: glass only for functional chrome (header, rail, run bar, popovers, dialogs) */
+ --glass-1:light-dark(rgb(251 251 249/.90),rgb(18 22 29/.88));   /* header, rail: thick */
+ --glass-2:light-dark(rgb(251 251 249/.86),rgb(24 29 38/.84));   /* floating bar, popover: thinner, lighter blur, stronger shadow */
+ --glass-edge:light-dark(rgb(255 255 255/.85),rgb(255 255 255/.09));
+ --glass-hair:light-dark(rgb(20 24 31/.10),rgb(255 255 255/.08));
+ --blur-1:14px;--blur-2:10px;--sat:1.25;
+ --sh-float:0 8px 24px light-dark(rgb(20 24 31/.14),rgb(0 0 0/.45));
+ --ease:cubic-bezier(.2,.8,.2,1);--d-press:90ms;--d-fast:140ms;--d-base:200ms;--d-slow:280ms;
+ --r-1:6px;--r-2:10px;--r-3:14px;
+}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--font-sans);font-variant-numeric:tabular-nums;
+ background-image:linear-gradient(var(--bg-grid) 1px,transparent 1px),linear-gradient(90deg,var(--bg-grid) 1px,transparent 1px);background-size:32px 32px}
+h1,h2,h3,p{margin:0}
+a{color:var(--derived)}
+.mono{font-family:var(--font-mono);font-size:.8125rem;letter-spacing:0}
+.eyebrow{font-size:.6875rem;line-height:1.3;font-weight:650;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+/* ---------- shell ---------- */
+.hdr{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;background:var(--glass-1);
+ -webkit-backdrop-filter:blur(var(--blur-1)) saturate(var(--sat));backdrop-filter:blur(var(--blur-1)) saturate(var(--sat));
+ box-shadow:inset 0 -1px 0 var(--glass-hair)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.01em}
+.mark{width:22px;height:22px;position:relative}
+.mark i{position:absolute;inset:0;border:1.5px solid var(--ink);border-radius:6px}
+.mark i+i{inset:4px -4px -4px 4px;border-style:dashed;opacity:.55}  /* the ghost copy: the signature motif for "the cache entry that is not the origin" */
+.conn{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:.8125rem}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--real)}
+.dot[data-s=off]{background:var(--crit)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r-1);overflow:hidden}
+.seg button{all:unset;cursor:pointer;padding:4px 10px;font-size:.8125rem;min-height:28px;box-sizing:border-box;color:var(--ink-2)}
+.seg button[aria-pressed=true]{background:var(--surface-3);color:var(--ink);font-weight:600}
+.layout{display:grid;grid-template-columns:232px minmax(0,1fr)}
+.rail{position:sticky;top:56px;align-self:start;height:calc(100vh - 56px);padding:16px 12px;background:var(--glass-1);
+ -webkit-backdrop-filter:blur(var(--blur-1)) saturate(var(--sat));backdrop-filter:blur(var(--blur-1)) saturate(var(--sat));box-shadow:inset -1px 0 0 var(--glass-hair);overflow:auto}
+.rail .eyebrow{display:block;margin:16px 8px 4px}
+.rail a{display:flex;align-items:center;justify-content:space-between;min-height:32px;padding:0 8px;border-radius:var(--r-1);color:var(--ink-2);text-decoration:none;font-size:.8125rem;font-weight:500;transition:background-color var(--d-fast) var(--ease)}
+.rail a:hover{background:light-dark(rgb(20 24 31/.05),rgb(255 255 255/.06))}
+.rail a[aria-current=page]{color:var(--ink);font-weight:650;background:var(--surface-3);box-shadow:inset 2px 0 0 var(--ink)}
+.tag{font-size:.6875rem;color:var(--ink-3);border:1px dashed var(--line-strong);border-radius:4px;padding:0 5px}
+.gw{margin-top:20px;padding:10px 8px 0;border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-2)}
+main{padding:28px clamp(16px,3vw,40px) 140px;display:flex;flex-direction:column;gap:28px;max-width:1100px}
+/* ---------- page head ---------- */
+.page-head h1{font-size:clamp(1.625rem,3.2vw,2.125rem);line-height:1.1;letter-spacing:-.03em;font-weight:650;margin:4px 0 8px}
+.page-head p{max-width:62ch;color:var(--ink-2)}
+/* ---------- status hierarchy: one critical line, one qualification strip, capability limits behind a disclosure ---------- */
+.strip{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:.8125rem;color:var(--ink-2);padding:10px 0;border-block:1px solid var(--line)}
+.strip b{color:var(--ink);font-weight:600}
+.q{display:inline-flex;align-items:center;gap:6px}.q::before{content:"";width:6px;height:6px;border-radius:1px;background:currentColor}
+.q.warn{color:var(--warn)}.q.info{color:var(--derived)}.q.ok{color:var(--real)}
+/* ---------- provenance mark (shape + word + border style; never colour alone) ---------- */
+.prov{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:5px;font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid currentColor;white-space:nowrap}
+.prov[data-k=real]{color:var(--real);background:var(--real-bg)}
+.prov[data-k=derived]{color:var(--derived);background:var(--derived-bg)}
+.prov[data-k=sim]{color:var(--sim);background:var(--sim-bg);border-style:dashed}
+.prov[data-k=na]{color:var(--unavail);background:var(--unavail-bg);border-style:dotted}
+.prov small{font-size:.6875rem;font-weight:500;letter-spacing:0;text-transform:none;opacity:.95}
+.ret{font-size:.6875rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--line-strong);border-radius:5px;padding:1px 7px}
+/* ---------- experiment card anatomy ---------- */
+.cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-2);padding:18px;display:flex;flex-direction:column;gap:14px;position:relative;
+ transition:transform var(--d-base) var(--ease),border-color var(--d-fast)}
+.card[data-kind=sim]{border-style:dashed;background:repeating-linear-gradient(135deg,transparent 0 10px,light-dark(rgb(138 75 0/.035),rgb(255 194 122/.035)) 10px 11px),var(--surface)}
+.card:hover{border-color:var(--line-strong)}
+.card h3{font-size:1.0625rem;letter-spacing:-.01em;line-height:1.25}
+.card .src{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.card .what{color:var(--ink-2);font-size:.875rem}
+.verdicts{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;font-size:.8125rem;margin:0}
+.verdicts dt{font-weight:650;color:var(--ink)}
+.verdicts dd{margin:0;display:flex;align-items:center;gap:8px}
+.v{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.v svg{width:14px;height:14px}.v[data-t=bad]{color:var(--crit)}.v[data-t=warn]{color:var(--warn)}.v[data-t=good]{color:var(--real)}
+.meta{font-size:.75rem;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:4px 14px;border-top:1px solid var(--line);padding-top:10px}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 14px;border-radius:var(--r-1);font-size:.875rem;font-weight:600;border:1px solid var(--line-strong);color:var(--ink);transition:transform var(--d-press) var(--ease),background-color var(--d-fast)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* ---------- result at a glance: distinct verdicts, no overall score ---------- */
+.glance{display:grid;gap:0;border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface);overflow:hidden}
+.glance header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.glance .arms{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
+.arm{padding:16px 18px;display:flex;flex-direction:column;gap:8px;border-right:1px solid var(--line)}
+.arm:last-child{border-right:0}
+.arm .big{font-size:1.75rem;line-height:1.05;letter-spacing:-.03em;font-weight:650;font-variant-numeric:tabular-nums}
+.arm .big small{font-size:.8125rem;letter-spacing:0;font-weight:500;color:var(--ink-3);margin-left:6px}
+.not{padding:14px 18px;border-top:1px solid var(--line);background:var(--surface-2);font-size:.875rem}
+.not b{display:block;font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:4px}
+/* ---------- chart: paired dumbbell with interval, exact values, table twin ---------- */
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-2);padding:18px;display:flex;flex-direction:column;gap:12px}
+.fig h3{font-size:1rem;letter-spacing:-.01em}
+.axisnote{font-size:.75rem;color:var(--ink-3)}
+.db{display:grid;grid-template-columns:minmax(5.5rem,7rem) 1fr minmax(6rem,9rem);gap:10px 14px;align-items:center;font-size:.8125rem}
+.db .lab{font-weight:600}
+.track{position:relative;height:28px;border-radius:4px;background:linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/10% 100%,var(--surface-2)}
+.track .base{position:absolute;top:2px;bottom:2px;width:2px;background:var(--ink);left:var(--b)}
+.track .link{position:absolute;top:50%;height:3px;transform:translateY(-50%);background:var(--ink-3);left:var(--l);width:var(--w)}
+.track .pt{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--derived);border:2px solid var(--surface);left:var(--x)}
+.track .pt[data-k=base]{background:var(--ink)}
+.track .ci{position:absolute;top:50%;height:10px;margin-top:-5px;border:2px solid var(--derived);border-block-width:0;left:var(--l);width:var(--w);opacity:.9}
+.val{text-align:right}.val small{display:block;color:var(--ink-3);font-size:.6875rem}
+.ticks{display:grid;grid-template-columns:minmax(5.5rem,7rem) 1fr minmax(6rem,9rem);gap:14px;font-size:.6875rem;color:var(--ink-3)}
+.ticks div:nth-child(2){display:flex;justify-content:space-between}
+.hatch{background:repeating-linear-gradient(135deg,var(--line) 0 2px,transparent 2px 7px)}
+/* ---------- connection state ---------- */
+.conn-card{display:grid;gap:10px;border:1px solid var(--line);border-left:3px solid var(--crit);border-radius:var(--r-2);background:var(--surface);padding:16px 18px}
+.conn-card .row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.conn-card input{all:unset;box-sizing:border-box;border:1px solid var(--line-strong);border-radius:var(--r-1);padding:0 10px;min-height:36px;min-width:min(100%,18rem);font-family:var(--font-mono);font-size:.8125rem;background:var(--surface)}
+/* ---------- floating run bar and ILLUSTRATION ---------- */
+.runbar{position:fixed;z-index:40;left:calc(232px + 24px);right:24px;bottom:16px;max-width:1060px;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--r-3);
+ background:var(--glass-2);-webkit-backdrop-filter:blur(var(--blur-2)) saturate(var(--sat));backdrop-filter:blur(var(--blur-2)) saturate(var(--sat));
+ box-shadow:inset 0 1px 0 var(--glass-edge),0 0 0 1px var(--glass-hair),var(--sh-float)}
+.runbar span{font-size:.8125rem;color:var(--ink-2);flex:1}
+.illus{border:1px dashed var(--line-strong);border-radius:var(--r-2);padding:14px 18px;display:grid;gap:10px;background:var(--surface)}
+.illus svg{width:100%;max-width:34rem;height:auto}
+.illus .stk{stroke:var(--ink-2);fill:none;stroke-width:1.5}
+.illus .ph{stroke:var(--ink-3);fill:none;stroke-width:1.5;stroke-dasharray:4 4}
+.illus text{fill:var(--ink-2);font:11px var(--font-sans)}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8125rem}
+.toc a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--line-strong)}
+.prose{max-width:68ch;font-size:1rem;line-height:1.6}
+.prose code{font-family:var(--font-mono);font-size:.875em;background:var(--surface-2);padding:0 4px;border-radius:4px;overflow-wrap:anywhere}
+@media (max-width:819px){.hdr .seg,.hdr .eyebrow{display:none}.conn{white-space:nowrap}#toggleConn{font-size:.6875rem!important}.layout{grid-template-columns:1fr}.rail{display:none}.runbar{left:12px;right:12px}.db{grid-template-columns:1fr}.ticks{display:none}.val{text-align:left}.arm{border-right:0;border-bottom:1px solid var(--line)}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.hdr,.rail,.runbar{background:var(--surface)}}
+@media (prefers-reduced-transparency:reduce){.hdr,.rail,.runbar{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-contrast:more){:root{--line:var(--line-strong)}.hdr,.rail,.runbar{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-motion:reduce){*{transition-duration:1ms!important;animation:none!important;scroll-behavior:auto}}
+@media (forced-colors:active){.hdr,.rail,.runbar{background:Canvas;-webkit-backdrop-filter:none;backdrop-filter:none;border:1px solid CanvasText}.card,.fig,.glance{border:1px solid CanvasText}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i></span>PhantomCache</div>
+  <span class="eyebrow" style="margin-left:4px">Control Center</span>
+  <div class="conn"><span class="dot" id="dot" aria-hidden="true"></span><span id="connText">Gateway connected</span>
+    <button class="btn" id="toggleConn" title="Prototype control, not part of the design" style="min-height:28px;padding:0 10px;font-size:.75rem">Preview: disconnected</button>
+    <div class="seg" role="group" aria-label="Colour theme"><button type="button" aria-pressed="false" data-t="light">Light</button><button type="button" aria-pressed="true" data-t="system">System</button><button type="button" aria-pressed="false" data-t="dark">Dark</button></div></div>
+</header>
+<div class="layout">
+<nav class="rail" aria-label="Primary">
+  <span class="eyebrow">Live gateway</span>
+  <a href="#">Overview</a><a href="#">Traffic and latency</a><a href="#">Cache and memory</a><a href="#">Freshness</a><a href="#">Origin</a>
+  <span class="eyebrow">Experiments</span>
+  <a href="#" aria-current="page">Phantom Lab</a>
+  <span class="eyebrow">Explainer</span>
+  <a href="#">Simulation <span class="tag">Simulated</span></a>
+  <span class="eyebrow">Not available yet</span>
+  <a href="#">Cluster <span class="tag">Not available</span></a><a href="#">Intelligence <span class="tag">Not available</span></a>
+  <div class="gw"><span class="eyebrow">Gateway</span><div class="mono">http://localhost:8085</div><a href="#" style="padding:0;min-height:28px;color:var(--derived)">Change address</a></div>
+</nav>
+<main>
+  <div id="connBlock" hidden class="conn-card" role="status">
+    <div class="row"><strong>Gateway unreachable</strong><span class="prov" data-k="na">Unavailable <small>no data shown</small></span></div>
+    <p style="color:var(--ink-2);max-width:62ch">No answer from <span class="mono">http://localhost:8085</span>. Retained evidence below is still readable; live values and starting runs are off.</p>
+    <div class="row"><button class="btn primary">Retry now</button><button class="btn">Change address</button><details><summary style="cursor:pointer;font-size:.8125rem">Troubleshooting and diagnostics</summary><p class="prose" style="font-size:.875rem;margin-top:8px">Check the gateway is running. If this page and the gateway have different origins, <code>PHANTOM_CORS_ORIGINS</code> must include this page origin.</p></details></div>
+  </div>
+  <div class="page-head"><span class="eyebrow">Experiments</span><h1>Phantom Lab</h1><p>Experiments on origin protection: what was tested, what it showed, and how to run it again. Every number carries the label of where it came from.</p></div>
+  <div class="strip" aria-label="Environment qualifications"><span class="q ok"><b>Lab API</b> enabled</span><span class="q warn"><b>Debug build</b> results EXPLORATORY</span><span class="q info"><b>Intelligence</b> not in serving path</span><a href="#" style="margin-left:auto">All qualifications</a></div>
+  <section aria-labelledby="reg"><div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><h2 id="reg" style="font-size:1.25rem;letter-spacing:-.02em">Registered experiments</h2><span class="axisnote">Negative and inconclusive results carry the same weight as positive ones.</span></div>
+  <div class="cards" style="margin-top:14px">
+    <article class="card" data-kind="real">
+      <div class="src"><span class="prov" data-k="real">Real <small>loopback, one host</small></span><span class="ret">Retained</span></div>
+      <h3>Scenario B: origin slowdown (T2)</h3>
+      <p class="what">Does a cap on in-flight origin fetches protect the origin when it slows, and what does it cost clients?</p>
+      <dl class="verdicts"><dt>AIMD-CAP</dt><dd><span class="v" data-t="bad"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="1.5"/></svg>Trade-off failure</span><span class="prov" data-k="derived">Derived</span></dd>
+        <dt>STATIC-CAP</dt><dd><span class="v" data-t="bad"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="1.5"/></svg>Trade-off failure</span><span class="prov" data-k="derived">Derived</span></dd></dl>
+      <p class="what">Run class <b>VALID</b> (narrow meaning: setup only, not a success verdict).</p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><a class="btn primary" href="#" style="text-decoration:none">Open result</a><span class="axisnote">2 files</span></div>
+      <div class="meta"><span class="mono">scenario_b.20261030T003932Z</span><span>Ended 2026-10-30 00:57:12Z</span><span>Read-only</span></div>
+    </article>
+    <article class="card" data-kind="sim">
+      <div class="src"><span class="prov" data-k="sim">Simulated</span><span class="ret">Retained</span></div>
+      <h3>M6 sealed evaluation</h3>
+      <p class="what">Deterministic virtual-time simulation driving the real cache and executor code. Not a measurement of any network, host or process.</p>
+      <dl class="verdicts"><dt>H1</dt><dd><span class="v" data-t="bad">Not supported</span></dd><dt>H2</dt><dd><span class="v" data-t="warn">Not testable at the registered horizon</span></dd><dt>H3, H4, H5, H6</dt><dd><span class="v" data-t="warn">Unverified or not testable</span></dd></dl>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><a class="btn" href="#" style="text-decoration:none">Open result</a><span class="axisnote">8 files</span></div>
+      <div class="meta"><span class="mono">m6_sealed_2026-10-29T234845Z</span><span>Read-only</span></div>
+    </article>
+  </div></section>
+  <nav class="toc" aria-label="On this page"><span class="eyebrow" style="align-self:center">Scenario B</span><a href="#glance">Result at a glance</a><a href="#fig">Peak concurrency</a><a href="#notice">Limits</a></nav>
+  <section id="glance" class="glance" aria-labelledby="gl">
+    <header><h2 id="gl" style="font-size:1.0625rem">Result at a glance</h2><span class="prov" data-k="real">Real <small>loopback, one host</small></span><span class="ret">Retained</span><span class="axisnote">Two separate verdicts. No combined score is computed.</span></header>
+    <div class="arms">
+      <div class="arm"><span class="eyebrow">AIMD-CAP vs BASE</span><span class="big">-64.0%<small>peak origin concurrency</small></span><span class="axisnote">paired reduction 0.6403, 95% CI [0.6248, 0.6534]</span><span class="big" style="color:var(--crit)">-17.1 pp<small>client success</small></span><span class="v" data-t="bad">Trade-off failure (limit 1 pp)</span></div>
+      <div class="arm"><span class="eyebrow">STATIC-CAP vs BASE</span><span class="big">-38.3%<small>peak origin concurrency</small></span><span class="axisnote">paired reduction 0.3833, 95% CI [0.3673, 0.4019]</span><span class="big" style="color:var(--crit)">-4.9 pp<small>client success</small></span><span class="v" data-t="bad">Trade-off failure (limit 1 pp)</span></div>
+    </div>
+    <div class="not"><b>Not established</b>Adaptive-control merit; production, WAN or multi-host behaviour; stale-serving effectiveness; any latency improvement for served clients. Valid paired runs: 10.</div>
+  </section>
+  <section id="fig" class="fig" aria-labelledby="fg">
+    <div style="display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center"><h3 id="fg">Peak origin concurrency per arm</h3><span class="prov" data-k="real">Real <small>loopback, one host</small></span><span class="ret">Retained</span><span class="seg" style="margin-left:auto"><button aria-pressed="true">Chart</button><button aria-pressed="false">Table</button></span></div>
+    <p class="axisnote">Lower means less load on the origin. Axis starts at 0. Unit: concurrent origin requests. Point = value recorded for the arm. Line = difference from BASE.</p>
+    <div class="db" role="img" aria-label="Peak origin concurrency: BASE 39, STATIC-CAP 24, AIMD-CAP 14. Table view has the exact values.">
+      <span class="lab">BASE</span><div class="track" style="--x:97.5%"><span class="pt" data-k="base"></span></div><span class="val"><b>39</b><small>reference</small></span>
+      <span class="lab">STATIC-CAP</span><div class="track" style="--b:97.5%;--x:60%;--l:60%;--w:37.5%"><span class="base"></span><span class="link"></span><span class="pt"></span></div><span class="val"><b>24</b><small>-38.3% vs BASE</small></span>
+      <span class="lab">AIMD-CAP</span><div class="track" style="--b:97.5%;--x:35%;--l:35%;--w:62.5%"><span class="base"></span><span class="link"></span><span class="pt"></span></div><span class="val"><b>14</b><small>-64.0% vs BASE</small></span>
+    </div>
+    <div class="ticks"><div></div><div><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span></div><div></div></div>
+    <p class="axisnote">Seen with the success-rate panel: the cap that lowered origin load also failed clients (BASE 100.0%, STATIC-CAP 95.1%, AIMD-CAP 82.9%). Shed 503s count as failures.</p>
+  </section>
+  <section class="fig" aria-labelledby="fg2"><div style="display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center"><h3 id="fg2">Success-only latency</h3><span class="prov" data-k="na">Unavailable <small>not exposed by the API</small></span></div>
+    <div class="hatch" style="height:56px;border-radius:6px;border:1px dotted var(--line-strong)" role="img" aria-label="Unavailable: success-only latency is not exposed by the API"></div>
+    <p class="axisnote">Do not read the all-request percentiles as served-client latency: they include fast-fail 503s.</p></section>
+  <section class="illus" aria-labelledby="il"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h3 id="il" style="font-size:1rem">How single-flight coalescing works</h3><span class="prov" data-k="sim">Illustration <small>not live, no data</small></span></div>
+    <svg viewBox="0 0 520 120" role="img" aria-label="Illustration: three clients request the same key; one fetch goes to the origin; all three receive the response.">
+      <g class="stk"><rect x="10" y="12" width="70" height="24" rx="5"/><rect x="10" y="48" width="70" height="24" rx="5"/><rect x="10" y="84" width="70" height="24" rx="5"/><rect x="200" y="42" width="110" height="36" rx="7"/><rect x="430" y="42" width="80" height="36" rx="7"/><path d="M80 24 L200 54 M80 60 L200 60 M80 96 L200 66 M310 60 L430 60"/></g>
+      <g class="ph"><rect x="206" y="48" width="110" height="36" rx="7"/></g>
+      <text x="22" y="28">client</text><text x="22" y="64">client</text><text x="22" y="100">client</text><text x="222" y="64">gateway: 1 fetch</text><text x="452" y="64">origin</text><text x="322" y="52">1 in flight</text></svg>
+    <p class="axisnote">Depth is used here only to explain a mechanism: the dashed copy behind the gateway is the "ghost" motif (derived or not-the-origin). It never shows live numbers.</p></section>
+  <section id="notice" class="prose"><h2 style="font-size:1.25rem;letter-spacing:-.02em;margin-bottom:8px">Interpretation notice (binding)</h2><p>The comparison is effectively static cap about 12 versus static cap 24. It does not demonstrate adaptive-controller effectiveness or ineffectiveness. The scripted origin has no load-dependent latency: observed origin-p99 differences are timer noise, see <code>scenario_b.20261030T003932Z</code>.</p></section>
+</main>
+</div>
+<div class="runbar" role="region" aria-label="Run bar"><button class="btn primary">Start a run</button><span>Debug build: this run will be labelled EXPLORATORY.</span></div>
+<script>
+(function(){var r=document.documentElement,p=new URLSearchParams(location.search);
+function setT(t){if(t==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t);
+ document.querySelectorAll('.seg button[data-t]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.t===t))})}
+if(p.get('theme'))setT(p.get('theme'));
+document.querySelectorAll('.seg button[data-t]').forEach(function(b){b.addEventListener('click',function(){setT(b.dataset.t)})});
+var off=false;function conn(o){off=o;document.getElementById('connBlock').hidden=!o;document.getElementById('dot').dataset.s=o?'off':'';document.getElementById('connText').textContent=o?'Gateway unreachable':'Gateway connected'}
+document.getElementById('toggleConn').addEventListener('click',function(){conn(!off)});if(p.get('conn')==='off')conn(true);})();
+</script>
+</body></html>

@@ -1,3 +1,5 @@
+> **Correction notice (2026-10-30, owner-approved DEC-020; the original text below is unchanged):** where this record says "linearizable", "linearizability", "zero stale reads", "bounded staleness" or "Option A1 ... SUPPORTED", read the narrower property that code and tests support: on one gateway, a GET that starts after that gateway's own DELETE returned does not serve the pre-delete entry from the local cache. No linearizability checker or proof exists in the repository; findings G4A-01 and G4A-08 (concurrent races on the fill and join paths) are open; cross-gateway figures are loopback, debug-profile observations, not a validated bound (`docs/research/claims_ledger.md` C6, `docs/user/limitations.md`, ADR-002 and ADR-003 status notes). Pass/PASS/ACCEPTED lines are agent self-reports (`docs/STATUS.md`).
+
 # PhantomCache Phase 6 — Continuous Progress Log and Ledger
 
 **Authoritative Specification:** `docs/research/phase_6_execution_package.md`  

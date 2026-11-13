@@ -25,6 +25,39 @@ Thumbs.db
 *.swp
 *~
 
+# Local recovery copies and per-run process artefacts (D-062, 2026-11-01).
+# /.local/ holds phase snapshots, kept on disk and in the recovery checkpoint, never committed.
+/.local/
+*.pid
+__pycache__/
+*.pyc
+# Root-level duplicate of docs/handoff/transcripts/ag_conversation_session_1_oct11_to_oct25.jsonl (identical SHA-256).
+/transcript_copy.jsonl
+
+# Evidence kept OUTSIDE Git (D-062 decision of 2026-11-01). Bytes are preserved in
+# D:\Personal\phantom-cache-backups\evidence_archive_20261101 and listed with SHA-256 in docs/release/evidence_archive/.
+# Generated browser and UI evidence (screenshots and driver output); markdown indexes stay tracked.
+/docs/design/remediation/**/*.png
+/docs/design/remediation/**/*.jpg
+/docs/design/remediation/**/*.json
+/docs/design/remediation/**/*.jsonl
+/docs/design/remediation/**/*.html
+/docs/demo/browser_verification/**/*.png
+/docs/demo/browser_verification/**/*.jpg
+/docs/demo/browser_verification/**/*.json
+/docs/demo/browser_verification/**/*.jsonl
+/docs/demo/browser_verification/**/*.html
+/docs/demo/live_demo_shots/**/*.png
+/docs/demo/live_demo_shots/**/*.jpg
+/docs/demo/live_demo_shots/**/*.json
+/docs/demo/live_demo_shots/**/*.jsonl
+/docs/demo/live_demo_shots/**/*.html
+# Generated PDFs (regenerable from docs/learning/src)
+/docs/learning/**/*.pdf
+# Local only: raw AI-session transcripts and exploratory smoke outputs
+/docs/handoff/transcripts/
+/lab-results/smoke_*/
+
 # Environment & Credentials
 .env
 .env.local

@@ -1,0 +1,3364 @@
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\Cargo.lock" "b/D:\\Personal\\phantom-cache\\Cargo.lock"
+index 20ee5ac..a0037a1 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\Cargo.lock"
++++ "b/D:\\Personal\\phantom-cache\\Cargo.lock"
+@@ -2,6 +2,12 @@
+ # It is not intended for manual editing.
+ version = 4
+ 
++[[package]]
++name = "adler2"
++version = "2.0.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
++
+ [[package]]
+ name = "aho-corasick"
+ version = "1.1.5"
+@@ -11,6 +17,18 @@ dependencies = [
+  "memchr",
+ ]
+ 
++[[package]]
++name = "anes"
++version = "0.1.6"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
++
++[[package]]
++name = "anstyle"
++version = "1.0.14"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "940b3a0ca603d1eade50a4846a2afffd5ef57a9feac2c0e2ec2e14f9ead76000"
++
+ [[package]]
+ name = "arc-swap"
+ version = "1.9.3"
+@@ -164,6 +182,25 @@ version = "0.22.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+ 
++[[package]]
++name = "bit-set"
++version = "0.11.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "56d87354e4229f54a44f7bf2435906a4656dba36026ab6eaca629a2c436a691c"
++dependencies = [
++ "bit-vec",
++]
++
++[[package]]
++name = "bit-vec"
++version = "0.10.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "5727b15fa97d4f4fee0a3b7c3d550ed0269f54329207b86388de918604e31269"
++dependencies = [
++ "borsh",
++ "serde",
++]
++
+ [[package]]
+ name = "bitflags"
+ version = "2.13.1"
+@@ -179,6 +216,30 @@ dependencies = [
+  "generic-array",
+ ]
+ 
++[[package]]
++name = "borsh"
++version = "1.8.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "553c5d846a6ba5150c65e3b1b8ec073bcf1abc20f9b7220de384a4443ea4e20a"
++dependencies = [
++ "borsh-derive",
++ "bytes",
++ "cfg_aliases",
++]
++
++[[package]]
++name = "borsh-derive"
++version = "1.8.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "12cdfe656708a01f89b451a7d36466e6fe6c414de0aa18fc54f864f6f9ca9f56"
++dependencies = [
++ "once_cell",
++ "proc-macro-crate",
++ "proc-macro2",
++ "quote",
++ "syn 3.0.4",
++]
++
+ [[package]]
+ name = "bumpalo"
+ version = "3.20.3"
+@@ -197,6 +258,12 @@ version = "1.12.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
+ 
++[[package]]
++name = "cast"
++version = "0.3.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
++
+ [[package]]
+ name = "cc"
+ version = "1.10.0"
+@@ -215,6 +282,75 @@ version = "1.0.4"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
+ 
++[[package]]
++name = "cfg_aliases"
++version = "0.2.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f079e83a288787bcd14a6aea84cee5c87a67c5a3e660c30f557a3d24761b3527"
++
++[[package]]
++name = "chacha20"
++version = "0.10.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06"
++dependencies = [
++ "cfg-if",
++ "cpufeatures 0.3.1",
++ "rand_core 0.10.1",
++]
++
++[[package]]
++name = "ciborium"
++version = "0.2.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "42e69ffd6f0917f5c029256a24d0161db17cea3997d185db0d35926308770f0e"
++dependencies = [
++ "ciborium-io",
++ "ciborium-ll",
++ "serde",
++]
++
++[[package]]
++name = "ciborium-io"
++version = "0.2.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "05afea1e0a06c9be33d539b876f1ce3692f4afea2cb41f740e7743225ed1c757"
++
++[[package]]
++name = "ciborium-ll"
++version = "0.2.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "57663b653d948a338bfb3eeba9bb2fd5fcfaecb9e199e87e1eda4d9e8b240fd9"
++dependencies = [
++ "ciborium-io",
++ "half",
++]
++
++[[package]]
++name = "clap"
++version = "4.6.7"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "aa8876b300ab35ba921adea3dfd70157a46249b33f95c9084ae5709785478946"
++dependencies = [
++ "clap_builder",
++]
++
++[[package]]
++name = "clap_builder"
++version = "4.6.7"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "ec0797fb7aeb1406c84efac526901f7ec3ead2124f946b494e72879d4b54704d"
++dependencies = [
++ "anstyle",
++ "clap_lex",
++]
++
++[[package]]
++name = "clap_lex"
++version = "1.1.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
++
+ [[package]]
+ name = "cmake"
+ version = "0.1.58"
+@@ -265,6 +401,79 @@ dependencies = [
+  "libc",
+ ]
+ 
++[[package]]
++name = "cpufeatures"
++version = "0.3.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566"
++dependencies = [
++ "libc",
++]
++
++[[package]]
++name = "crc32fast"
++version = "1.5.3"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "0ba106e844045ddc02c20768ac4b0b7cb45f2cc2ecbd833ac9f5dacb183c2055"
++dependencies = [
++ "cfg-if",
++]
++
++[[package]]
++name = "criterion"
++version = "0.5.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f2b12d017a929603d80db1831cd3a24082f8137ce19c69e6447f54f5fc8d692f"
++dependencies = [
++ "anes",
++ "cast",
++ "ciborium",
++ "clap",
++ "criterion-plot",
++ "is-terminal",
++ "itertools",
++ "num-traits",
++ "once_cell",
++ "oorandom",
++ "regex",
++ "serde",
++ "serde_derive",
++ "serde_json",
++ "tinytemplate",
++ "walkdir",
++]
++
++[[package]]
++name = "criterion-plot"
++version = "0.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "6b50826342786a51a89e2da3a28f1c32b06e387201bc2d19791f622c673706b1"
++dependencies = [
++ "cast",
++ "itertools",
++]
++
++[[package]]
++name = "crossbeam-channel"
++version = "0.5.17"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "98b0cc327b5bc766e7fda9c9260cc0fa81b43a8e240440422dff70788e3f9ef1"
++dependencies = [
++ "crossbeam-utils",
++]
++
++[[package]]
++name = "crossbeam-utils"
++version = "0.8.23"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "a31eee39dddec8330830986fcd7625edb5a24ec90ea038215273bbc3adb08ac6"
++
++[[package]]
++name = "crunchy"
++version = "0.2.4"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
++
+ [[package]]
+ name = "crypto-common"
+ version = "0.1.7"
+@@ -314,6 +523,12 @@ version = "1.0.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
+ 
++[[package]]
++name = "either"
++version = "1.19.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
++
+ [[package]]
+ name = "encoding_rs"
+ version = "0.8.42"
+@@ -356,6 +571,17 @@ version = "0.1.15"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "1c66915cc5391097de7a2b0b972e8505aa33c0df401fd3a6811dbdb32881ba48"
+ 
++[[package]]
++name = "flate2"
++version = "1.1.10"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "6e634e2e0ebac1ee034020da1ca582e17ffe4e0f5e985823721e168928136dcb"
++dependencies = [
++ "crc32fast",
++ "miniz_oxide",
++ "zlib-rs",
++]
++
+ [[package]]
+ name = "fnv"
+ version = "1.0.7"
+@@ -486,6 +712,7 @@ dependencies = [
+  "cfg-if",
+  "libc",
+  "r-efi",
++ "rand_core 0.10.1",
+ ]
+ 
+ [[package]]
+@@ -507,12 +734,43 @@ dependencies = [
+  "tracing",
+ ]
+ 
++[[package]]
++name = "half"
++version = "2.7.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "6ea2d84b969582b4b1864a92dc5d27cd2b77b622a8d79306834f1be5ba20d84b"
++dependencies = [
++ "cfg-if",
++ "crunchy",
++ "zerocopy",
++]
++
+ [[package]]
+ name = "hashbrown"
+ version = "0.17.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
+ 
++[[package]]
++name = "hdrhistogram"
++version = "7.6.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f49d1053f4708f0af3cf9fc5bffc7e68a914a3c45becb231c80068c9c3f78bea"
++dependencies = [
++ "base64",
++ "byteorder",
++ "crossbeam-channel",
++ "flate2",
++ "nom",
++ "num-traits",
++]
++
++[[package]]
++name = "hermit-abi"
++version = "0.5.3"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "e17592d60ebacc7d5e169f4663c5f84f9161cc90328abcfe8456f41e4dfcb284"
++
+ [[package]]
+ name = "http"
+ version = "1.5.0"
+@@ -762,6 +1020,26 @@ version = "2.12.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "791930b43c0d5973160d90a8f3894509f2b273430f5c5c73b668636d0287c5c0"
+ 
++[[package]]
++name = "is-terminal"
++version = "0.4.17"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "3640c1c38b8e4e43584d8df18be5fc6b0aa314ce6ebf51b53313d4306cca8e46"
++dependencies = [
++ "hermit-abi",
++ "libc",
++ "windows-sys 0.61.2",
++]
++
++[[package]]
++name = "itertools"
++version = "0.10.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
++dependencies = [
++ "either",
++]
++
+ [[package]]
+ name = "itoa"
+ version = "1.0.18"
+@@ -880,6 +1158,16 @@ dependencies = [
+  "unicase",
+ ]
+ 
++[[package]]
++name = "miniz_oxide"
++version = "0.9.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c"
++dependencies = [
++ "adler2",
++ "simd-adler32",
++]
++
+ [[package]]
+ name = "mio"
+ version = "1.2.2"
+@@ -914,6 +1202,15 @@ dependencies = [
+  "tempfile",
+ ]
+ 
++[[package]]
++name = "nom"
++version = "8.0.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "df9761775871bdef83bee530e60050f7e54b1105350d6884eb0fb4f46c2f9405"
++dependencies = [
++ "memchr",
++]
++
+ [[package]]
+ name = "nu-ansi-term"
+ version = "0.50.3"
+@@ -963,6 +1260,12 @@ version = "1.21.4"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+ 
++[[package]]
++name = "oorandom"
++version = "11.1.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e"
++
+ [[package]]
+ name = "openssl"
+ version = "0.10.81"
+@@ -1051,9 +1354,12 @@ version = "0.1.0"
+ dependencies = [
+  "axum",
+  "axum-server",
++ "criterion",
+  "futures-util",
++ "hdrhistogram",
+  "jsonwebtoken",
+- "rand",
++ "proptest",
++ "rand 0.8.8",
+  "rcgen",
+  "reqwest",
+  "ring",
+@@ -1107,6 +1413,15 @@ dependencies = [
+  "zerocopy",
+ ]
+ 
++[[package]]
++name = "proc-macro-crate"
++version = "3.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "e67ba7e9b2b56446f1d419b1d807906278ffa1a658a8a5d8a39dcb1f5a78614f"
++dependencies = [
++ "toml_edit",
++]
++
+ [[package]]
+ name = "proc-macro2"
+ version = "1.0.107"
+@@ -1116,6 +1431,32 @@ dependencies = [
+  "unicode-ident",
+ ]
+ 
++[[package]]
++name = "proptest"
++version = "1.12.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "b8530004ccb15eae51c7e40009fbe317f341f804db54dc033eec1c50be28cfa0"
++dependencies = [
++ "bit-set",
++ "bit-vec",
++ "bitflags",
++ "chacha20",
++ "core_detect",
++ "num-traits",
++ "rand 0.10.3",
++ "rand_xorshift",
++ "regex-syntax",
++ "rusty-fork",
++ "tempfile",
++ "unarray",
++]
++
++[[package]]
++name = "quick-error"
++version = "1.2.3"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
++
+ [[package]]
+ name = "quote"
+ version = "1.0.47"
+@@ -1139,7 +1480,17 @@ checksum = "e058c7de0b26af77780c769414d6257830bb240f3c38477dbc2c16e5f54d6d4c"
+ dependencies = [
+  "libc",
+  "rand_chacha",
+- "rand_core",
++ "rand_core 0.6.4",
++]
++
++[[package]]
++name = "rand"
++version = "0.10.3"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "65c9fb96cbc91e3478eaae79a69fcd3f1ae4ad052e471fe6732fff548984b4af"
++dependencies = [
++ "getrandom 0.4.3",
++ "rand_core 0.10.1",
+ ]
+ 
+ [[package]]
+@@ -1149,7 +1500,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
+ dependencies = [
+  "ppv-lite86",
+- "rand_core",
++ "rand_core 0.6.4",
+ ]
+ 
+ [[package]]
+@@ -1161,6 +1512,21 @@ dependencies = [
+  "getrandom 0.2.17",
+ ]
+ 
++[[package]]
++name = "rand_core"
++version = "0.10.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
++
++[[package]]
++name = "rand_xorshift"
++version = "0.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "60aa6af80be32871323012e02e6e65f8a7cc7890931ae421d217ad8fe0df2ccf"
++dependencies = [
++ "rand_core 0.10.1",
++]
++
+ [[package]]
+ name = "rcgen"
+ version = "0.13.2"
+@@ -1183,6 +1549,18 @@ dependencies = [
+  "bitflags",
+ ]
+ 
++[[package]]
++name = "regex"
++version = "1.13.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d"
++dependencies = [
++ "aho-corasick",
++ "memchr",
++ "regex-automata",
++ "regex-syntax",
++]
++
+ [[package]]
+ name = "regex-automata"
+ version = "0.4.18"
+@@ -1318,12 +1696,33 @@ version = "1.0.23"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
+ 
++[[package]]
++name = "rusty-fork"
++version = "0.3.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "cc6bf79ff24e648f6da1f8d1f011e9cac26491b619e6b9280f2b47f1774e6ee2"
++dependencies = [
++ "fnv",
++ "quick-error",
++ "tempfile",
++ "wait-timeout",
++]
++
+ [[package]]
+ name = "ryu"
+ version = "1.0.23"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
+ 
++[[package]]
++name = "same-file"
++version = "1.0.6"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
++dependencies = [
++ "winapi-util",
++]
++
+ [[package]]
+ name = "schannel"
+ version = "0.1.30"
+@@ -1435,7 +1834,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "a978451301f4db1d02937a4ab3ccce137717b81826e79b7d49ffe3244a13c3b8"
+ dependencies = [
+  "cfg-if",
+- "cpufeatures",
++ "cpufeatures 0.2.17",
+  "digest",
+ ]
+ 
+@@ -1464,6 +1863,12 @@ dependencies = [
+  "libc",
+ ]
+ 
++[[package]]
++name = "simd-adler32"
++version = "0.3.10"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
++
+ [[package]]
+ name = "simdutf8"
+ version = "0.1.5"
+@@ -1681,6 +2086,16 @@ dependencies = [
+  "zerovec",
+ ]
+ 
++[[package]]
++name = "tinytemplate"
++version = "1.2.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "be4d6b5f19ff7664e8c98d03e2139cb510db9b0a60b55f8e8709b689d939b6bc"
++dependencies = [
++ "serde",
++ "serde_json",
++]
++
+ [[package]]
+ name = "tokio"
+ version = "1.53.1"
+@@ -1766,6 +2181,36 @@ dependencies = [
+  "tokio",
+ ]
+ 
++[[package]]
++name = "toml_datetime"
++version = "1.1.2+spec-1.1.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "2b86d767906c6c42421dcba507eb9d203e779497710a47782a224bb871653053"
++dependencies = [
++ "serde_core",
++]
++
++[[package]]
++name = "toml_edit"
++version = "0.25.17+spec-1.1.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "e3641d5bbb5349a79e1020a242d251efbc546ad8048d133958323ce9c40a9c9c"
++dependencies = [
++ "indexmap",
++ "toml_datetime",
++ "toml_parser",
++ "winnow",
++]
++
++[[package]]
++name = "toml_parser"
++version = "1.1.5+spec-1.1.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "baa693a8032d7e1cada7d0041e96126df243179ff061456783ac7f12bda4744c"
++dependencies = [
++ "winnow",
++]
++
+ [[package]]
+ name = "tower"
+ version = "0.5.3"
+@@ -1917,7 +2362,7 @@ dependencies = [
+  "http",
+  "httparse",
+  "log",
+- "rand",
++ "rand 0.8.8",
+  "sha1",
+  "thiserror 1.0.69",
+  "utf-8",
+@@ -1929,6 +2374,12 @@ version = "1.20.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20"
+ 
++[[package]]
++name = "unarray"
++version = "0.1.4"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "eaea85b334db583fe3274d12b4cd1880032beab409c0d774be044d4480ab9a94"
++
+ [[package]]
+ name = "unicase"
+ version = "2.9.0"
+@@ -1989,6 +2440,25 @@ version = "0.9.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+ 
++[[package]]
++name = "wait-timeout"
++version = "0.2.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "09ac3b126d3914f9849036f826e054cbabdc8519970b8998ddaf3b5bd3c65f11"
++dependencies = [
++ "libc",
++]
++
++[[package]]
++name = "walkdir"
++version = "2.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b"
++dependencies = [
++ "same-file",
++ "winapi-util",
++]
++
+ [[package]]
+ name = "want"
+ version = "0.3.2"
+@@ -2088,6 +2558,15 @@ dependencies = [
+  "rustls-pki-types",
+ ]
+ 
++[[package]]
++name = "winapi-util"
++version = "0.1.11"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
++dependencies = [
++ "windows-sys 0.61.2",
++]
++
+ [[package]]
+ name = "windows-link"
+ version = "0.2.1"
+@@ -2205,6 +2684,15 @@ version = "0.52.6"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+ 
++[[package]]
++name = "winnow"
++version = "1.0.4"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
++dependencies = [
++ "memchr",
++]
++
+ [[package]]
+ name = "writeable"
+ version = "0.6.4"
+@@ -2323,6 +2811,12 @@ dependencies = [
+  "syn 3.0.4",
+ ]
+ 
++[[package]]
++name = "zlib-rs"
++version = "0.6.8"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "b268e58e7c693d7c271f93ffc4ba3b380412554231c85bf61ca7af91042a4112"
++
+ [[package]]
+ name = "zmij"
+ version = "1.0.23"
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\Cargo.toml" "b/D:\\Personal\\phantom-cache\\Cargo.toml"
+index a9e4281..82fba92 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\Cargo.toml"
++++ "b/D:\\Personal\\phantom-cache\\Cargo.toml"
+@@ -27,6 +27,9 @@ ring = "0.17"
+ jsonwebtoken = "9"
+ rcgen = "0.13"
+ reqwest = { version = "0.12", features = ["json"] }
++criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
++hdrhistogram = "7.5"
++proptest = "1.6"
+ 
+ [[test]]
+ name = "wp1_tests"
+@@ -96,3 +99,43 @@ path = "tests/integration/security_phase4b_router_tests.rs"
+ name = "security_phase4c_antientropy_tests"
+ path = "tests/integration/security_phase4c_antientropy_tests.rs"
+ 
++[[test]]
++name = "known_gaps"
++path = "tests/integration/known_gaps.rs"
++
++[[test]]
++name = "telemetry_truth_tests"
++path = "tests/integration/telemetry_truth_tests.rs"
++
++[[test]]
++name = "byte_accounting_tests"
++path = "tests/integration/byte_accounting_tests.rs"
++
++[[bench]]
++name = "b1_hit_path"
++harness = false
++
++[[bench]]
++name = "b2_concurrency"
++harness = false
++
++[[bench]]
++name = "b6_telemetry"
++harness = false
++
++[[bench]]
++name = "b8e_gateway"
++harness = false
++
++[[bench]]
++name = "b3_coalesce"
++harness = false
++
++[[bench]]
++name = "b4_eviction"
++harness = false
++
++[[bench]]
++name = "b7_memory"
++harness = false
++
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\docs/handoff/00_START_HERE.md" "b/D:\\Personal\\phantom-cache\\docs/handoff/00_START_HERE.md"
+index 653de90..e1823cb 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\docs/handoff/00_START_HERE.md"
++++ "b/D:\\Personal\\phantom-cache\\docs/handoff/00_START_HERE.md"
+@@ -1,5 +1,7 @@
+ # PhantomCache — AI Handoff & Quick Start Guide
+ 
++> **AUTHORITATIVE NOTICE:** Prior handoff claims regarding distributed consistency, anti-entropy, and PIE adaptive caching have been audited and corrected. See [`docs/handoff/CORRECTIONS.md`](CORRECTIONS.md) for the verified status of all architectural and performance claims.
++
+ **Document ID:** `docs/handoff/00_START_HERE.md`  
+ **Purpose:** Primary entry point for incoming AI coding assistants.  
+ **Repository:** `D:\Personal\phantom-cache`  
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/api/server.rs" "b/D:\\Personal\\phantom-cache\\src/api/server.rs"
+index 014b5a7..5aaa208 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/api/server.rs"
++++ "b/D:\\Personal\\phantom-cache\\src/api/server.rs"
+@@ -72,6 +72,10 @@ impl ApiState {
+             .clone()
+             .or_else(|| self.security.as_ref().and_then(|s| s.upstream.clone()))
+     }
++
++    pub fn origin_metrics(&self) -> Option<&Arc<crate::intel::origin_metrics::OriginMetrics>> {
++        self.telemetry.as_ref().map(|t| &t.origin_metrics)
++    }
+ }
+ 
+ pub fn create_app(shared_state: Arc<ApiState>) -> Router {
+@@ -88,6 +92,7 @@ pub fn create_app(shared_state: Arc<ApiState>) -> Router {
+             "/api/v1/cache",
+             get(get_cache_handler_root).delete(delete_cache_handler_root),
+         )
++        .route("/api/v1/metrics", get(metrics_handler))
+         .route("/api/v1/diagnostics/summary", get(diagnostics_summary_handler))
+         .route("/api/v1/diagnostics/events", get(diagnostics_events_handler))
+         .with_state(shared_state)
+@@ -96,7 +101,13 @@ pub fn create_app(shared_state: Arc<ApiState>) -> Router {
+ }
+ 
+ pub async fn start_server(shared_state: Arc<ApiState>) {
+-    spawn_simulation_loop(shared_state.clone());
++    let sim_enabled = std::env::var("PHANTOM_SIMULATION")
++        .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
++        .unwrap_or(false);
++    if sim_enabled {
++        spawn_simulation_loop(shared_state.clone());
++    }
++    spawn_metrics_sampler(shared_state.clone());
+ 
+     let app = create_app(shared_state.clone());
+ 
+@@ -160,8 +171,286 @@ async fn health_check() -> &'static str {
+     "OK"
+ }
+ 
++pub fn spawn_metrics_sampler(state: Arc<ApiState>) {
++    tokio::spawn(async move {
++        let mut interval = tokio::time::interval(Duration::from_secs(1));
++        loop {
++            interval.tick().await;
++            if let (Some(ref cache), Some(ref tel)) = (&state.cache, &state.telemetry) {
++                let requests = cache.counters.requests_total.load(Ordering::Relaxed);
++                let hits = cache.counters.cache_hits.load(Ordering::Relaxed);
++                let misses = cache.counters.cache_misses.load(Ordering::Relaxed);
++                tel.rate_sampler.sample(requests, hits, misses);
++            }
++        }
++    });
++}
++
++#[cfg(target_os = "linux")]
++fn get_process_rss_bytes() -> serde_json::Value {
++    if let Ok(statm) = std::fs::read_to_string("/proc/self/statm") {
++        let parts: Vec<&str> = statm.split_whitespace().collect();
++        if parts.len() >= 2 {
++            if let Ok(pages) = parts[1].parse::<u64>() {
++                let page_size = 4096u64;
++                return json!({
++                    "src": "measured",
++                    "v": pages * page_size,
++                    "unit": "bytes"
++                });
++            }
++        }
++    }
++    json!({"src": "unavailable", "reason": "proc_statm_read_error", "unit": "bytes"})
++}
++
++#[cfg(not(target_os = "linux"))]
++fn get_process_rss_bytes() -> serde_json::Value {
++    json!({"src": "unavailable", "reason": "unsupported_platform", "unit": "bytes"})
++}
++
++pub fn build_schema_v2_payload(state: &ApiState) -> serde_json::Value {
++    let mode = if std::env::var("PHANTOM_SIMULATION")
++        .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
++        .unwrap_or(false)
++    {
++        "simulation"
++    } else {
++        "live"
++    };
++
++    let cluster_cap = if state.router.is_some() {
++        "experimental"
++    } else {
++        "disabled"
++    };
++    let controller_cap = if state.pie.is_some() {
++        "active"
++    } else {
++        "none"
++    };
++    let origin_cap = if state.origin_url.is_some() {
++        "available"
++    } else {
++        "unavailable"
++    };
++
++    if let (Some(ref cache), Some(ref tel)) = (&state.cache, &state.telemetry) {
++        let req = cache.counters.requests_total.load(Ordering::Relaxed);
++        let h = cache.counters.cache_hits.load(Ordering::Relaxed);
++        let m = cache.counters.cache_misses.load(Ordering::Relaxed);
++        tel.rate_sampler.sample_if_due(req, h, m);
++    }
++
++    let (reqs, hits, misses, coalesced, evictions, cap_rejections, hit_ratio_cum) =
++        if let Some(ref cache) = state.cache {
++            let r = cache.counters.requests_total.load(Ordering::Relaxed);
++            let h = cache.counters.cache_hits.load(Ordering::Relaxed);
++            let m = cache.counters.cache_misses.load(Ordering::Relaxed);
++            let c = cache.counters.coalesced_waiters.load(Ordering::Relaxed);
++            let e = cache.counters.evictions_total.load(Ordering::Relaxed);
++            let cap = cache.counters.capacity_rejections.load(Ordering::Relaxed);
++            let total = h + m;
++            let hr = if total > 0 { h as f64 / total as f64 } else { 1.0 };
++            (r, h, m, c, e, cap, hr)
++        } else {
++            (0, 0, 0, 0, 0, 0, 1.0)
++        };
++
++    let (hit_ratio_10s_val, hit_ratio_1s_val, tp_10s_val, tp_1s_val) =
++        if let Some(ref tel) = state.telemetry {
++            let hr_10s = match tel.rate_sampler.hit_ratio_10s() {
++                Some(v) => json!({"src": "derived", "v": v, "unit": "ratio"}),
++                None => json!({"src": "unavailable", "reason": "insufficient_window", "unit": "ratio"}),
++            };
++            let hr_1s = match tel.rate_sampler.hit_ratio_1s() {
++                Some(v) => json!({"src": "derived", "v": v, "unit": "ratio"}),
++                None => json!({"src": "unavailable", "reason": "insufficient_window", "unit": "ratio"}),
++            };
++            let tp_10s = json!({"src": "derived", "v": tel.rate_sampler.throughput_10s(), "unit": "req/s"});
++            let tp_1s = json!({"src": "derived", "v": tel.rate_sampler.throughput_1s(), "unit": "req/s"});
++            (hr_10s, hr_1s, tp_10s, tp_1s)
++        } else {
++            (
++                json!({"src": "unavailable", "reason": "telemetry_disabled", "unit": "ratio"}),
++                json!({"src": "unavailable", "reason": "telemetry_disabled", "unit": "ratio"}),
++                json!({"src": "unavailable", "reason": "telemetry_disabled", "unit": "req/s"}),
++                json!({"src": "unavailable", "reason": "telemetry_disabled", "unit": "req/s"}),
++            )
++        };
++
++    let latency_val = if let Some(ref tel) = state.telemetry {
++        if !tel.is_empty() {
++            let (p50, p90, p95, p99) = tel.calculate_percentiles_v2();
++            json!({
++                "src": "measured",
++                "unit": "ms",
++                "p50": p50,
++                "p90": p90,
++                "p95": p95,
++                "p99": p99,
++                "samples": tel.len()
++            })
++        } else {
++            json!({"src": "unavailable", "reason": "no_samples", "unit": "ms"})
++        }
++    } else {
++        json!({"src": "unavailable", "reason": "no_samples", "unit": "ms"})
++    };
++
++    let origin_val = if state.origin_url.is_some() {
++        if let Some(ref tel) = state.telemetry {
++            let snap = tel.origin_metrics.snapshot();
++            let lat_obj = match (snap.latency_p50, snap.latency_p95, snap.latency_p99) {
++                (Some(p50), Some(p95), Some(p99)) => json!({
++                    "src": "derived",
++                    "unit": "ms",
++                    "p50": p50,
++                    "p95": p95,
++                    "p99": p99
++                }),
++                _ => json!({"src": "unavailable", "reason": "no_samples", "unit": "ms"}),
++            };
++            json!({
++                "requests_started": {"src": "measured", "v": snap.requests_started, "unit": "count"},
++                "requests_completed_ok": {"src": "measured", "v": snap.requests_completed_ok, "unit": "count"},
++                "in_flight": {"src": "measured", "v": snap.in_flight, "unit": "count"},
++                "errors": {
++                    "timeout": {"src": "measured", "v": snap.errors_timeout, "unit": "count"},
++                    "network": {"src": "measured", "v": snap.errors_network, "unit": "count"},
++                    "status_5xx": {"src": "measured", "v": snap.errors_status_5xx, "unit": "count"},
++                    "other": {"src": "measured", "v": snap.errors_other, "unit": "count"}
++                },
++                "latency_ms": lat_obj
++            })
++        } else {
++            json!({"src": "unavailable", "reason": "telemetry_disabled"})
++        }
++    } else {
++        json!({"src": "unavailable", "reason": "origin_not_configured"})
++    };
++
++    let rss_val = get_process_rss_bytes();
++
++    let mut nodes_val = Vec::new();
++    let state_src = if state.router.is_some() { "inferred" } else { "simulated" };
++    for n in &state.nodes {
++        let (cpu, mem) = if mode == "simulation" {
++            (json!({"src": "simulated", "v": 28.4}), json!({"src": "simulated", "v": 536870912u64}))
++        } else {
++            (
++                json!({"src": "unavailable", "reason": "not_measured"}),
++                json!({"src": "unavailable", "reason": "not_measured"}),
++            )
++        };
++        nodes_val.push(json!({
++            "node_id": n.node_id,
++            "state": format!("{:?}", n.get_state()),
++            "state_src": state_src,
++            "cpu": cpu,
++            "memory": mem,
++        }));
++    }
++
++    let (bytes_resident_val, byte_budget_val, byte_budget_rej_val, oversize_rej_val) =
++        if let Some(ref cache) = state.cache {
++            (
++                json!({
++                    "src": "measured",
++                    "v": cache.bytes_resident(),
++                    "basis": "logical_accounting",
++                    "unit": "bytes"
++                }),
++                json!({
++                    "src": "measured",
++                    "v": cache.byte_budget(),
++                    "unit": "bytes"
++                }),
++                json!({
++                    "src": "measured",
++                    "v": cache.counters.byte_budget_rejections.load(Ordering::Relaxed),
++                    "unit": "count"
++                }),
++                json!({
++                    "src": "measured",
++                    "v": cache.counters.oversize_rejections.load(Ordering::Relaxed),
++                    "unit": "count"
++                }),
++            )
++        } else {
++            (
++                json!({"src": "unavailable", "reason": "cache_unavailable", "unit": "bytes"}),
++                json!({"src": "unavailable", "reason": "cache_unavailable", "unit": "bytes"}),
++                json!({"src": "unavailable", "reason": "cache_unavailable", "unit": "count"}),
++                json!({"src": "unavailable", "reason": "cache_unavailable", "unit": "count"}),
++            )
++        };
++
++    let mut root = json!({
++        "schema": 2,
++        "mode": mode,
++        "as_of_ms": DiagnosticBuffer::now_ms(),
++        "uptime_ms": state.telemetry.as_ref().map(|t| t.rate_sampler.uptime_ms()).unwrap_or(0),
++        "capabilities": {
++            "cluster": cluster_cap,
++            "controller": controller_cap,
++            "origin_metrics": origin_cap,
++        },
++        "metrics": {
++            "requests_total": {"src": "measured", "v": reqs, "unit": "count"},
++            "cache_hits": {"src": "measured", "v": hits, "unit": "count"},
++            "cache_misses": {"src": "measured", "v": misses, "unit": "count"},
++            "coalesced_waiters": {"src": "measured", "v": coalesced, "unit": "count"},
++            "evictions_total": {"src": "measured", "v": evictions, "unit": "count"},
++            "capacity_rejections": {"src": "measured", "v": cap_rejections, "unit": "count"},
++            "hit_ratio_cumulative": {"src": "derived", "v": hit_ratio_cum, "unit": "ratio"},
++            "hit_ratio_10s": hit_ratio_10s_val,
++            "hit_ratio_1s": hit_ratio_1s_val,
++            "throughput_req_s_10s": tp_10s_val,
++            "throughput_req_s_1s": tp_1s_val,
++            "latency_ms": latency_val,
++            "bytes_resident": bytes_resident_val,
++            "byte_budget": byte_budget_val,
++            "byte_budget_rejections": byte_budget_rej_val,
++            "oversize_rejections": oversize_rej_val,
++            "origin": origin_val,
++            "process": {
++                "rss_bytes": rss_val
++            }
++        },
++        "hot_keys": {"src": "unavailable", "reason": "not_implemented"},
++        "nodes": nodes_val,
++    });
++
++    if mode == "simulation" {
++        let snap = state.snapshot.lock().unwrap();
++        if let Some(obj) = root.as_object_mut() {
++            obj.insert("backend_load_ratio".to_string(), json!({"src": "simulated", "v": snap.db_load_ratio}));
++            obj.insert("avoided_compute_dollars".to_string(), json!({"src": "simulated", "v": snap.avoided_compute_dollars}));
++            obj.insert("cost".to_string(), json!({"src": "simulated", "v": 0.05}));
++        }
++    }
++
++    root
++}
++
++async fn metrics_handler(
++    State(state): State<Arc<ApiState>>,
++    headers: HeaderMap,
++) -> Response {
++    if let Some(ref sec) = state.security {
++        if sec.require_auth_for_control {
++            if let Err(resp) = authenticate_request(&headers, sec, crate::security::Role::Observer) {
++                return resp;
++            }
++        }
++    }
++    Json(build_schema_v2_payload(&state)).into_response()
++}
++
+ async fn sse_handler(
+     State(state): State<Arc<ApiState>>,
++    raw_query: RawQuery,
+     headers: HeaderMap,
+ ) -> Response {
+     if let Some(ref sec) = state.security {
+@@ -172,10 +461,21 @@ async fn sse_handler(
+         }
+     }
+ 
++    let is_schema_v2 = raw_query
++        .0
++        .as_deref()
++        .map(|q| q.split('&').any(|p| p == "schema=2" || p.starts_with("schema=2")))
++        .unwrap_or(false);
++
+     let interval = tokio::time::interval(Duration::from_millis(100));
+     let stream = IntervalStream::new(interval).map(move |_| {
++        if is_schema_v2 {
++            let payload = build_schema_v2_payload(&state);
++            return Ok::<Event, Infallible>(Event::default().json_data(payload).unwrap());
++        }
++
+         let snap = state.snapshot.lock().unwrap().clone();
+-        let (p50, p90, p99, hits, misses, coalesced, evictions, capacity_rejections, hit_ratio, throughput) =
++        let (p50, p90, p95, p99, hits, misses, coalesced, evictions, capacity_rejections, hit_ratio, throughput) =
+             if let Some(ref cache) = state.cache {
+                 let h = cache.counters.cache_hits.load(Ordering::Relaxed);
+                 let m = cache.counters.cache_misses.load(Ordering::Relaxed);
+@@ -184,16 +484,17 @@ async fn sse_handler(
+                 let cap = cache.counters.capacity_rejections.load(Ordering::Relaxed);
+                 let total = h + m;
+                 let hr = if total > 0 { h as f64 / total as f64 } else { 1.0 };
+-                let (p50, p90, p99) = if let Some(ref tel) = state.telemetry {
+-                    tel.calculate_percentiles()
++                let (p50, p90, p95, p99) = if let Some(ref tel) = state.telemetry {
++                    tel.calculate_percentiles_v2()
+                 } else {
+-                    (snap.p50_latency_ms, snap.p95_latency_ms, snap.p99_latency_ms)
++                    (snap.p50_latency_ms, snap.p95_latency_ms, snap.p95_latency_ms, snap.p99_latency_ms)
+                 };
+-                (p50, p90, p99, h, m, c, e, cap, hr, snap.throughput_req_sec)
++                (p50, p90, p95, p99, h, m, c, e, cap, hr, snap.throughput_req_sec)
+             } else {
+                 (
+                     snap.p50_latency_ms,
+                     snap.p95_latency_ms,
++                    snap.p95_latency_ms,
+                     snap.p99_latency_ms,
+                     0,
+                     0,
+@@ -213,7 +514,7 @@ async fn sse_handler(
+                 "throughput_req_sec": throughput,
+                 "p50_latency_ms": p50,
+                 "p90_latency_ms": p90,
+-                "p95_latency_ms": snap.p95_latency_ms,
++                "p95_latency_ms": p95,
+                 "p99_latency_ms": p99,
+                 "backend_load_ratio": snap.db_load_ratio,
+                 "avoided_compute_dollars": snap.avoided_compute_dollars,
+@@ -452,6 +753,7 @@ async fn get_cache_handler(
+         return map_origin_error_to_response(&e);
+     }
+     let now_ms = DiagnosticBuffer::now_ms();
++    let key_hash = crate::intel::telemetry::fnv1a_64(&cache_key.to_canonical_string());
+ 
+     cache.counters.requests_total.fetch_add(1, Ordering::Relaxed);
+ 
+@@ -479,7 +781,7 @@ async fn get_cache_handler(
+                 }
+                 if let Some(ref tel) = state.telemetry {
+                     let elapsed = DiagnosticBuffer::now_ms().saturating_sub(now_ms) as u32;
+-                    tel.record(RawObservation::new(now_ms, 0, elapsed, false, 0));
++                    tel.record(RawObservation::new_get(now_ms, key_hash, elapsed, false, 0));
+                 }
+                 resp
+             }
+@@ -578,8 +880,10 @@ async fn get_cache_handler(
+             let key_for_task = cache_key.clone();
+             let headers_for_task = clean_headers;
+             let policy_for_task = state.get_upstream_policy();
++            let origin_metrics_for_task = state.telemetry.as_ref().map(|t| t.origin_metrics.clone());
+ 
+             tokio::spawn(async move {
++                let in_flight_guard = origin_metrics_for_task.as_ref().map(|m| m.start_request());
+                 let start_time = DiagnosticBuffer::now_ms();
+                 let fetch_res =
+                     fetch_origin_raw(&origin_base, &key_for_task, &headers_for_task, policy_for_task.as_deref()).await;
+@@ -588,6 +892,9 @@ async fn get_cache_handler(
+                 match fetch_res {
+                     Ok((status, headers_out, body)) => {
+                         if status == 200 {
++                            if let Some(g) = in_flight_guard {
++                                g.complete_ok();
++                            }
+                             let has_explicit_framing = headers_out.iter().any(|(k, _)| {
+                                 if let Some(name) = k {
+                                     let n = name.as_str();
+@@ -665,6 +972,9 @@ async fn get_cache_handler(
+                                 batch.deliver();
+                             }
+                         } else {
++                            if let Some(g) = in_flight_guard {
++                                g.complete_err(&OriginError::UpstreamStatus(status));
++                            }
+                             guard
+                                 .cache
+                                 .counters
+@@ -695,6 +1005,9 @@ async fn get_cache_handler(
+                         }
+                     }
+                     Err(err) => {
++                        if let Some(g) = in_flight_guard {
++                            g.complete_err(&err);
++                        }
+                         guard
+                             .cache
+                             .counters
+@@ -767,7 +1080,7 @@ async fn get_cache_handler(
+         if is_err {
+             tel.record_error();
+         }
+-        tel.record(RawObservation::new(now_ms, 0, elapsed, hit, coalesced));
++        tel.record(RawObservation::new_get(now_ms, key_hash, elapsed, hit, coalesced));
+     }
+ 
+     resp
+@@ -943,11 +1256,10 @@ async fn delete_cache_handler(
+     });
+ 
+     if let Some(ref tel) = state.telemetry {
+-        tel.record(RawObservation::new(
++        let key_hash = crate::intel::telemetry::fnv1a_64(&cache_key.to_canonical_string());
++        tel.record(RawObservation::new_delete(
+             DiagnosticBuffer::now_ms(),
+-            0,
+-            0,
+-            false,
++            key_hash,
+             0,
+         ));
+     }
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/core/cache.rs" "b/D:\\Personal\\phantom-cache\\src/core/cache.rs"
+index 824581e..b825cda 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/core/cache.rs"
++++ "b/D:\\Personal\\phantom-cache\\src/core/cache.rs"
+@@ -99,9 +99,51 @@ pub struct KeyState {
+     pub entry_global_epoch: u64,
+ }
+ 
++pub fn calculate_key_bytes(key: &CacheKey) -> usize {
++    key.tenant_id.len() + key.path.len() + key.query.as_ref().map_or(0, |q| q.len())
++}
++
++pub fn calculate_resource_bytes(resource: Option<&CachedResource>) -> usize {
++    match resource {
++        Some(res) => {
++            res.body.capacity() + res.content_type.len() + res.etag.as_ref().map_or(0, |e| e.len())
++        }
++        None => 0,
++    }
++}
++
++pub fn fixed_entry_overhead() -> usize {
++    std::mem::size_of::<CacheKey>() + std::mem::size_of::<KeyState>() + 64
++}
++
++pub fn calculate_state_bytes(key: &CacheKey, state: &KeyState) -> usize {
++    calculate_key_bytes(key)
++        + calculate_resource_bytes(state.entry.as_ref())
++        + fixed_entry_overhead()
++}
++
+ pub struct CacheShard {
+     pub map: HashMap<CacheKey, KeyState>,
+     pub in_flight: HashMap<CacheKey, Arc<SharedOp>>,
++    pub bytes: usize,
++    pub byte_budget: usize,
++}
++
++impl CacheShard {
++    pub fn new() -> Self {
++        Self {
++            map: HashMap::new(),
++            in_flight: HashMap::new(),
++            bytes: 0,
++            byte_budget: usize::MAX,
++        }
++    }
++}
++
++impl Default for CacheShard {
++    fn default() -> Self {
++        Self::new()
++    }
+ }
+ 
+ // Legacy entry for backward compatibility with wp1_tests
+@@ -173,10 +215,7 @@ impl PartitionedCache {
+         let mut shards = Vec::with_capacity(num_shards);
+         let mut legacy_shards = Vec::with_capacity(num_shards);
+         for _ in 0..num_shards {
+-            shards.push(Mutex::new(CacheShard {
+-                map: HashMap::new(),
+-                in_flight: HashMap::new(),
+-            }));
++            shards.push(Mutex::new(CacheShard::new()));
+             legacy_shards.push(Mutex::new(HashMap::new()));
+         }
+         Self {
+@@ -324,6 +363,8 @@ impl PartitionedCache {
+ 
+         let (current_tenant_epoch, current_global_epoch) = self.get_effective_epochs(&key.tenant_id);
+ 
++        let mut res_to_subtract = 0;
++        let mut hit_entry = None;
+         if let Some(state) = shard.map.get_mut(key) {
+             if let Some(ref entry) = state.entry {
+                 if state.entry_tenant_epoch == current_tenant_epoch
+@@ -331,10 +372,11 @@ impl PartitionedCache {
+                     && entry.created_at_ms + entry.ttl_ms > now_ms
+                 {
+                     state.visited = true;
+-                    return Some(entry.clone());
++                    hit_entry = Some(entry.clone());
+                 } else if state.entry_tenant_epoch != current_tenant_epoch
+                     || state.entry_global_epoch != current_global_epoch
+                 {
++                    res_to_subtract = calculate_resource_bytes(Some(entry));
+                     state.entry = None;
+                     if let Some(next_gen) = state.generation.checked_add(1) {
+                         state.generation = next_gen;
+@@ -342,6 +384,12 @@ impl PartitionedCache {
+                 }
+             }
+         }
++        if res_to_subtract > 0 {
++            shard.bytes = shard.bytes.saturating_sub(res_to_subtract);
++        }
++        if hit_entry.is_some() {
++            return hit_entry;
++        }
+         None
+     }
+ 
+@@ -349,13 +397,22 @@ impl PartitionedCache {
+         shard: &mut CacheShard,
+         now_ms: u64,
+         counters: &CacheCounters,
++    ) -> Option<CacheKey> {
++        Self::evict_sieve_from_shard_excluding(shard, now_ms, counters, None)
++    }
++
++    pub fn evict_sieve_from_shard_excluding(
++        shard: &mut CacheShard,
++        now_ms: u64,
++        counters: &CacheCounters,
++        exclude_key: Option<&CacheKey>,
+     ) -> Option<CacheKey> {
+         let mut victim: Option<CacheKey> = None;
+ 
+         // Pass 1: find expired entry or unvisited candidate
+         for (k, state) in shard.map.iter_mut() {
+-            // INVARIANT: Never evict state that has active operations or waiters
+-            if !state.active_op_ids.is_empty() || shard.in_flight.contains_key(k) {
++            // INVARIANT: Never evict state that has active operations or waiters, or is excluded
++            if Some(k) == exclude_key || !state.active_op_ids.is_empty() || shard.in_flight.contains_key(k) {
+                 continue;
+             }
+ 
+@@ -377,7 +434,7 @@ impl PartitionedCache {
+         // Pass 2: if all candidates were visited, find first eligible candidate
+         if victim.is_none() {
+             for (k, state) in shard.map.iter() {
+-                if !state.active_op_ids.is_empty() || shard.in_flight.contains_key(k) {
++                if Some(k) == exclude_key || !state.active_op_ids.is_empty() || shard.in_flight.contains_key(k) {
+                     continue;
+                 }
+                 victim = Some(k.clone());
+@@ -386,7 +443,10 @@ impl PartitionedCache {
+         }
+ 
+         if let Some(ref k) = victim {
+-            shard.map.remove(k);
++            if let Some(removed_state) = shard.map.remove(k) {
++                let entry_bytes = calculate_state_bytes(k, &removed_state);
++                shard.bytes = shard.bytes.saturating_sub(entry_bytes);
++            }
+             counters.evictions_total.fetch_add(1, Ordering::Relaxed);
+         }
+ 
+@@ -397,13 +457,22 @@ impl PartitionedCache {
+         shard: &mut CacheShard,
+         now_ms: u64,
+         counters: &CacheCounters,
++    ) -> Option<CacheKey> {
++        Self::evict_lru_from_shard_excluding(shard, now_ms, counters, None)
++    }
++
++    pub fn evict_lru_from_shard_excluding(
++        shard: &mut CacheShard,
++        now_ms: u64,
++        counters: &CacheCounters,
++        exclude_key: Option<&CacheKey>,
+     ) -> Option<CacheKey> {
+         let mut victim: Option<CacheKey> = None;
+         let mut oldest_accessed = u64::MAX;
+ 
+         for (k, state) in shard.map.iter() {
+-            // INVARIANT: Never evict state that has active operations or waiters
+-            if !state.active_op_ids.is_empty() || shard.in_flight.contains_key(k) {
++            // INVARIANT: Never evict state that has active operations or waiters, or is excluded
++            if Some(k) == exclude_key || !state.active_op_ids.is_empty() || shard.in_flight.contains_key(k) {
+                 continue;
+             }
+ 
+@@ -421,7 +490,10 @@ impl PartitionedCache {
+         }
+ 
+         if let Some(ref k) = victim {
+-            shard.map.remove(k);
++            if let Some(removed_state) = shard.map.remove(k) {
++                let entry_bytes = calculate_state_bytes(k, &removed_state);
++                shard.bytes = shard.bytes.saturating_sub(entry_bytes);
++            }
+             counters.evictions_total.fetch_add(1, Ordering::Relaxed);
+         }
+ 
+@@ -432,6 +504,15 @@ impl PartitionedCache {
+         shard: &mut CacheShard,
+         now_ms: u64,
+         counters: &CacheCounters,
++    ) -> Option<CacheKey> {
++        Self::evict_s3fifo_from_shard_excluding(shard, now_ms, counters, None)
++    }
++
++    pub fn evict_s3fifo_from_shard_excluding(
++        shard: &mut CacheShard,
++        now_ms: u64,
++        counters: &CacheCounters,
++        exclude_key: Option<&CacheKey>,
+     ) -> Option<CacheKey> {
+         let mut expired_victim: Option<CacheKey> = None;
+         let mut small_victim: Option<CacheKey> = None;
+@@ -440,8 +521,8 @@ impl PartitionedCache {
+         let mut oldest_main = u64::MAX;
+ 
+         for (k, state) in shard.map.iter_mut() {
+-            // INVARIANT: Never evict state that has active operations or waiters
+-            if !state.active_op_ids.is_empty() || shard.in_flight.contains_key(k) {
++            // INVARIANT: Never evict state that has active operations or waiters, or is excluded
++            if Some(k) == exclude_key || !state.active_op_ids.is_empty() || shard.in_flight.contains_key(k) {
+                 continue;
+             }
+ 
+@@ -471,7 +552,10 @@ impl PartitionedCache {
+ 
+         let victim = expired_victim.or(small_victim).or(main_victim);
+         if let Some(ref k) = victim {
+-            shard.map.remove(k);
++            if let Some(removed_state) = shard.map.remove(k) {
++                let entry_bytes = calculate_state_bytes(k, &removed_state);
++                shard.bytes = shard.bytes.saturating_sub(entry_bytes);
++            }
+             counters.evictions_total.fetch_add(1, Ordering::Relaxed);
+         }
+ 
+@@ -483,11 +567,21 @@ impl PartitionedCache {
+         policy: EvictionPolicy,
+         now_ms: u64,
+         counters: &CacheCounters,
++    ) -> Option<CacheKey> {
++        Self::evict_from_shard_excluding(shard, policy, now_ms, counters, None)
++    }
++
++    pub fn evict_from_shard_excluding(
++        shard: &mut CacheShard,
++        policy: EvictionPolicy,
++        now_ms: u64,
++        counters: &CacheCounters,
++        exclude_key: Option<&CacheKey>,
+     ) -> Option<CacheKey> {
+         match policy {
+-            EvictionPolicy::Sieve => Self::evict_sieve_from_shard(shard, now_ms, counters),
+-            EvictionPolicy::Lru => Self::evict_lru_from_shard(shard, now_ms, counters),
+-            EvictionPolicy::S3Fifo => Self::evict_s3fifo_from_shard(shard, now_ms, counters),
++            EvictionPolicy::Sieve => Self::evict_sieve_from_shard_excluding(shard, now_ms, counters, exclude_key),
++            EvictionPolicy::Lru => Self::evict_lru_from_shard_excluding(shard, now_ms, counters, exclude_key),
++            EvictionPolicy::S3Fifo => Self::evict_s3fifo_from_shard_excluding(shard, now_ms, counters, exclude_key),
+         }
+     }
+ 
+@@ -510,6 +604,8 @@ impl PartitionedCache {
+         // 1. Check cache hit
+         let (current_tenant_epoch, current_global_epoch) = self.get_effective_epochs(&key.tenant_id);
+ 
++        let mut res_to_subtract = 0;
++        let mut hit_entry = None;
+         if let Some(state) = shard.map.get_mut(key) {
+             if let Some(ref entry) = state.entry {
+                 if state.entry_tenant_epoch == current_tenant_epoch
+@@ -519,11 +615,11 @@ impl PartitionedCache {
+                     state.visited = true;
+                     state.last_accessed_ms = now_ms;
+                     state.access_count = state.access_count.saturating_add(1);
+-                    self.counters.cache_hits.fetch_add(1, Ordering::Relaxed);
+-                    return FetchRegistrationResult::Hit(entry.clone());
++                    hit_entry = Some(entry.clone());
+                 } else if state.entry_tenant_epoch != current_tenant_epoch
+                     || state.entry_global_epoch != current_global_epoch
+                 {
++                    res_to_subtract = calculate_resource_bytes(Some(entry));
+                     state.entry = None;
+                     if let Some(next_gen) = state.generation.checked_add(1) {
+                         state.generation = next_gen;
+@@ -531,6 +627,13 @@ impl PartitionedCache {
+                 }
+             }
+         }
++        if res_to_subtract > 0 {
++            shard.bytes = shard.bytes.saturating_sub(res_to_subtract);
++        }
++        if let Some(entry) = hit_entry {
++            self.counters.cache_hits.fetch_add(1, Ordering::Relaxed);
++            return FetchRegistrationResult::Hit(entry);
++        }
+ 
+         // 2. Check if already in-flight
+         if let Some(existing_op) = shard.in_flight.get(key) {
+@@ -555,32 +658,55 @@ impl PartitionedCache {
+         }
+ 
+         // 3. Cache miss: First requester initiates origin fetch
++        let key_is_present = shard.map.contains_key(key);
++        let needed_bytes = if key_is_present {
++            0
++        } else {
++            calculate_key_bytes(key) + fixed_entry_overhead()
++        };
++
++        let policy = self.get_eviction_policy();
+         let max_entries = self.max_entries_per_shard.load(Ordering::Relaxed);
+-        if shard.map.len() >= max_entries && !shard.map.contains_key(key) {
+-            let policy = self.get_eviction_policy();
+-            let evicted = Self::evict_from_shard(&mut shard, policy, now_ms, &self.counters);
+-            if evicted.is_none() && shard.map.len() >= max_entries {
+-                self.counters
+-                    .capacity_rejections
+-                    .fetch_add(1, Ordering::Relaxed);
+-                return FetchRegistrationResult::Rejected(OriginError::CapacityExceeded);
++        let mut evictions_done = 0;
++
++        while evictions_done < 32 && (
++            (!key_is_present && shard.map.len() >= max_entries) ||
++            shard.bytes.saturating_add(needed_bytes) > shard.byte_budget
++        ) {
++            if Self::evict_from_shard_excluding(&mut shard, policy, now_ms, &self.counters, Some(key)).is_some() {
++                evictions_done += 1;
++            } else {
++                break; // No more evictable entries
+             }
+         }
+ 
++        if (!shard.map.contains_key(key) && shard.map.len() >= max_entries) ||
++           shard.bytes.saturating_add(needed_bytes) > shard.byte_budget {
++            self.counters
++                .capacity_rejections
++                .fetch_add(1, Ordering::Relaxed);
++            return FetchRegistrationResult::Rejected(OriginError::CapacityExceeded);
++        }
++
+         self.counters.cache_misses.fetch_add(1, Ordering::Relaxed);
+         let op_id = self.next_op_id.fetch_add(1, Ordering::Relaxed);
+ 
+         let next_inst = self.next_instance_id.fetch_add(1, Ordering::Relaxed);
+-        let state = shard.map.entry(key.clone()).or_insert_with(|| KeyState {
+-            state_instance_id: next_inst,
+-            generation: 0,
+-            active_op_ids: HashSet::new(),
+-            entry: None,
+-            visited: true,
+-            last_accessed_ms: now_ms,
+-            access_count: 1,
+-            entry_tenant_epoch: current_tenant_epoch,
+-            entry_global_epoch: current_global_epoch,
++        if !key_is_present {
++            shard.bytes = shard.bytes.saturating_add(needed_bytes);
++        }
++        let state = shard.map.entry(key.clone()).or_insert_with(|| {
++            KeyState {
++                state_instance_id: next_inst,
++                generation: 0,
++                active_op_ids: HashSet::new(),
++                entry: None,
++                visited: true,
++                last_accessed_ms: now_ms,
++                access_count: 1,
++                entry_tenant_epoch: current_tenant_epoch,
++                entry_global_epoch: current_global_epoch,
++            }
+         });
+         state.entry_tenant_epoch = current_tenant_epoch;
+         state.entry_global_epoch = current_global_epoch;
+@@ -665,6 +791,9 @@ impl PartitionedCache {
+         }
+ 
+         // COMMIT BOUNDARY 2: Update cache state and lifecycle accounting
++        let mut should_reclaim_placeholder = false;
++        let mut store_resource: Option<(CachedResource, usize, usize)> = None;
++
+         if let Some(state) = shard.map.get_mut(key) {
+             if state.state_instance_id == state_instance_id {
+                 if state.active_op_ids.remove(&op_id) {
+@@ -675,29 +804,20 @@ impl PartitionedCache {
+                                 && state.entry_tenant_epoch == current_tenant_epoch
+                                 && state.entry_global_epoch == current_global_epoch
+                             {
+-                                state.entry = Some((**resource).clone());
+-                                state.visited = true;
+-                                state.last_accessed_ms = resource.created_at_ms;
+-                                state.access_count = state.access_count.max(1);
+-                                state.entry_tenant_epoch = current_tenant_epoch;
+-                                state.entry_global_epoch = current_global_epoch;
++                                let old_res_bytes = calculate_resource_bytes(state.entry.as_ref());
++                                let new_res_bytes = calculate_resource_bytes(Some(resource));
++                                store_resource = Some(((**resource).clone(), old_res_bytes, new_res_bytes));
+                             } else {
+                                 self.counters
+                                     .stale_writes_prevented
+                                     .fetch_add(1, Ordering::Relaxed);
+                             }
+                         }
+-                        FinalizeOutcome::Uncacheable(_) => {
+-                            // Do not store uncacheable resource in state.entry
+-                        }
+-                        FinalizeOutcome::Error(_) => {}
++                        FinalizeOutcome::Uncacheable(_) | FinalizeOutcome::Error(_) => {}
+                     }
+ 
+                     if state.entry.is_none() && state.active_op_ids.is_empty() {
+-                        shard.map.remove(key);
+-                        self.counters
+-                            .reclamations_total
+-                            .fetch_add(1, Ordering::Relaxed);
++                        should_reclaim_placeholder = true;
+                     }
+                 }
+             } else {
+@@ -707,6 +827,62 @@ impl PartitionedCache {
+             }
+         }
+ 
++        if let Some((resource, old_res_bytes, new_res_bytes)) = store_resource {
++            let key_bytes = calculate_key_bytes(key);
++            let fixed_overhead = fixed_entry_overhead();
++            let total_entry_bytes = key_bytes + fixed_overhead + new_res_bytes;
++            let delta_add = new_res_bytes.saturating_sub(old_res_bytes);
++
++            let is_oversize = total_entry_bytes > shard.byte_budget;
++            if is_oversize {
++                self.counters.byte_budget_rejections.fetch_add(1, Ordering::Relaxed);
++                self.counters.oversize_rejections.fetch_add(1, Ordering::Relaxed);
++            } else {
++                if shard.bytes.saturating_add(delta_add) > shard.byte_budget {
++                    let policy = self.get_eviction_policy();
++                    let mut evictions = 0;
++                    while evictions < 32 && shard.bytes.saturating_add(delta_add) > shard.byte_budget {
++                        if Self::evict_from_shard_excluding(&mut shard, policy, resource.created_at_ms, &self.counters, Some(key)).is_some() {
++                            evictions += 1;
++                        } else {
++                            break;
++                        }
++                    }
++                }
++
++                if shard.bytes.saturating_add(delta_add) > shard.byte_budget {
++                    self.counters.byte_budget_rejections.fetch_add(1, Ordering::Relaxed);
++                } else {
++                    shard.bytes = shard.bytes.saturating_sub(old_res_bytes).saturating_add(new_res_bytes);
++                    let (current_tenant_epoch, current_global_epoch) = self.get_effective_epochs(&key.tenant_id);
++                    if let Some(state) = shard.map.get_mut(key) {
++                        state.entry = Some(resource);
++                        state.visited = true;
++                        state.last_accessed_ms = state.entry.as_ref().map_or(0, |e| e.created_at_ms);
++                        state.access_count = state.access_count.max(1);
++                        state.entry_tenant_epoch = current_tenant_epoch;
++                        state.entry_global_epoch = current_global_epoch;
++                    }
++                    should_reclaim_placeholder = false;
++                }
++            }
++        }
++
++        if should_reclaim_placeholder {
++            if let Some(removed_state) = shard.map.remove(key) {
++                let key_fixed = calculate_state_bytes(key, &removed_state);
++                shard.bytes = shard.bytes.saturating_sub(key_fixed);
++            }
++            self.counters
++                .reclamations_total
++                .fetch_add(1, Ordering::Relaxed);
++        }
++
++        // Shrink step (I8 recovery / convergence)
++        let now_ms = DiagnosticBuffer::now_ms();
++        let policy = self.get_eviction_policy();
++        Self::shrink_shard(&mut shard, policy, now_ms, &self.counters);
++
+         drop(shard);
+         Some(waiter_batch)
+     }
+@@ -723,21 +899,40 @@ impl PartitionedCache {
+             }
+         };
+ 
++        let mut res_to_subtract = 0;
++        let mut should_remove = false;
+         if let Some(state) = shard.map.get_mut(key) {
++            if let Some(ref entry) = state.entry {
++                res_to_subtract = calculate_resource_bytes(Some(entry));
++            }
+             state.entry = None;
+             if let Some(next_gen) = state.generation.checked_add(1) {
+                 state.generation = next_gen;
+             }
+             if state.active_op_ids.is_empty() {
+-                shard.map.remove(key);
+-                self.counters
+-                    .reclamations_total
+-                    .fetch_add(1, Ordering::Relaxed);
++                should_remove = true;
+             }
+         }
++        if res_to_subtract > 0 {
++            shard.bytes = shard.bytes.saturating_sub(res_to_subtract);
++        }
++        if should_remove {
++            if let Some(removed_state) = shard.map.remove(key) {
++                let key_fixed = calculate_state_bytes(key, &removed_state);
++                shard.bytes = shard.bytes.saturating_sub(key_fixed);
++            }
++            self.counters
++                .reclamations_total
++                .fetch_add(1, Ordering::Relaxed);
++        }
+ 
+         // Detach in-flight entry so post-DELETE GETs do not join pre-DELETE fetch
+         let _old_op = shard.in_flight.remove(key);
++
++        // Shrink step (I8 recovery / convergence)
++        let now_ms = DiagnosticBuffer::now_ms();
++        let policy = self.get_eviction_policy();
++        Self::shrink_shard(&mut shard, policy, now_ms, &self.counters);
+     }
+ 
+     pub fn try_delete_with_status(&self, key: &CacheKey) -> Result<(bool, u32), CacheError> {
+@@ -754,11 +949,14 @@ impl PartitionedCache {
+ 
+         let mut was_present = false;
+         let mut reclaimed_bytes = 0u32;
++        let mut res_to_subtract = 0;
++        let mut should_remove = false;
+ 
+         if let Some(state) = shard.map.get_mut(key) {
+             if let Some(ref entry) = state.entry {
+                 was_present = true;
+                 reclaimed_bytes = entry.body.len() as u32;
++                res_to_subtract = calculate_resource_bytes(Some(entry));
+             }
+             state.entry = None;
+             let next_gen = state
+@@ -767,14 +965,28 @@ impl PartitionedCache {
+                 .ok_or(CacheError::GenerationOverflow)?;
+             state.generation = next_gen;
+             if state.active_op_ids.is_empty() {
+-                shard.map.remove(key);
+-                self.counters
+-                    .reclamations_total
+-                    .fetch_add(1, Ordering::Relaxed);
++                should_remove = true;
++            }
++        }
++        if res_to_subtract > 0 {
++            shard.bytes = shard.bytes.saturating_sub(res_to_subtract);
++        }
++        if should_remove {
++            if let Some(removed_state) = shard.map.remove(key) {
++                let key_fixed = calculate_state_bytes(key, &removed_state);
++                shard.bytes = shard.bytes.saturating_sub(key_fixed);
+             }
++            self.counters
++                .reclamations_total
++                .fetch_add(1, Ordering::Relaxed);
+         }
+ 
+         let _old_op = shard.in_flight.remove(key);
++
++        // Shrink step (I8 recovery / convergence)
++        let now_ms = DiagnosticBuffer::now_ms();
++        let policy = self.get_eviction_policy();
++        Self::shrink_shard(&mut shard, policy, now_ms, &self.counters);
+         Ok((was_present, reclaimed_bytes))
+     }
+ 
+@@ -858,4 +1070,104 @@ impl PartitionedCache {
+         }
+         None
+     }
++
++    pub fn shrink_shard(
++        shard: &mut CacheShard,
++        policy: EvictionPolicy,
++        now_ms: u64,
++        counters: &CacheCounters,
++    ) {
++        let mut evictions = 0;
++        while evictions < 256 && shard.bytes > shard.byte_budget {
++            if Self::evict_from_shard_excluding(shard, policy, now_ms, counters, None).is_some() {
++                evictions += 1;
++            } else {
++                break;
++            }
++        }
++    }
++
++    pub fn bytes_resident(&self) -> usize {
++        let mut total = 0usize;
++        for shard_mutex in &self.shards {
++            let shard = match shard_mutex.lock() {
++                Ok(g) => g,
++                Err(p) => p.into_inner(),
++            };
++            total = total.saturating_add(shard.bytes);
++        }
++        total
++    }
++
++    pub fn byte_budget(&self) -> usize {
++        let mut total = 0usize;
++        for shard_mutex in &self.shards {
++            let shard = match shard_mutex.lock() {
++                Ok(g) => g,
++                Err(p) => p.into_inner(),
++            };
++            if shard.byte_budget == usize::MAX {
++                return usize::MAX;
++            }
++            total = total.saturating_add(shard.byte_budget);
++        }
++        total
++    }
++
++    pub fn audit_bytes(&self) -> (usize, usize) {
++        let mut accounted = 0usize;
++        let mut recorded = 0usize;
++        for shard_mutex in &self.shards {
++            let shard = match shard_mutex.lock() {
++                Ok(g) => g,
++                Err(p) => p.into_inner(),
++            };
++            recorded = recorded.saturating_add(shard.bytes);
++            for (k, state) in &shard.map {
++                accounted = accounted.saturating_add(calculate_state_bytes(k, state));
++            }
++        }
++        (accounted, recorded)
++    }
++
++    pub fn set_byte_budget(&self, total_bytes: usize) {
++        let num_shards = self.shards.len();
++        let shard_budget = if total_bytes == usize::MAX {
++            usize::MAX
++        } else {
++            total_bytes.checked_div(num_shards).unwrap_or(total_bytes)
++        };
++
++        let now_ms = DiagnosticBuffer::now_ms();
++        let policy = self.get_eviction_policy();
++
++        for shard_mutex in &self.shards {
++            let mut shard = match shard_mutex.lock() {
++                Ok(g) => g,
++                Err(p) => {
++                    self.counters
++                        .lock_poison_recovered
++                        .fetch_add(1, Ordering::Relaxed);
++                    p.into_inner()
++                }
++            };
++
++            shard.byte_budget = shard_budget;
++
++            while shard.bytes > shard.byte_budget {
++                let evicted = Self::evict_from_shard_excluding(&mut shard, policy, now_ms, &self.counters, None);
++                if evicted.is_none() {
++                    break;
++                }
++            }
++        }
++    }
++}
++
++pub fn audit_shard_bytes(shard: &CacheShard) -> (usize, usize) {
++    let mut accounted = 0usize;
++    for (k, state) in &shard.map {
++        accounted = accounted.saturating_add(calculate_state_bytes(k, state));
++    }
++    (accounted, shard.bytes)
+ }
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/intel/diagnostics.rs" "b/D:\\Personal\\phantom-cache\\src/intel/diagnostics.rs"
+index 498a5f3..8905851 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/intel/diagnostics.rs"
++++ "b/D:\\Personal\\phantom-cache\\src/intel/diagnostics.rs"
+@@ -41,6 +41,8 @@ pub struct CacheCounters {
+     pub capacity_rejections: AtomicU64,
+     pub origin_fetches_failed: AtomicU64,
+     pub diagnostic_events_dropped: AtomicU64,
++    pub byte_budget_rejections: AtomicU64,
++    pub oversize_rejections: AtomicU64,
+     pub anti_entropy_sync_total: AtomicU64,
+     pub anti_entropy_gaps_detected: AtomicU64,
+     pub anti_entropy_keys_evicted: AtomicU64,
+@@ -64,6 +66,8 @@ pub struct CacheCountersSnapshot {
+     pub capacity_rejections: u64,
+     pub origin_fetches_failed: u64,
+     pub diagnostic_events_dropped: u64,
++    pub byte_budget_rejections: u64,
++    pub oversize_rejections: u64,
+     pub anti_entropy_sync_total: u64,
+     pub anti_entropy_gaps_detected: u64,
+     pub anti_entropy_keys_evicted: u64,
+@@ -92,6 +96,8 @@ impl CacheCounters {
+             capacity_rejections: self.capacity_rejections.load(Ordering::Relaxed),
+             origin_fetches_failed: self.origin_fetches_failed.load(Ordering::Relaxed),
+             diagnostic_events_dropped: self.diagnostic_events_dropped.load(Ordering::Relaxed),
++            byte_budget_rejections: self.byte_budget_rejections.load(Ordering::Relaxed),
++            oversize_rejections: self.oversize_rejections.load(Ordering::Relaxed),
+             anti_entropy_sync_total: self.anti_entropy_sync_total.load(Ordering::Relaxed),
+             anti_entropy_gaps_detected: self.anti_entropy_gaps_detected.load(Ordering::Relaxed),
+             anti_entropy_keys_evicted: self.anti_entropy_keys_evicted.load(Ordering::Relaxed),
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/intel/telemetry.rs" "b/D:\\Personal\\phantom-cache\\src/intel/telemetry.rs"
+index 36b8447..0600eeb 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/intel/telemetry.rs"
++++ "b/D:\\Personal\\phantom-cache\\src/intel/telemetry.rs"
+@@ -1,6 +1,26 @@
+ use std::collections::VecDeque;
+ use std::sync::atomic::{AtomicU64, Ordering};
+-use std::sync::Mutex;
++use std::sync::{Arc, Mutex};
++use std::time::{Duration, Instant};
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
++pub enum ObservationKind {
++    #[default]
++    Get,
++    Delete,
++}
++
++/// FNV-1a 64-bit hash over a string slice (A-5), computed outside telemetry locks.
++pub fn fnv1a_64(s: &str) -> u64 {
++    const FNV_OFFSET_BASIS: u64 = 0xcbf29ce484222325;
++    const FNV_PRIME: u64 = 0x100000001b3;
++    let mut hash = FNV_OFFSET_BASIS;
++    for byte in s.as_bytes() {
++        hash ^= *byte as u64;
++        hash = hash.wrapping_mul(FNV_PRIME);
++    }
++    hash
++}
+ 
+ #[derive(Debug, Clone)]
+ pub struct RawObservation {
+@@ -9,6 +29,7 @@ pub struct RawObservation {
+     pub latency_ms: u32,
+     pub hit: bool,
+     pub waiters_coalesced: u32,
++    pub kind: ObservationKind,
+ }
+ 
+ impl RawObservation {
+@@ -18,6 +39,7 @@ impl RawObservation {
+         latency_ms: u32,
+         hit: bool,
+         waiters_coalesced: u32,
++        kind: ObservationKind,
+     ) -> Self {
+         Self {
+             timestamp_ms,
+@@ -25,6 +47,163 @@ impl RawObservation {
+             latency_ms,
+             hit,
+             waiters_coalesced,
++            kind,
++        }
++    }
++
++    pub fn new_get(
++        timestamp_ms: u64,
++        key_hash: u64,
++        latency_ms: u32,
++        hit: bool,
++        waiters_coalesced: u32,
++    ) -> Self {
++        Self::new(
++            timestamp_ms,
++            key_hash,
++            latency_ms,
++            hit,
++            waiters_coalesced,
++            ObservationKind::Get,
++        )
++    }
++
++    pub fn new_delete(timestamp_ms: u64, key_hash: u64, latency_ms: u32) -> Self {
++        Self::new(
++            timestamp_ms,
++            key_hash,
++            latency_ms,
++            false,
++            0,
++            ObservationKind::Delete,
++        )
++    }
++}
++
++pub struct WindowedRateSampler {
++    snapshots: Mutex<VecDeque<(Instant, u64, u64, u64)>>,
++    start_time: Instant,
++}
++
++impl Default for WindowedRateSampler {
++    fn default() -> Self {
++        Self::new()
++    }
++}
++
++impl WindowedRateSampler {
++    pub fn new() -> Self {
++        let now = Instant::now();
++        let mut q = VecDeque::with_capacity(20);
++        q.push_back((now, 0, 0, 0));
++        Self {
++            snapshots: Mutex::new(q),
++            start_time: now,
++        }
++    }
++
++    pub fn uptime_ms(&self) -> u64 {
++        self.start_time.elapsed().as_millis() as u64
++    }
++
++    pub fn sample(&self, requests: u64, hits: u64, misses: u64) {
++        let now = Instant::now();
++        let mut guard = self.snapshots.lock().unwrap();
++        guard.push_back((now, requests, hits, misses));
++        while guard.len() > 15 {
++            guard.pop_front();
++        }
++    }
++
++    pub fn sample_if_due(&self, requests: u64, hits: u64, misses: u64) {
++        let now = Instant::now();
++        let mut guard = self.snapshots.lock().unwrap();
++        if let Some(last) = guard.back() {
++            if now.duration_since(last.0) < Duration::from_millis(800) {
++                return;
++            }
++        }
++        guard.push_back((now, requests, hits, misses));
++        while guard.len() > 15 {
++            guard.pop_front();
++        }
++    }
++
++    pub fn throughput_1s(&self) -> f64 {
++        let guard = self.snapshots.lock().unwrap();
++        if guard.len() < 2 {
++            return 0.0;
++        }
++        let newest = guard.back().unwrap();
++        let mut prev = &guard[0];
++        for snap in guard.iter().rev().skip(1) {
++            let dt = newest.0.duration_since(snap.0).as_secs_f64();
++            if dt >= 0.8 {
++                prev = snap;
++                break;
++            }
++        }
++        let dt = newest.0.duration_since(prev.0).as_secs_f64();
++        if dt > 0.0 {
++            (newest.1.saturating_sub(prev.1) as f64) / dt
++        } else {
++            0.0
++        }
++    }
++
++    pub fn throughput_10s(&self) -> f64 {
++        let guard = self.snapshots.lock().unwrap();
++        if guard.len() < 2 {
++            return 0.0;
++        }
++        let newest = guard.back().unwrap();
++        let oldest = guard.front().unwrap();
++        let dt = newest.0.duration_since(oldest.0).as_secs_f64();
++        if dt > 0.0 {
++            (newest.1.saturating_sub(oldest.1) as f64) / dt
++        } else {
++            0.0
++        }
++    }
++
++    pub fn hit_ratio_1s(&self) -> Option<f64> {
++        let guard = self.snapshots.lock().unwrap();
++        if guard.len() < 2 {
++            return None;
++        }
++        let newest = guard.back().unwrap();
++        let mut prev = &guard[0];
++        for snap in guard.iter().rev().skip(1) {
++            let dt = newest.0.duration_since(snap.0).as_secs_f64();
++            if dt >= 0.8 {
++                prev = snap;
++                break;
++            }
++        }
++        let dh = newest.2.saturating_sub(prev.2);
++        let dm = newest.3.saturating_sub(prev.3);
++        let total = dh + dm;
++        if total > 0 {
++            Some(dh as f64 / total as f64)
++        } else {
++            None
++        }
++    }
++
++    pub fn hit_ratio_10s(&self) -> Option<f64> {
++        let guard = self.snapshots.lock().unwrap();
++        if guard.len() < 3 {
++            return None;
++        }
++        let newest = guard.back().unwrap();
++        let oldest = guard.front().unwrap();
++        let dh = newest.2.saturating_sub(oldest.2);
++        let dm = newest.3.saturating_sub(oldest.3);
++        let total = dh + dm;
++        if total > 0 {
++            Some(dh as f64 / total as f64)
++        } else {
++            None
+         }
+     }
+ }
+@@ -33,6 +212,8 @@ pub struct TelemetryCollector {
+     raw_buffer: Mutex<VecDeque<RawObservation>>,
+     capacity: usize,
+     error_count: AtomicU64,
++    pub origin_metrics: Arc<crate::intel::origin_metrics::OriginMetrics>,
++    pub rate_sampler: Arc<WindowedRateSampler>,
+ }
+ 
+ impl TelemetryCollector {
+@@ -41,9 +222,15 @@ impl TelemetryCollector {
+             raw_buffer: Mutex::new(VecDeque::with_capacity(capacity)),
+             capacity,
+             error_count: AtomicU64::new(0),
++            origin_metrics: Arc::new(crate::intel::origin_metrics::OriginMetrics::new()),
++            rate_sampler: Arc::new(WindowedRateSampler::new()),
+         }
+     }
+ 
++    pub fn origin_metrics(&self) -> &Arc<crate::intel::origin_metrics::OriginMetrics> {
++        &self.origin_metrics
++    }
++
+     pub fn record(&self, obs: RawObservation) {
+         let mut guard = self.raw_buffer.lock().unwrap();
+         if guard.len() >= self.capacity {
+@@ -60,12 +247,21 @@ impl TelemetryCollector {
+         self.error_count.load(Ordering::Relaxed)
+     }
+ 
++    /// Read-only snapshot of recorded observations for verification and testing (A-11).
++    pub fn observations(&self) -> Vec<RawObservation> {
++        self.raw_buffer.lock().unwrap().iter().cloned().collect()
++    }
++
+     pub fn calculate_p50(&self) -> u32 {
+         let guard = self.raw_buffer.lock().unwrap();
+-        if guard.is_empty() {
++        let mut latencies: Vec<u32> = guard
++            .iter()
++            .filter(|o| o.kind == ObservationKind::Get)
++            .map(|o| o.latency_ms)
++            .collect();
++        if latencies.is_empty() {
+             return 0;
+         }
+-        let mut latencies: Vec<u32> = guard.iter().map(|o| o.latency_ms).collect();
+         latencies.sort_unstable();
+         let idx = (latencies.len() as f64 * 0.50) as usize;
+         latencies[idx.min(latencies.len() - 1)]
+@@ -73,53 +269,109 @@ impl TelemetryCollector {
+ 
+     pub fn calculate_p90(&self) -> u32 {
+         let guard = self.raw_buffer.lock().unwrap();
+-        if guard.is_empty() {
++        let mut latencies: Vec<u32> = guard
++            .iter()
++            .filter(|o| o.kind == ObservationKind::Get)
++            .map(|o| o.latency_ms)
++            .collect();
++        if latencies.is_empty() {
+             return 0;
+         }
+-        let mut latencies: Vec<u32> = guard.iter().map(|o| o.latency_ms).collect();
+         latencies.sort_unstable();
+         let idx = (latencies.len() as f64 * 0.90) as usize;
+         latencies[idx.min(latencies.len() - 1)]
+     }
+ 
+-    pub fn calculate_p99(&self) -> u32 {
++    pub fn calculate_p95(&self) -> u32 {
+         let guard = self.raw_buffer.lock().unwrap();
+-        if guard.is_empty() {
++        let mut latencies: Vec<u32> = guard
++            .iter()
++            .filter(|o| o.kind == ObservationKind::Get)
++            .map(|o| o.latency_ms)
++            .collect();
++        if latencies.is_empty() {
+             return 0;
+         }
++        latencies.sort_unstable();
++        let idx = (latencies.len() as f64 * 0.95) as usize;
++        latencies[idx.min(latencies.len() - 1)]
++    }
+ 
+-        let mut latencies: Vec<u32> = guard.iter().map(|o| o.latency_ms).collect();
++    pub fn calculate_p99(&self) -> u32 {
++        let guard = self.raw_buffer.lock().unwrap();
++        let mut latencies: Vec<u32> = guard
++            .iter()
++            .filter(|o| o.kind == ObservationKind::Get)
++            .map(|o| o.latency_ms)
++            .collect();
++        if latencies.is_empty() {
++            return 0;
++        }
+         latencies.sort_unstable();
+         let idx = (latencies.len() as f64 * 0.99) as usize;
+         latencies[idx.min(latencies.len() - 1)]
+     }
+ 
++    /// Returns (p50, p95, p99) over GET observations with real p95 (A-3).
+     pub fn calculate_percentiles(&self) -> (u32, u32, u32) {
+         let guard = self.raw_buffer.lock().unwrap();
+-        if guard.is_empty() {
++        let mut latencies: Vec<u32> = guard
++            .iter()
++            .filter(|o| o.kind == ObservationKind::Get)
++            .map(|o| o.latency_ms)
++            .collect();
++        if latencies.is_empty() {
+             return (0, 0, 0);
+         }
+-        let mut latencies: Vec<u32> = guard.iter().map(|o| o.latency_ms).collect();
++        latencies.sort_unstable();
++        let n = latencies.len();
++        let p50 = latencies[(n as f64 * 0.50) as usize % n];
++        let p95 = latencies[((n as f64 * 0.95) as usize).min(n - 1)];
++        let p99 = latencies[((n as f64 * 0.99) as usize).min(n - 1)];
++        (p50, p95, p99)
++    }
++
++    /// Returns (p50, p90, p95, p99) over GET observations.
++    pub fn calculate_percentiles_v2(&self) -> (u32, u32, u32, u32) {
++        let guard = self.raw_buffer.lock().unwrap();
++        let mut latencies: Vec<u32> = guard
++            .iter()
++            .filter(|o| o.kind == ObservationKind::Get)
++            .map(|o| o.latency_ms)
++            .collect();
++        if latencies.is_empty() {
++            return (0, 0, 0, 0);
++        }
+         latencies.sort_unstable();
+         let n = latencies.len();
+         let p50 = latencies[(n as f64 * 0.50) as usize % n];
+         let p90 = latencies[((n as f64 * 0.90) as usize).min(n - 1)];
++        let p95 = latencies[((n as f64 * 0.95) as usize).min(n - 1)];
+         let p99 = latencies[((n as f64 * 0.99) as usize).min(n - 1)];
+-        (p50, p90, p99)
++        (p50, p90, p95, p99)
+     }
+ 
++    /// Excludes DELETE observations from hit-rate calculation (A-3).
+     pub fn calculate_hit_rate(&self) -> f32 {
+         let guard = self.raw_buffer.lock().unwrap();
+-        if guard.is_empty() {
++        let get_obs: Vec<_> = guard
++            .iter()
++            .filter(|o| o.kind == ObservationKind::Get)
++            .collect();
++        if get_obs.is_empty() {
+             return 1.0;
+         }
+-        let hits = guard.iter().filter(|o| o.hit).count();
+-        hits as f32 / guard.len() as f32
++        let hits = get_obs.iter().filter(|o| o.hit).count();
++        hits as f32 / get_obs.len() as f32
+     }
+ 
+     pub fn calculate_coalescing_savings(&self) -> u32 {
+         let guard = self.raw_buffer.lock().unwrap();
+-        guard.iter().map(|o| o.waiters_coalesced).sum()
++        guard
++            .iter()
++            .filter(|o| o.kind == ObservationKind::Get)
++            .map(|o| o.waiters_coalesced)
++            .sum()
+     }
+ 
+     pub fn len(&self) -> usize {
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/lib.rs" "b/D:\\Personal\\phantom-cache\\src/lib.rs"
+index ec6bcfb..6c67a4c 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/lib.rs"
++++ "b/D:\\Personal\\phantom-cache\\src/lib.rs"
+@@ -15,6 +15,7 @@ pub mod core {
+ 
+ pub mod intel {
+     pub mod diagnostics;
++    pub mod origin_metrics;
+     pub mod sketch;
+     pub mod telemetry;
+     pub mod workload;
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/main.rs" "b/D:\\Personal\\phantom-cache\\src/main.rs"
+index 3654a5a..dc626a1 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\src/main.rs"
++++ "b/D:\\Personal\\phantom-cache\\src/main.rs"
+@@ -14,6 +14,7 @@ pub mod core {
+ 
+ pub mod intel {
+     pub mod diagnostics;
++    pub mod origin_metrics;
+     pub mod sketch;
+     pub mod telemetry;
+     pub mod workload;
+@@ -63,6 +64,11 @@ async fn main() {
+     let _db = Arc::new(BackendDatabase::new(15, 100));
+ 
+     let cache = Arc::new(PartitionedCache::new(8));
++    let max_cache_bytes = std::env::var("PHANTOM_MAX_CACHE_BYTES")
++        .ok()
++        .and_then(|v| v.parse::<usize>().ok())
++        .unwrap_or(268_435_456); // 256 MiB default (A-2)
++    cache.set_byte_budget(max_cache_bytes);
+     let _coalescer = Arc::new(Coalescer::new(1000));
+ 
+     let mut nodes = vec![
+@@ -259,10 +265,12 @@ async fn main() {
+         configured_nodes.sort_by_key(|n| n.node_id);
+         nodes = configured_nodes;
+ 
++        eprintln!("[EXPERIMENTAL] Cluster mode: peer invalidations do not purge this gateway's HTTP cache; see docs/research/adr/ADR-001-present-architecture-and-direction.md");
+         Some(Arc::new(
+             dist::router::RendezvousRouter::new(nodes.clone()).with_cluster_tls(cluster_tls),
+         ))
+     } else if cluster_registry.is_some() || allow_insecure_cluster {
++        eprintln!("[EXPERIMENTAL] Cluster mode: peer invalidations do not purge this gateway's HTTP cache; see docs/research/adr/ADR-001-present-architecture-and-direction.md");
+         Some(Arc::new(dist::router::RendezvousRouter::new(nodes.clone())))
+     } else {
+         None
+@@ -283,7 +291,7 @@ async fn main() {
+         allow_insecure_upstream,
+         allow_lan_origin,
+         allow_loopback_origin: !is_network_bind,
+-[REDACTED:assignment:line-286:61]
++        forward_client_authorization: forward_upstream_auth,
+         tls_config,
+     });
+ 
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\tests/integration/p4_pie_tests.rs" "b/D:\\Personal\\phantom-cache\\tests/integration/p4_pie_tests.rs"
+index d1bf655..d33da07 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\tests/integration/p4_pie_tests.rs"
++++ "b/D:\\Personal\\phantom-cache\\tests/integration/p4_pie_tests.rs"
+@@ -5,7 +5,7 @@ use phantom_cache_demo::core::cache::{
+ };
+ use phantom_cache_demo::core::coalesce::FinalizeOutcome;
+ use phantom_cache_demo::dist::node::{NodeState, VirtualNode};
+-use phantom_cache_demo::intel::telemetry::{RawObservation, TelemetryCollector};
++use phantom_cache_demo::intel::telemetry::{ObservationKind, RawObservation, TelemetryCollector};
+ use phantom_cache_demo::sim::rng::SeededRngSource;
+ use phantom_cache_demo::sim::traffic::{KeyDistribution, RequestType, TrafficGenerator, WorkloadWeights};
+ use std::sync::atomic::Ordering;
+@@ -168,6 +168,7 @@ fn test_p4_pie_adaptive_switching_and_rollback() {
+             10,
+             i % 20 != 0, // 95% hits
+             2,
++            ObservationKind::Get,
+         ));
+     }
+ 
+@@ -188,6 +189,7 @@ fn test_p4_pie_adaptive_switching_and_rollback() {
+             350,
+             i % 5 == 0, // 20% hits
+             0,
++            ObservationKind::Get,
+         ));
+     }
+ 
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\tests/unit/wp2_tests.rs" "b/D:\\Personal\\phantom-cache\\tests/unit/wp2_tests.rs"
+index 05348c0..9ad16cf 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\tests/unit/wp2_tests.rs"
++++ "b/D:\\Personal\\phantom-cache\\tests/unit/wp2_tests.rs"
+@@ -2,7 +2,7 @@
+ mod tests {
+     use phantom_cache_demo::control::pie::{PieController, PieDecision};
+     use phantom_cache_demo::intel::sketch::CountMinSketch;
+-    use phantom_cache_demo::intel::telemetry::{RawObservation, TelemetryCollector};
++    use phantom_cache_demo::intel::telemetry::{ObservationKind, RawObservation, TelemetryCollector};
+     use std::sync::Arc;
+ 
+     #[test]
+@@ -27,6 +27,7 @@ mod tests {
+             latency_ms: 10,
+             hit: true,
+             waiters_coalesced: 2,
++            kind: ObservationKind::Get,
+         });
+ 
+         assert_eq!(telemetry.len(), 1);
+@@ -54,6 +55,7 @@ mod tests {
+                 latency_ms: 10,
+                 hit: true,
+                 waiters_coalesced: 0,
++                kind: ObservationKind::Get,
+             });
+         }
+         let pie = PieController::new(telemetry.clone());
+@@ -73,6 +75,7 @@ mod tests {
+                 latency_ms: 5,
+                 hit: true,
+                 waiters_coalesced: 0,
++                kind: ObservationKind::Get,
+             });
+         }
+         let pie = PieController::new(telemetry.clone());
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\ui/package.json" "b/D:\\Personal\\phantom-cache\\ui/package.json"
+index 22ecb37..acf0731 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\ui/package.json"
++++ "b/D:\\Personal\\phantom-cache\\ui/package.json"
+@@ -9,7 +9,8 @@
+   },
+   "scripts": {
+     "dev": "vite",
+-    "build": "vite build"
++    "build": "vite build",
++    "test": "node --test test"
+   },
+   "devDependencies": {
+     "vite": "^5.2.0",
+diff --git "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\ui/src/App.jsx" "b/D:\\Personal\\phantom-cache\\ui/src/App.jsx"
+index 9f27ee1..cf44f51 100644
+--- "a/D:\\Personal\\phantom-cache-snapshots\\phase1-20261028T185855Z-456bb25\\tree\\ui/src/App.jsx"
++++ "b/D:\\Personal\\phantom-cache\\ui/src/App.jsx"
+@@ -1,524 +1,405 @@
+-import React, { useState, useEffect, useRef } from 'react';
++import React, { useState, useEffect } from 'react';
++import SimDemo from './SimDemo';
+ 
+ export default function App() {
+-  const [status, setStatus] = useState('CONNECTED');
+-  const [phantomEnabled, setPhantomEnabled] = useState(true);
+-  const [commandAck, setCommandAck] = useState('READY');
+-  const [isPaused, setIsPaused] = useState(false);
+-  const [simSpeed, setSimSpeed] = useState('1x');
+-  const [showWhyPhantom, setShowWhyPhantom] = useState(false);
+-  const [showDataInspector, setShowDataInspector] = useState(false);
++  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
++  const currentView = urlParams.get('view');
+ 
+-  // Composed Environmental Variables
+-  const [trafficConfig, setTrafficConfig] = useState('NORMAL');
+-  const [networkConfig, setNetworkConfig] = useState('NORMAL');
+-  const [backendConfig, setBackendConfig] = useState('NORMAL');
+-  const [clusterConfig, setClusterConfig] = useState('3_NODES');
++  // If user requested the legacy simulated demo, render SimDemo with persistent banner
++  if (currentView === 'sim-demo') {
++    return <SimDemo />;
++  }
+ 
+-  // Raw high-frequency telemetry buffer (fed by 100ms ticks)
+-  const rawTelemetryRef = useRef([]);
+-
+-  // Human-legible presentation state (updated every 500ms)
+-  const [metrics, setMetrics] = useState({
+-    throughput_req_sec: 12050,
+-    p50_latency_ms: 10,
+-    p95_latency_ms: 12,
+-    p99_latency_ms: 15,
+-    backend_load_ratio: 0.20,
+-    avoided_compute_dollars: 0.05,
+-  });
++  return <TruthfulDashboard />;
++}
+ 
+-  const [nodes, setNodes] = useState([
+-    { node_id: 1, state: 'Active', cpu_utilization: 28.4, memory_used_bytes: 536870912 },
+-    { node_id: 2, state: 'Active', cpu_utilization: 28.4, memory_used_bytes: 536870912 },
+-    { node_id: 3, state: 'Active', cpu_utilization: 28.4, memory_used_bytes: 536870912 }
+-  ]);
++function ProvenanceBadge({ src, reason }) {
++  let bg = '#333';
++  let color = '#FFF';
++  let text = (src || 'UNKNOWN').toUpperCase();
++
++  if (src === 'measured') {
++    bg = '#1B5E20';
++    color = '#A5D6A7';
++    text = 'MEASURED';
++  } else if (src === 'derived') {
++    bg = '#01579B';
++    color = '#81D4FA';
++    text = 'DERIVED';
++  } else if (src === 'inferred') {
++    bg = '#4A148C';
++    color = '#CE93D8';
++    text = 'INFERRED';
++  } else if (src === 'unavailable') {
++    bg = '#424242';
++    color = '#E0E0E0';
++    text = reason ? `UNAVAILABLE (${reason})` : 'UNAVAILABLE';
++  } else if (src === 'simulated') {
++    bg = '#E65100';
++    color = '#FFCC80';
++    text = 'SIMULATED';
++  }
+ 
+-  // Rolling trend states
+-  const [throughputTrend, setThroughputTrend] = useState('0.0%');
+-  const [latencyTrend, setLatencyTrend] = useState('+0 ms');
++  return (
++    <span
++      style={{
++        display: 'inline-block',
++        fontSize: '8px',
++        fontWeight: 'bold',
++        padding: '2px 5px',
++        borderRadius: '3px',
++        backgroundColor: bg,
++        color: color,
++        letterSpacing: '0.5px',
++        marginTop: '3px',
++      }}
++    >
++      {text}
++    </span>
++  );
++}
+ 
+-  // Rolling history arrays for large charts
+-  const [throughputHistory, setThroughputHistory] = useState(Array(30).fill(12000));
+-  const [latencyHistory, setLatencyHistory] = useState(Array(30).fill(15));
+-  const [dbLoadHistory, setDbLoadHistory] = useState(Array(30).fill(0.20));
+-  const [hitRateHistory, setHitRateHistory] = useState(Array(30).fill(0.88));
+-  const [repBandwidthHistory, setRepBandwidthHistory] = useState(Array(30).fill(12));
+-  const [costHistory, setCostHistory] = useState(Array(30).fill(0.05));
++function MetricCard({ label, metric, unit = '', formatFn }) {
++  if (!metric) {
++    return (
++      <div style={{ border: '1px solid #1A1C20', padding: '10px', backgroundColor: '#0B0C0E' }}>
++        <div style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase' }}>{label}</div>
++        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#888', marginTop: '4px' }}>—</div>
++        <ProvenanceBadge src="unavailable" reason="no_data" />
++      </div>
++    );
++  }
+ 
+-  const [timeline, setTimeline] = useState([
+-    { time: '23:34:01', event: 'SYSTEM_BOOT', desc: 'Phantom virtual 3-node cluster initialized.' }
+-  ]);
++  const isUnavailable = metric.src === 'unavailable';
++  let displayVal = '—';
+ 
+-  const hitRate = phantomEnabled ? (trafficConfig === 'FLASH_CROWD' ? 0.94 : 0.88) : 0.70;
+-  const coalescedRatio = phantomEnabled ? (trafficConfig === 'FLASH_CROWD' ? 0.85 : 0.40) : 0.00;
+-  
+-  const hits = Math.round(metrics.throughput_req_sec * hitRate);
+-  const misses = Math.round(metrics.throughput_req_sec * (1.0 - hitRate));
+-  const coalesced = Math.round(misses * coalescedRatio);
+-  const backendQps = Math.max(0, misses - coalesced);
+-  const workAvoided = metrics.throughput_req_sec > 0 ? ((hits + coalesced) / metrics.throughput_req_sec * 100).toFixed(1) : '0.0';
++  if (!isUnavailable && metric.v !== undefined) {
++    displayVal = formatFn ? formatFn(metric.v) : metric.v.toLocaleString();
++    if (unit) {
++      displayVal += ` ${unit}`;
++    }
++  }
+ 
+-  const backendCostPerMill = 0.15;
+-  const nodeCostPerHr = 0.05;
+-  const baselineCostHr = (metrics.throughput_req_sec * (1.0 - 0.70) * 3600.0 / 1_000_000.0) * backendCostPerMill;
+-  const phantomCostHr = (backendQps * 3600.0 / 1_000_000.0) * backendCostPerMill + (3 * nodeCostPerHr);
+-  const breakEvenQps = 8000;
++  return (
++    <div style={{ border: '1px solid #1A1C20', padding: '10px', backgroundColor: '#0B0C0E' }}>
++      <div style={{ fontSize: '9px', color: '#888', textTransform: 'uppercase' }}>{label}</div>
++      <div
++        style={{
++          fontSize: '15px',
++          fontWeight: 'bold',
++          color: isUnavailable ? '#777' : '#FF6B00',
++          marginTop: '4px',
++        }}
++      >
++        {isUnavailable ? '—' : displayVal}
++      </div>
++      <div>
++        <ProvenanceBadge src={metric.src} reason={metric.reason} />
++      </div>
++    </div>
++  );
++}
+ 
+-  const getNarrative = () => {
+-    if (trafficConfig === 'FLASH_CROWD') {
+-      return {
+-        title: 'FLASH CROWD IN PROGRESS',
+-        desc: `Workload demand spiked to ${Math.round(metrics.throughput_req_sec)} req/s. Coalescing avoided ${workAvoided}% database operations.`
+-      };
+-    }
+-    return {
+-      title: 'NORMAL WORKLOAD',
+-      desc: 'System metrics are operating within expected baseline thresholds.'
+-    };
+-  };
++function TruthfulDashboard() {
++  const [status, setStatus] = useState('CONNECTING');
++  const [telemetry, setTelemetry] = useState(null);
++  const [lastUpdated, setLastUpdated] = useState(null);
+ 
+-  const narrative = getNarrative();
++  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
++  const gatewayUrl =
++    urlParams.get('gateway') ||
++    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_PHANTOM_GATEWAY) ||
++    'http://localhost:8085';
+ 
+-  // High-frequency raw data collector
+   useEffect(() => {
+-    if (isPaused) return;
++    const sse = new EventSource(`${gatewayUrl}/api/events?schema=2`);
+ 
+-    const sse = new EventSource('http://localhost:8085/api/events');
+     sse.onmessage = (event) => {
+       try {
+         const data = JSON.parse(event.data);
+-        if (data.metrics) {
+-          let currentMetrics = { ...data.metrics };
+-          if (!phantomEnabled) {
+-            currentMetrics.p50_latency_ms *= 2;
+-            currentMetrics.p95_latency_ms *= 2.5;
+-            currentMetrics.p99_latency_ms *= 3;
+-            currentMetrics.backend_load_ratio = Math.min(1.0, currentMetrics.backend_load_ratio * 2.5);
+-            currentMetrics.avoided_compute_dollars = 0.0;
+-          }
+-          // Buffer raw values immediately
+-          rawTelemetryRef.current.push({
+-            throughput: currentMetrics.throughput_req_sec,
+-            p50: currentMetrics.p50_latency_ms,
+-            p95: currentMetrics.p95_latency_ms,
+-            p99: currentMetrics.p99_latency_ms,
+-            dbLoad: currentMetrics.backend_load_ratio,
+-            avoidedCompute: currentMetrics.avoided_compute_dollars
+-          });
++        if (data && data.schema === 2) {
++          setTelemetry(data);
++          setStatus('CONNECTED');
++          setLastUpdated(new Date());
+         }
+-        if (data.nodes) setNodes(data.nodes);
+-        setStatus('CONNECTED');
+       } catch (err) {
+-        console.error("SSE parse error: ", err);
++        console.error('SSE Schema 2 parse error:', err);
+       }
+     };
++
+     sse.onerror = () => {
+       setStatus('DISCONNECTED');
+     };
+-    return () => sse.close();
+-  }, [isPaused, phantomEnabled]);
+-
+-  // Telemetry presentation aggregator timer (updates every 500ms)
+-  useEffect(() => {
+-    if (isPaused) return;
+-
+-    const timer = setInterval(() => {
+-      const samples = rawTelemetryRef.current;
+-      if (samples.length === 0) return;
+-
+-      // Average the samples collected in this 500ms window
+-      const count = samples.length;
+-      const avgThroughput = samples.reduce((sum, s) => sum + s.throughput, 0) / count;
+-      const avgP50 = samples.reduce((sum, s) => sum + s.p50, 0) / count;
+-      const avgP95 = samples.reduce((sum, s) => sum + s.p95, 0) / count;
+-      const avgP99 = samples.reduce((sum, s) => sum + s.p99, 0) / count;
+-      const avgDbLoad = samples.reduce((sum, s) => sum + s.dbLoad, 0) / count;
+-      const avgAvoidedCompute = samples.reduce((sum, s) => sum + s.avoidedCompute, 0) / count;
+-
+-      // Clear buffer for the next window
+-      rawTelemetryRef.current = [];
+-
+-      setMetrics(prev => {
+-        // Expose window delta trends
+-        const oldThroughput = prev.throughput_req_sec;
+-        const oldLatency = prev.p99_latency_ms;
+-        
+-        const throughputPct = oldThroughput > 0 ? ((avgThroughput - oldThroughput) / oldThroughput * 100).toFixed(1) : '0.0';
+-        const latencyDiff = Math.round(avgP99 - oldLatency);
+-
+-        setThroughputTrend(`${throughputPct}%`);
+-        setLatencyTrend(`${latencyDiff >= 0 ? '+' : ''}${latencyDiff} ms`);
+ 
+-        return {
+-          throughput_req_sec: avgThroughput,
+-          p50_latency_ms: Math.round(avgP50),
+-          p95_latency_ms: Math.round(avgP95),
+-          p99_latency_ms: Math.round(avgP99),
+-          backend_load_ratio: avgDbLoad,
+-          avoided_compute_dollars: avgAvoidedCompute
+-        };
+-      });
+-
+-      // Update historical rolling charts
+-      setThroughputHistory(prev => [...prev.slice(-30), avgThroughput]);
+-      setLatencyHistory(prev => [...prev.slice(-30), avgP99]);
+-      setDbLoadHistory(prev => [...prev.slice(-30), avgDbLoad]);
+-      setHitRateHistory(prev => [...prev.slice(-30), hitRate]);
+-      setRepBandwidthHistory(prev => [...prev.slice(-30), trafficConfig === 'FLASH_CROWD' ? 45 : 12]);
+-      setCostHistory(prev => [...prev.slice(-30), avgAvoidedCompute]);
+-
+-    }, 500);
+-
+-    return () => clearInterval(timer);
+-  }, [isPaused, hitRate, trafficConfig]);
+-
+-  const triggerEvent = async (eventName) => {
+-    setCommandAck(`${eventName} [TRIGGERED...]`);
+-    try {
+-      const res = await fetch('http://localhost:8085/api/control', {
+-        method: 'POST',
+-        headers: { 'Content-Type': 'application/json' },
+-        body: JSON.stringify({ event: eventName })
+-      });
+-      const data = await res.json();
+-      if (data.status === 'success') {
+-        setCommandAck(`${eventName} [ACCEPTED]`);
+-        setTimeline(prev => [
+-          { time: new Date().toLocaleTimeString(), event: eventName, desc: `Executed: ${eventName}` },
+-          ...prev
+-        ]);
+-      }
+-    } catch (err) {
+-      setCommandAck('CONTROL FAILED');
+-    }
+-  };
+-
+-  const handlePreset = (presetName) => {
+-    if (presetName === 'FLASH_CROWD') {
+-      setTrafficConfig('FLASH_CROWD');
+-      triggerEvent('FLASH_CROWD');
+-    } else if (presetName === 'NODE_FAILURE') {
+-      setClusterConfig('NODE_FAILURE');
+-      triggerEvent('NODE_FAILURE');
+-    } else {
+-      handleReset();
+-    }
+-  };
+-
+-  const handleReset = () => {
+-    setTrafficConfig('NORMAL');
+-    setNetworkConfig('NORMAL');
+-    setBackendConfig('NORMAL');
+-    setClusterConfig('3_NODES');
+-    triggerEvent('NORMAL');
+-    setThroughputHistory(Array(30).fill(12000));
+-    setLatencyHistory(Array(30).fill(15));
+-    setDbLoadHistory(Array(30).fill(0.20));
+-    setHitRateHistory(Array(30).fill(0.88));
+-    setRepBandwidthHistory(Array(30).fill(12));
+-    setCostHistory(Array(30).fill(0.05));
+-    setTimeline([
+-      { time: new Date().toLocaleTimeString(), event: 'RESET', desc: 'Simulation restored to clean seeded initial state.' }
+-    ]);
+-  };
++    return () => sse.close();
++  }, [gatewayUrl]);
+ 
+-  const renderObservabilityChart = (data, title, yMax = 100, color = '#FF6B00', suffix = '') => {
+-    const width = 280;
+-    const height = 90;
+-    if (data.length < 2) return null;
+-    const max = Math.max(...data, yMax);
+-    const min = Math.min(...data, 0);
+-    const points = data.map((val, idx) => {
+-      const x = (idx / (data.length - 1)) * width;
+-      const y = height - ((val - min) / (max - min)) * height;
+-      return `${x},${y}`;
+-    }).join(' ');
+-
+-    return (
+-      <div style={{ border: '1px solid #1A1C20', padding: '8px', backgroundColor: '#0B0C0E' }}>
+-        <div style={{ fontSize: '9px', color: '#666', marginBottom: '4px', textTransform: 'uppercase' }}>{title}</div>
+-        <svg width="100%" height={height} style={{ backgroundColor: '#07080A' }}>
+-          <polyline fill="none" stroke={color} strokeWidth="1.5" points={points} />
+-        </svg>
+-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: '#444', marginTop: '2px' }}>
+-          <span>MIN: {min.toFixed(0)}{suffix}</span>
+-          <span>MAX: {max.toFixed(0)}{suffix}</span>
+-        </div>
+-      </div>
+-    );
+-  };
++  const metrics = telemetry?.metrics;
++  const capabilities = telemetry?.capabilities;
++  const isSimulation = telemetry?.mode === 'simulation';
+ 
+   return (
+     <div style={{ backgroundColor: '#050607', color: '#F3F4F6', minHeight: '100vh', fontFamily: 'monospace', padding: '16px' }}>
+       
++      {/* SIMULATION ACTIVE BANNER */}
++      {isSimulation && (
++        <div style={{ backgroundColor: '#FF6B00', color: '#000', padding: '10px 16px', fontWeight: 'bold', fontSize: '12px', textAlign: 'center', marginBottom: '16px' }}>
++          ⚠️ GATEWAY RUNNING IN SIMULATION MODE (`PHANTOM_SIMULATION=true`) — SOME FIELDS MAY BE SYNTHETIC
++        </div>
++      )}
++
+       {/* HEADER */}
+-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1A1C20', paddingBottom: '10px', marginBottom: '16px' }}>
++      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1A1C20', paddingBottom: '12px', marginBottom: '16px' }}>
+         <div>
+-          <h1 style={{ color: '#FF6B00', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>PHANTOM CONTROL PANEL // V4</h1>
+-          <span style={{ fontSize: '10px', color: '#666' }}>
+-            CLOCK: {new Date().toLocaleTimeString()} // SEED: 48291 // STATUS: <span style={{ color: status === 'CONNECTED' ? '#4CAF50' : '#F44336' }}>{status}</span>
+-          </span>
++          <h1 style={{ color: '#FF6B00', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>
++            PHANTOMCACHE // TRUTHFUL TELEMETRY OBSERVABILITY
++          </h1>
++          <div style={{ fontSize: '10px', color: '#888', marginTop: '4px' }}>
++            SCHEMA: <span style={{ color: '#FFF' }}>v2</span> // MODE: <span style={{ color: isSimulation ? '#FF9800' : '#4CAF50' }}>{(telemetry?.mode || 'live').toUpperCase()}</span> // GATEWAY:{' '}
++            <span style={{ color: '#DDD' }}>{gatewayUrl}</span> // STATUS:{' '}
++            <span style={{ color: status === 'CONNECTED' ? '#4CAF50' : '#F44336', fontWeight: 'bold' }}>{status}</span>
++            {lastUpdated && <span> // AS OF: {lastUpdated.toLocaleTimeString()}</span>}
++          </div>
+         </div>
+-        
+         <div style={{ display: 'flex', gap: '8px' }}>
+-          <button 
+-            onClick={() => setPhantomEnabled(!phantomEnabled)} 
+-            style={{ 
+-              backgroundColor: phantomEnabled ? '#FF6B00' : '#202226', 
+-              color: '#F3F4F6', 
+-              border: 'none', 
+-              padding: '6px 12px', 
+-              fontWeight: 'bold', 
+-              cursor: 'pointer',
+-              fontSize: '11px'
++          <a
++            href="?view=sim-demo"
++            style={{
++              backgroundColor: '#101216',
++              color: '#FF6B00',
++              border: '1px solid #1A1C20',
++              padding: '6px 12px',
++              textDecoration: 'none',
++              fontSize: '11px',
++              fontWeight: 'bold',
+             }}
+           >
+-            PHANTOM: {phantomEnabled ? '● ON' : '○ OFF'}
+-          </button>
+-          <button onClick={() => setShowWhyPhantom(!showWhyPhantom)} style={{ backgroundColor: '#101216', color: '#888', border: '1px solid #1A1C20', padding: '6px 10px', cursor: 'pointer', fontSize: '11px' }}>WHY PHANTOM?</button>
+-          <button onClick={() => setShowDataInspector(!showDataInspector)} style={{ backgroundColor: '#101216', color: '#888', border: '1px solid #1A1C20', padding: '6px 10px', cursor: 'pointer', fontSize: '11px' }}>DATA INSPECTOR</button>
++            VIEW SIMULATED DEMO LAB ↗
++          </a>
+         </div>
+       </header>
+ 
+-      {/* ROW 1: LIVE KPI STRIP WITH TRENDS */}
+-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px', marginBottom: '16px' }}>
+-        <div style={{ border: '1px solid #1A1C20', padding: '8px', backgroundColor: '#0B0C0E' }}>
+-          <div style={{ fontSize: '9px', color: '#666' }}>THROUGHPUT</div>
+-          <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#FF6B00' }}>{Math.round(metrics.throughput_req_sec)} req/s</div>
+-          <div style={{ fontSize: '8px', color: '#444' }}>{throughputTrend} / 500ms</div>
+-        </div>
+-        <div style={{ border: '1px solid #1A1C20', padding: '8px', backgroundColor: '#0B0C0E' }}>
+-          <div style={{ fontSize: '9px', color: '#666' }}>P99 LATENCY</div>
+-          <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#FF6B00' }}>{metrics.p99_latency_ms} ms</div>
+-          <div style={{ fontSize: '8px', color: '#444' }}>{latencyTrend} vs prev</div>
++      {/* SECTION 1: ARCHITECTURAL CAPABILITIES */}
++      <section style={{ marginBottom: '16px' }}>
++        <div style={{ fontSize: '10px', color: '#666', marginBottom: '6px', textTransform: 'uppercase' }}>
++          System Capabilities & Operational Posture
+         </div>
+-        <div style={{ border: '1px solid #1A1C20', padding: '8px', backgroundColor: '#0B0C0E' }}>
+-          <div style={{ fontSize: '9px', color: '#666' }}>CACHE HIT RATE</div>
+-          <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{(hitRate * 100).toFixed(0)}%</div>
+-          <div style={{ fontSize: '8px', color: '#444' }}>LIVE • Rust telemetry</div>
+-        </div>
+-        <div style={{ border: '1px solid #1A1C20', padding: '8px', backgroundColor: '#0B0C0E' }}>
+-          <div style={{ fontSize: '9px', color: '#666' }}>COALESCING</div>
+-          <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{(coalescedRatio * 100).toFixed(0)}%</div>
+-          <div style={{ fontSize: '8px', color: '#444' }}>LIVE • coalescer</div>
+-        </div>
+-        <div style={{ border: '1px solid #1A1C20', padding: '8px', backgroundColor: '#0B0C0E' }}>
+-          <div style={{ fontSize: '9px', color: '#666' }}>BACKEND QPS</div>
+-          <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{backendQps} req/s</div>
+-          <div style={{ fontSize: '8px', color: '#444' }}>DERIVED • origin</div>
+-        </div>
+-        <div style={{ border: '1px solid #1A1C20', padding: '8px', backgroundColor: '#0B0C0E' }}>
+-          <div style={{ fontSize: '9px', color: '#666' }}>DB LOAD</div>
+-          <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{(metrics.backend_load_ratio * 100).toFixed(0)}%</div>
+-          <div style={{ fontSize: '8px', color: '#444' }}>SIMULATED • queue</div>
+-        </div>
+-        <div style={{ border: '1px solid #1A1C20', padding: '8px', backgroundColor: '#0B0C0E' }}>
+-          <div style={{ fontSize: '9px', color: '#666' }}>NET SAVED/1M</div>
+-          <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#4CAF50' }}>${(baselineCostHr - phantomCostHr).toFixed(2)}</div>
+-          <div style={{ fontSize: '8px', color: '#444' }}>SIMULATED • economic</div>
+-        </div>
+-      </section>
+-
+-      {/* ROW 2: TOPOLOGY MAP & REQUEST FLOW */}
+-      <section style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '16px' }}>
+-        
+-        {/* TOPOLOGY */}
+-        <div style={{ border: '1px solid #1A1C20', padding: '12px', backgroundColor: '#0B0C0E' }}>
+-          <h2 style={{ fontSize: '11px', color: '#888', margin: '0 0 10px 0' }}>LIVE CLUSTER TOPOLOGY MAP</h2>
+-          <div style={{ height: '170px', backgroundColor: '#07080A', border: '1px solid #15171B' }}>
+-            <svg width="100%" height="100%" viewBox="0 0 500 170">
+-              <circle cx="50" cy="85" r="20" fill="#101216" stroke="#202226" strokeWidth="1.5" />
+-              <text x="50" y="88" fill="#F3F4F6" textAnchor="middle" fontSize="7" fontWeight="bold">CLIENTS</text>
+-
+-              {nodes.map((n, idx) => {
+-                const targetY = 30 + idx * 55;
+-                const isActive = n.state === 'Active';
+-                return (
+-                  <path 
+-                    key={`p-${n.node_id}`} 
+-                    d={`M 70 85 Q 120 ${targetY} 180 ${targetY}`} 
+-                    fill="none" 
+-                    stroke={isActive ? '#FF6B00' : '#401515'} 
+-                    strokeWidth={isActive ? '1.5' : '1'} 
+-                  />
+-                );
+-              })}
+-
+-              {nodes.map((n, idx) => {
+-                const y = 30 + idx * 55;
+-                const isActive = n.state === 'Active';
+-                return (
+-                  <g key={`n-${n.node_id}`}>
+-                    <rect x="180" y={y - 15} width="90" height="30" fill="#101216" stroke={isActive ? '#FF6B00' : '#401515'} strokeWidth="1.5" />
+-                    <rect x="180" y={y - 15} width="5" height="30" fill={isActive ? '#4CAF50' : '#F44336'} />
+-                    <text x="195" y={y - 1} fill="#F3F4F6" fontSize="8" fontWeight="bold">NODE N{n.node_id}</text>
+-                    <text x="195" y={y + 8} fill="#888" fontSize="7">{n.state.toUpperCase()}</text>
+-                  </g>
+-                );
+-              })}
+-
+-              {nodes.map((n, idx) => {
+-                const y = 30 + idx * 55;
+-                return (
+-                  <path key={`db-${n.node_id}`} d={`M 270 ${y} Q 350 ${y} 410 85`} fill="none" stroke="#202226" strokeWidth="1" />
+-                );
+-              })}
+-
+-              <circle cx="430" cy="85" r="20" fill="#101216" stroke="#202226" strokeWidth="1.5" />
+-              <text x="430" y="88" fill="#F3F4F6" textAnchor="middle" fontSize="7" fontWeight="bold">DATABASE</text>
+-            </svg>
++        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
++          <div style={{ border: '1px solid #1A1C20', padding: '10px', backgroundColor: '#0B0C0E' }}>
++            <div style={{ fontSize: '9px', color: '#888' }}>CLUSTER RUNTIME</div>
++            <div style={{ fontSize: '14px', fontWeight: 'bold', color: capabilities?.cluster === 'experimental' ? '#FF9800' : '#888', marginTop: '2px' }}>
++              {(capabilities?.cluster || 'disabled').toUpperCase()}
++            </div>
++            <div style={{ fontSize: '8px', color: '#666', marginTop: '4px' }}>
++              {capabilities?.cluster === 'experimental' ? 'Rendezvous cluster router active (ADR-001)' : 'Standalone gateway mode'}
++            </div>
+           </div>
+-        </div>
+-
+-        {/* REQUEST FLOW */}
+-        <div style={{ border: '1px solid #1A1C20', padding: '12px', backgroundColor: '#0B0C0E', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+-          <div>
+-            <h2 style={{ fontSize: '11px', color: '#888', margin: '0 0 10px 0' }}>REQUEST FLOW ANALYSIS</h2>
+-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
+-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Incoming Requests:</span><span style={{ fontWeight: 'bold' }}>{Math.round(metrics.throughput_req_sec)}</span></div>
+-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Cache Hits:</span><span style={{ color: '#4CAF50' }}>{hits}</span></div>
+-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Cache Misses:</span><span>{misses}</span></div>
+-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Coalesced Requests:</span><span style={{ color: '#FF6B00' }}>{coalesced}</span></div>
+-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Backend Requests:</span><span>{backendQps}</span></div>
++          <div style={{ border: '1px solid #1A1C20', padding: '10px', backgroundColor: '#0B0C0E' }}>
++            <div style={{ fontSize: '9px', color: '#888' }}>ADAPTIVE CONTROLLER (PIE)</div>
++            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#888', marginTop: '2px' }}>
++              {(capabilities?.controller || 'none').toUpperCase()}
++            </div>
++            <div style={{ fontSize: '8px', color: '#666', marginTop: '4px' }}>
++              No adaptive controller active in Phase 1 baseline
+             </div>
+           </div>
+-          <div style={{ borderTop: '1px solid #1A1C20', paddingTop: '8px', marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+-            <span style={{ fontSize: '10px', color: '#666' }}>WORK AVOIDED:</span>
+-            <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#FF6B00' }}>{workAvoided}%</span>
++          <div style={{ border: '1px solid #1A1C20', padding: '10px', backgroundColor: '#0B0C0E' }}>
++            <div style={{ fontSize: '9px', color: '#888' }}>ORIGIN METRICS</div>
++            <div style={{ fontSize: '14px', fontWeight: 'bold', color: capabilities?.origin_metrics === 'available' ? '#4CAF50' : '#888', marginTop: '2px' }}>
++              {(capabilities?.origin_metrics || 'unavailable').toUpperCase()}
++            </div>
++            <div style={{ fontSize: '8px', color: '#666', marginTop: '4px' }}>
++              {capabilities?.origin_metrics === 'available' ? 'Lock-free origin fetch metrics active' : 'Origin URL not configured'}
++            </div>
+           </div>
+         </div>
+       </section>
+ 
+-      {/* ROW 3: DETAILED OBSERVABILITY CHARTS */}
+-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px', marginBottom: '16px' }}>
+-        {renderObservabilityChart(throughputHistory, 'Request Throughput', 80000, '#FF6B00', ' req/s')}
+-        {renderObservabilityChart(latencyHistory, 'Latency (P99)', 200, '#F44336', ' ms')}
+-        {renderObservabilityChart(dbLoadHistory, 'Backend Load', 1.0, '#4CAF50', '%')}
+-        {renderObservabilityChart(hitRateHistory, 'Cache Hit Rate', 1.0, '#00BCD4', '%')}
+-        {renderObservabilityChart(repBandwidthHistory, 'Replication Traffic', 100, '#9C27B0', ' MB/s')}
+-        {renderObservabilityChart(costHistory, 'Net Cumulative Cost', 1.0, '#E91E63', ' $')}
++      {/* SECTION 2: THROUGHPUT & HIT RATIOS (WINDOWED) */}
++      <section style={{ marginBottom: '16px' }}>
++        <div style={{ fontSize: '10px', color: '#666', marginBottom: '6px', textTransform: 'uppercase' }}>
++          Request Throughput & Hit Ratios (Server-Derived Windows)
++        </div>
++        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
++          <MetricCard
++            label="Throughput (10s Rate)"
++            metric={metrics?.throughput_req_s_10s}
++            unit="req/s"
++            formatFn={(v) => Math.round(v).toLocaleString()}
++          />
++          <MetricCard
++            label="Throughput (1s Rate)"
++            metric={metrics?.throughput_req_s_1s}
++            unit="req/s"
++            formatFn={(v) => Math.round(v).toLocaleString()}
++          />
++          <MetricCard
++            label="Total Requests"
++            metric={metrics?.requests_total}
++          />
++          <MetricCard
++            label="Hit Ratio (10s Window)"
++            metric={metrics?.hit_ratio_10s}
++            unit="%"
++            formatFn={(v) => (v * 100).toFixed(1)}
++          />
++          <MetricCard
++            label="Hit Ratio (1s Window)"
++            metric={metrics?.hit_ratio_1s}
++            unit="%"
++            formatFn={(v) => (v * 100).toFixed(1)}
++          />
++          <MetricCard
++            label="Cumulative Hit Ratio"
++            metric={metrics?.hit_ratio_cumulative}
++            unit="%"
++            formatFn={(v) => (v * 100).toFixed(1)}
++          />
++        </div>
+       </section>
+ 
+-      {/* ROW 4: "WHAT JUST HAPPENED?" NARRATIVE & PIE INSPECTOR */}
+-      <section style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '16px' }}>
+-        
+-        {/* NARRATIVE PANEL */}
+-        <div style={{ border: '1px solid #FF6B00', padding: '12px', backgroundColor: '#100D0A' }}>
+-          <h2 style={{ fontSize: '11px', color: '#FF6B00', margin: '0 0 6px 0', fontWeight: 'bold' }}>{narrative.title}</h2>
+-          <p style={{ fontSize: '11px', margin: 0, color: '#DDD', lineHeight: '1.5' }}>{narrative.desc}</p>
++      {/* SECTION 3: CACHE ACTIVITY COUNTERS */}
++      <section style={{ marginBottom: '16px' }}>
++        <div style={{ fontSize: '10px', color: '#666', marginBottom: '6px', textTransform: 'uppercase' }}>
++          Cache Activity & Ingress Counters (Measured Atomics)
++        </div>
++        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
++          <MetricCard label="Cache Hits" metric={metrics?.cache_hits} />
++          <MetricCard label="Cache Misses" metric={metrics?.cache_misses} />
++          <MetricCard label="Coalesced Waiters" metric={metrics?.coalesced_waiters} />
++          <MetricCard label="Evictions Total" metric={metrics?.evictions_total} />
++          <MetricCard label="Capacity Rejections" metric={metrics?.capacity_rejections} />
+         </div>
++      </section>
+ 
+-        {/* PIE DECISION INSPECTOR */}
++      {/* SECTION 4: LATENCY PERCENTILES & ORIGIN METRICS */}
++      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
++        
++        {/* Latency Percentiles */}
+         <div style={{ border: '1px solid #1A1C20', padding: '12px', backgroundColor: '#0B0C0E' }}>
+-          <h2 style={{ fontSize: '11px', color: '#888', margin: '0 0 10px 0' }}>PIE DECISION INSPECTOR</h2>
+-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', fontSize: '11px' }}>
+-            <div>
+-              <span style={{ color: '#666', fontSize: '9px' }}>OBSERVATION</span>
+-              <div style={{ marginTop: '4px', fontWeight: 'bold' }}>{trafficConfig === 'FLASH_CROWD' ? 'HOT KEY DENSITY DETECTED' : 'STEADY WORKLOAD'}</div>
+-            </div>
+-            <div>
+-              <span style={{ color: '#666', fontSize: '9px' }}>CONSTRAINTS & CANARY</span>
+-              <div style={{ marginTop: '4px' }}>Memory: OK // Canary Duration: 30s</div>
++          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
++            <h2 style={{ fontSize: '11px', color: '#888', margin: 0 }}>CACHE GET LATENCY PERCENTILES</h2>
++            {metrics?.latency_ms?.src && (
++              <ProvenanceBadge src={metrics.latency_ms.src} reason={metrics.latency_ms.reason} />
++            )}
++          </div>
++          {metrics?.latency_ms?.src === 'unavailable' ? (
++            <div style={{ padding: '20px', textAlign: 'center', color: '#666', fontSize: '11px' }}>
++              No GET request samples recorded in ring buffer ({metrics.latency_ms.reason})
+             </div>
++          ) : (
+             <div>
+-              <span style={{ color: '#666', fontSize: '9px' }}>DECISION</span>
+-              <div style={{ marginTop: '4px', color: '#4CAF50', fontWeight: 'bold' }}>✓ COMMITTED</div>
++              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center' }}>
++                <div style={{ border: '1px solid #15171B', padding: '8px', backgroundColor: '#07080A' }}>
++                  <div style={{ fontSize: '8px', color: '#666' }}>P50</div>
++                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#4CAF50', marginTop: '2px' }}>
++                    {metrics?.latency_ms?.p50} ms
++                  </div>
++                </div>
++                <div style={{ border: '1px solid #15171B', padding: '8px', backgroundColor: '#07080A' }}>
++                  <div style={{ fontSize: '8px', color: '#666' }}>P90</div>
++                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFB300', marginTop: '2px' }}>
++                    {metrics?.latency_ms?.p90} ms
++                  </div>
++                </div>
++                <div style={{ border: '1px solid #15171B', padding: '8px', backgroundColor: '#07080A' }}>
++                  <div style={{ fontSize: '8px', color: '#666' }}>P95</div>
++                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9800', marginTop: '2px' }}>
++                    {metrics?.latency_ms?.p95} ms
++                  </div>
++                </div>
++                <div style={{ border: '1px solid #15171B', padding: '8px', backgroundColor: '#07080A' }}>
++                  <div style={{ fontSize: '8px', color: '#666' }}>P99</div>
++                  <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#F44336', marginTop: '2px' }}>
++                    {metrics?.latency_ms?.p99} ms
++                  </div>
++                </div>
++              </div>
++              <div style={{ fontSize: '9px', color: '#666', marginTop: '10px' }}>
++                Sample count: {metrics?.latency_ms?.samples?.toLocaleString() || 0} observations (DELETE excluded)
++              </div>
+             </div>
+-          </div>
++          )}
+         </div>
+-      </section>
+ 
+-      {/* ROW 5: ECONOMICS WATERFALL */}
+-      <section style={{ border: '1px solid #1A1C20', padding: '12px', backgroundColor: '#0B0C0E', marginBottom: '16px' }}>
+-        <h2 style={{ fontSize: '11px', color: '#888', margin: '0 0 10px 0' }}>INFRASTRUCTURE COST BREAKDOWN</h2>
+-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', fontSize: '11px' }}>
+-          <div>
+-            <div style={{ borderBottom: '1px solid #1A1C20', paddingBottom: '4px', marginBottom: '6px', color: '#666' }}>BASELINE COST</div>
+-            <div>Origin Compute: ${baselineCostHr.toFixed(2)}/hr</div>
+-            <div>Total Infrastructure: ${baselineCostHr.toFixed(2)}/hr</div>
+-          </div>
+-          <div>
+-            <div style={{ borderBottom: '1px solid #1A1C20', paddingBottom: '4px', marginBottom: '6px', color: '#FF6B00' }}>PHANTOM COST</div>
+-            <div>Origin DB Compute: ${(phantomCostHr - 0.15).toFixed(2)}/hr</div>
+-            <div>Phantom Node: $0.15/hr</div>
+-            <div style={{ fontWeight: 'bold' }}>Total Infrastructure: ${phantomCostHr.toFixed(2)}/hr</div>
++        {/* Origin Fetch Observability */}
++        <div style={{ border: '1px solid #1A1C20', padding: '12px', backgroundColor: '#0B0C0E' }}>
++          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
++            <h2 style={{ fontSize: '11px', color: '#888', margin: 0 }}>ORIGIN FETCH OBSERVABILITY</h2>
++            {metrics?.origin?.src === 'unavailable' && (
++              <ProvenanceBadge src="unavailable" reason={metrics.origin.reason} />
++            )}
+           </div>
+-          <div>
+-            <div style={{ borderBottom: '1px solid #1A1C20', paddingBottom: '4px', marginBottom: '6px', color: '#4CAF50' }}>NET SAVINGS</div>
+-            <div>Benefit: +${(baselineCostHr - phantomCostHr).toFixed(2)}/hr</div>
+-            <div>Break-Even Threshold: {breakEvenQps} req/s</div>
+-            <div style={{ fontWeight: 'bold', color: metrics.throughput_req_sec > breakEvenQps ? '#4CAF50' : '#F44336' }}>
+-              STATUS: {metrics.throughput_req_sec > breakEvenQps ? 'ABOVE BREAK-EVEN' : 'NOT ECONOMIC'}
++          {metrics?.origin?.src === 'unavailable' ? (
++            <div style={{ padding: '20px', textAlign: 'center', color: '#666', fontSize: '11px' }}>
++              Origin fetch observability unavailable ({metrics.origin.reason})
+             </div>
+-          </div>
++          ) : (
++            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
++              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
++                <span style={{ color: '#888' }}>Requests Started:</span>
++                <span style={{ fontWeight: 'bold' }}>{metrics?.origin?.requests_started?.v?.toLocaleString() ?? '—'}</span>
++              </div>
++              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
++                <span style={{ color: '#888' }}>Completed OK (200):</span>
++                <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>{metrics?.origin?.requests_completed_ok?.v?.toLocaleString() ?? '—'}</span>
++              </div>
++              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
++                <span style={{ color: '#888' }}>In-Flight Fetches:</span>
++                <span style={{ color: '#FF6B00', fontWeight: 'bold' }}>{metrics?.origin?.in_flight?.v?.toLocaleString() ?? '0'}</span>
++              </div>
++              <div style={{ borderTop: '1px solid #15171B', paddingTop: '6px', display: 'flex', justifyContent: 'space-between' }}>
++                <span style={{ color: '#888' }}>Errors (5xx / Timeout / Network):</span>
++                <span style={{ color: '#F44336', fontWeight: 'bold' }}>
++                  {metrics?.origin?.errors
++                    ? `${metrics.origin.errors.status_5xx.v} / ${metrics.origin.errors.timeout.v} / ${metrics.origin.errors.network.v}`
++                    : '—'}
++                </span>
++              </div>
++              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
++                <span style={{ color: '#888' }}>Origin Latency (P50 / P95 / P99):</span>
++                <span>
++                  {metrics?.origin?.latency_ms?.p50 !== undefined
++                    ? `${metrics.origin.latency_ms.p50}ms / ${metrics.origin.latency_ms.p95}ms / ${metrics.origin.latency_ms.p99}ms`
++                    : '— (no samples)'}
++                </span>
++              </div>
++            </div>
++          )}
+         </div>
+       </section>
+ 
+-      {/* ROW 6: TIMELINE & CONTROLS */}
+-      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+-        
+-        {/* TIMELINE */}
+-        <div style={{ border: '1px solid #1A1C20', padding: '12px', backgroundColor: '#0B0C0E', maxHeight: '150px', overflowY: 'auto' }}>
+-          <h2 style={{ fontSize: '11px', color: '#888', margin: '0 0 8px 0' }}>EVENT TIMELINE</h2>
+-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px' }}>
+-            {timeline.map((item, idx) => (
+-              <div key={idx}>
+-                <span style={{ color: '#666' }}>[{item.time}]</span> <span style={{ color: '#FF6B00', fontWeight: 'bold' }}>{item.event}</span>: {item.desc}
+-              </div>
+-            ))}
+-          </div>
++      {/* SECTION 5: CAPACITY ACCOUNTING & MEMORY */}
++      <section style={{ marginBottom: '16px' }}>
++        <div style={{ fontSize: '10px', color: '#666', marginBottom: '6px', textTransform: 'uppercase' }}>
++          Memory & Byte Capacity Accounting
+         </div>
+-
+-        {/* SCENARIO CONTROL & SPEED BAR */}
+-        <div style={{ border: '1px solid #1A1C20', padding: '12px', backgroundColor: '#0B0C0E' }}>
+-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+-            <h2 style={{ fontSize: '11px', color: '#888', margin: 0 }}>SCENARIO CONTROL BAR</h2>
+-            
+-            {/* Speed Control Strip */}
+-            <div style={{ display: 'flex', gap: '4px', fontSize: '10px' }}>
+-              <button onClick={() => setIsPaused(false)} style={{ backgroundColor: !isPaused ? '#FF6B00' : '#101216', color: '#FFF', border: 'none', padding: '2px 6px', cursor: 'pointer' }}>▶ RUN</button>
+-              <button onClick={() => setIsPaused(true)} style={{ backgroundColor: isPaused ? '#FF6B00' : '#101216', color: '#FFF', border: 'none', padding: '2px 6px', cursor: 'pointer' }}>⏸ PAUSE</button>
+-              <button onClick={() => setSimSpeed('0.25x')} style={{ backgroundColor: simSpeed === '0.25x' ? '#FF6B00' : '#101216', color: '#FFF', border: 'none', padding: '2px 6px', cursor: 'pointer' }}>0.25x</button>
+-              <button onClick={() => setSimSpeed('1x')} style={{ backgroundColor: simSpeed === '1x' ? '#FF6B00' : '#101216', color: '#FFF', border: 'none', padding: '2px 6px', cursor: 'pointer' }}>1x</button>
+-              <button onClick={() => setSimSpeed('2x')} style={{ backgroundColor: simSpeed === '2x' ? '#FF6B00' : '#101216', color: '#FFF', border: 'none', padding: '2px 6px', cursor: 'pointer' }}>2x</button>
+-            </div>
+-          </div>
+-          
+-          {/* Preset Buttons */}
+-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', marginBottom: '8px' }}>
+-            <button onClick={() => handlePreset('NORMAL')} style={{ backgroundColor: '#101216', color: '#F3F4F6', border: '1px solid #1A1C20', padding: '6px', cursor: 'pointer', fontSize: '10px' }}>NORMAL</button>
+-            <button onClick={() => handlePreset('FLASH_CROWD')} style={{ backgroundColor: '#101216', color: '#F3F4F6', border: '1px solid #1A1C20', padding: '6px', cursor: 'pointer', fontSize: '10px' }}>FLASH CROWD</button>
+-            <button onClick={() => handlePreset('NODE_FAILURE')} style={{ backgroundColor: '#101216', color: '#F3F4F6', border: '1px solid #1A1C20', padding: '6px', cursor: 'pointer', fontSize: '10px' }}>KILL NODE</button>
+-            <button onClick={() => { setNetworkConfig('DEGRADED'); triggerEvent('DEGRADED'); }} style={{ backgroundColor: '#101216', color: '#F3F4F6', border: '1px solid #1A1C20', padding: '6px', cursor: 'pointer', fontSize: '10px' }}>NETWORK</button>
+-            <button onClick={handleReset} style={{ backgroundColor: '#101216', color: '#F3F4F6', border: '1px solid #1A1C20', padding: '6px', cursor: 'pointer', fontSize: '10px' }}>RESET</button>
+-          </div>
++        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
++          <MetricCard label="Resident Cache Bytes" metric={metrics?.bytes_resident} unit="bytes" />
++          <MetricCard label="Configured Byte Budget" metric={metrics?.byte_budget} unit="bytes" />
++          <MetricCard label="Budget Rejections" metric={metrics?.byte_budget_rejections} />
++          <MetricCard label="Oversize Rejections" metric={metrics?.oversize_rejections} />
++          <MetricCard label="Process RSS" metric={metrics?.process?.rss_bytes} unit="bytes" />
+         </div>
+       </section>
+ 
+-      {/* POPUP DRAWER MODALS */}
+-      {showWhyPhantom && (
+-        <div style={{ position: 'fixed', top: '30%', left: '35%', width: '30%', backgroundColor: '#0B0C0E', border: '2px solid #FF6B00', padding: '16px', zIndex: 100 }}>
+-          <h2 style={{ color: '#FF6B00', margin: '0 0 10px 0', fontSize: '14px' }}>WHY PHANTOM?</h2>
+-          <ul style={{ fontSize: '11px', lineHeight: '1.6', paddingLeft: '16px' }}>
+-            <li>Coalesces duplicate database queries during flash loads.</li>
+-            <li>Balances regional replica hot keys adaptively.</li>
+-            <li>Protects physical database capacity bounds.</li>
+-          </ul>
+-          <button onClick={() => setShowWhyPhantom(false)} style={{ backgroundColor: '#FF6B00', color: '#F3F4F6', border: 'none', padding: '6px 12px', cursor: 'pointer', float: 'right', fontSize: '11px', marginTop: '10px' }}>CLOSE</button>
++      {/* SECTION 6: ADAPTIVE CONTROLLER STATUS */}
++      <section style={{ border: '1px solid #1A1C20', padding: '12px', backgroundColor: '#0B0C0E', marginBottom: '16px' }}>
++        <h2 style={{ fontSize: '11px', color: '#888', margin: '0 0 6px 0' }}>ADAPTIVE POLICY CONTROLLER STATUS</h2>
++        <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#FFF' }}>
++          No adaptive controller active
+         </div>
+-      )}
+-
+-      {showDataInspector && (
+-        <div style={{ position: 'fixed', top: '25%', left: '25%', width: '50%', backgroundColor: '#0B0C0E', border: '2px solid #FF6B00', padding: '16px', zIndex: 100 }}>
+-          <h2 style={{ color: '#FF6B00', margin: '0 0 10px 0', fontSize: '14px' }}>LIVE TELEMETRY SNAPSHOT INSPECTOR</h2>
+-          <pre style={{ fontSize: '10px', maxHeight: '200px', overflowY: 'auto', backgroundColor: '#050607', padding: '10px', border: '1px solid #1A1C20' }}>
+-            {JSON.stringify({ metrics, nodes, hotKeys }, null, 2)}
+-          </pre>
+-          <button onClick={() => setShowDataInspector(false)} style={{ backgroundColor: '#FF6B00', color: '#F3F4F6', border: 'none', padding: '6px 12px', cursor: 'pointer', float: 'right', fontSize: '11px', marginTop: '10px' }}>CLOSE</button>
++        <div style={{ fontSize: '10px', color: '#666', marginTop: '4px', lineHeight: '1.4' }}>
++          Phantom Intelligence Engine (PIE) is disabled during Phase 1 baseline execution (`pie: None`).
++          Zero synthetic or unverified metrics justify policy transitions.
+         </div>
+-      )}
++      </section>
+ 
++      {/* FOOTER */}
++      <footer style={{ borderTop: '1px solid #1A1C20', paddingTop: '8px', fontSize: '9px', color: '#555', display: 'flex', justifyContent: 'space-between' }}>
++        <span>PHANTOMCACHE SYSTEM ARCHITECTURE // RFC 9111 COMPLIANT CACHE ENGINE</span>
++        <span>TRUTHFUL TELEMETRY SPECIFICATION V2.0</span>
++      </footer>
+     </div>
+   );
+ }

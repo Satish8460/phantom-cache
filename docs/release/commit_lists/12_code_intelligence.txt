@@ -1,0 +1,7 @@
+src/intelligence/audit.rs
+src/intelligence/candidates.rs
+src/intelligence/engine.rs
+src/intelligence/executor.rs
+src/intelligence/mod.rs
+src/intelligence/shadow.rs
+src/intelligence/signals.rs

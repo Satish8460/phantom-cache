@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" font-family="Arial, Helvetica, sans-serif">
+  <title>Rendezvous hashing worked example with real hash values</title>
+  <desc>Four canonical keys scored against nodes 1, 2 and 3. Each cell shows the hash divided by 2 to the power 64. The highest score wins. Removing node 3 moves only keys that node 3 owned.</desc>
+  <rect x="0" y="0" width="900" height="560" fill="#ffffff"/>
+  <text x="450" y="26" font-size="16" font-weight="bold" text-anchor="middle" fill="#111">Score = DefaultHasher(key, node_id) / 2^64. Highest score owns the key.</text>
+  <!-- header -->
+  <rect x="30" y="44" width="250" height="40" fill="#444" stroke="#111" stroke-width="2"/>
+  <text x="155" y="69" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">canonical key</text>
+  <rect x="280" y="44" width="130" height="40" fill="#444" stroke="#111" stroke-width="2"/><text x="345" y="69" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">node 1</text>
+  <rect x="410" y="44" width="130" height="40" fill="#444" stroke="#111" stroke-width="2"/><text x="475" y="69" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">node 2</text>
+  <rect x="540" y="44" width="130" height="40" fill="#444" stroke="#111" stroke-width="2"/><text x="605" y="69" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">node 3</text>
+  <rect x="670" y="44" width="200" height="40" fill="#444" stroke="#111" stroke-width="2"/><text x="770" y="69" font-size="14" font-weight="bold" text-anchor="middle" fill="#fff">owner / if node 3 gone</text>
+
+  <!-- row a -->
+  <rect x="30" y="84" width="250" height="46" fill="#ffffff" stroke="#111"/><text x="155" y="112" font-size="13" text-anchor="middle" fill="#111">__default__:/a</text>
+  <rect x="280" y="84" width="130" height="46" fill="#ffffff" stroke="#111"/><text x="345" y="112" font-size="14" text-anchor="middle" fill="#111">0.0712</text>
+  <rect x="410" y="84" width="130" height="46" fill="#9a9a9a" stroke="#111" stroke-width="3"/><text x="475" y="112" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">0.3297</text>
+  <rect x="540" y="84" width="130" height="46" fill="#ffffff" stroke="#111"/><text x="605" y="112" font-size="14" text-anchor="middle" fill="#111">0.0044</text>
+  <rect x="670" y="84" width="200" height="46" fill="#ffffff" stroke="#111"/><text x="770" y="112" font-size="13" text-anchor="middle" fill="#111">node 2 / node 2 (unchanged)</text>
+  <!-- row b -->
+  <rect x="30" y="130" width="250" height="46" fill="#ffffff" stroke="#111"/><text x="155" y="158" font-size="13" text-anchor="middle" fill="#111">__default__:/b</text>
+  <rect x="280" y="130" width="130" height="46" fill="#ffffff" stroke="#111"/><text x="345" y="158" font-size="14" text-anchor="middle" fill="#111">0.5482</text>
+  <rect x="410" y="130" width="130" height="46" fill="#ffffff" stroke="#111"/><text x="475" y="158" font-size="14" text-anchor="middle" fill="#111">0.6587</text>
+  <rect x="540" y="130" width="130" height="46" fill="#9a9a9a" stroke="#111" stroke-width="3"/><text x="605" y="158" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">0.8331</text>
+  <rect x="670" y="130" width="200" height="46" fill="#e0e0e0" stroke="#111"/><text x="770" y="158" font-size="13" text-anchor="middle" fill="#111">node 3 / moves to node 2</text>
+  <!-- row c -->
+  <rect x="30" y="176" width="250" height="46" fill="#ffffff" stroke="#111"/><text x="155" y="204" font-size="13" text-anchor="middle" fill="#111">__default__:/c</text>
+  <rect x="280" y="176" width="130" height="46" fill="#9a9a9a" stroke="#111" stroke-width="3"/><text x="345" y="204" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">0.9226</text>
+  <rect x="410" y="176" width="130" height="46" fill="#ffffff" stroke="#111"/><text x="475" y="204" font-size="14" text-anchor="middle" fill="#111">0.5485</text>
+  <rect x="540" y="176" width="130" height="46" fill="#ffffff" stroke="#111"/><text x="605" y="204" font-size="14" text-anchor="middle" fill="#111">0.4775</text>
+  <rect x="670" y="176" width="200" height="46" fill="#ffffff" stroke="#111"/><text x="770" y="204" font-size="13" text-anchor="middle" fill="#111">node 1 / node 1 (unchanged)</text>
+  <!-- row hotel -->
+  <rect x="30" y="222" width="250" height="46" fill="#ffffff" stroke="#111"/><text x="155" y="250" font-size="13" text-anchor="middle" fill="#111">__default__:/hotel/42</text>
+  <rect x="280" y="222" width="130" height="46" fill="#ffffff" stroke="#111"/><text x="345" y="250" font-size="14" text-anchor="middle" fill="#111">0.0584</text>
+  <rect x="410" y="222" width="130" height="46" fill="#ffffff" stroke="#111"/><text x="475" y="250" font-size="14" text-anchor="middle" fill="#111">0.0136</text>
+  <rect x="540" y="222" width="130" height="46" fill="#9a9a9a" stroke="#111" stroke-width="3"/><text x="605" y="250" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">0.9485</text>
+  <rect x="670" y="222" width="200" height="46" fill="#e0e0e0" stroke="#111"/><text x="770" y="250" font-size="13" text-anchor="middle" fill="#111">node 3 / moves to node 1</text>
+
+  <text x="30" y="300" font-size="13" fill="#111">Thick border and dark cell = highest score = owner (primary). Light grey right cell = key that moves when node 3 is excluded.</text>
+  <text x="30" y="320" font-size="13" fill="#111">Fractions are the real DefaultHasher outputs (rustc 1.98.0, this host) divided by 2^64, rounded to 4 places.</text>
+
+  <!-- measured panel -->
+  <rect x="30" y="344" width="840" height="190" fill="#f0f0f0" stroke="#111" stroke-width="2"/>
+  <text x="450" y="368" font-size="14" font-weight="bold" text-anchor="middle" fill="#111">Standalone replica, 100,000 keys "__default__:/item/N" (re-run by QA; not a product benchmark)</text>
+  <text x="50" y="394" font-size="13" fill="#111">3 nodes: owners 33,287 / 33,428 / 33,285 (ideal 33,333 each).   5 nodes: 20,013 / 19,959 / 20,062 / 19,900 / 20,066 (ideal 20,000).</text>
+  <text x="50" y="418" font-size="13" fill="#111">Remove node 3: 33,285 keys move (exactly the keys node 3 owned); keys that move among nodes 1 and 2: 0.</text>
+  <text x="50" y="442" font-size="13" fill="#111">Add node 4 to {1,2,3}: 25,002 keys move (about 1/4), and all of them move to node 4.</text>
+  <text x="50" y="474" font-size="13" fill="#111">Minimal disruption: only the departing node's keys, or the new node's share, change owner.</text>
+  <text x="50" y="498" font-size="13" fill="#111">Limit: the product has no test of uniformity or minimal disruption; this replica is the only evidence, and it uses one key family.</text>
+  <text x="50" y="522" font-size="13" fill="#111">Caveat: the std DefaultHasher algorithm is unspecified and may change with the compiler version.</text>
+</svg>

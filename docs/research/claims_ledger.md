@@ -6,6 +6,8 @@
 **Evidence class:** `proof`, `model-check`, `simulation (Tier 1)`, `real single-host (Tier 2)`, `physical multi-host (Tier 3)`, `test-suite only` (never sufficient alone for a guarantee).  
 **Last Audited:** `2026-10-29T18:45:00+05:30` (IST) — Independent Lead Audit.
 
+> **Correction notice (2026-10-30, owner-approved DEC-020; table text unchanged):** the original C6 wording "Per-node linearizability guaranteed" and "zero stale reads post-propagation (P(stale) = 0.0)" overstates what is implemented and tested. Supported by code and tests is gateway-local read-your-delete for a sequential DELETE then GET on one gateway; no linearizability checker or proof exists, the concurrent-case findings G4A-01 and G4A-08 are open (`docs/release/g4/cycle1_core_engine_review.md`), and the cross-gateway figures are loopback, debug-profile observations with a fixed 50 ms sleep (see the amendment in section 5 and the appended note near the end of this file). The "TTL_eff = 60s" fallback is not a bound: `PHANTOM_DEFAULT_TTL_MS` is NotWired and origin headers set the lifetime with no gateway ceiling.
+
 ---
 
 ## 1. Core Architecture & Adaptive Intelligence Claims

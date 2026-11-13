@@ -1,0 +1,22 @@
+# commit_lists_v2/B07_ui_design_system_foundations.txt
+# UI design-system foundations (css, shared components, token/motion/forbidden checks)
+# Generated 2026-10-30 16:41 IST from git status --short -uall (4644 entries). One repo-relative path per line; lines starting with # are comments.
+# Use: GIT_LITERAL_PATHSPECS=1 git add --pathspec-from-file=<this file> after stripping comment lines (see g5_batch_plan_v2.md section 6).
+ui/scripts/check-contrast.mjs
+ui/scripts/check-forbidden.mjs
+ui/scripts/forbidden-patterns.mjs
+ui/src/components/FieldTable.jsx
+ui/src/components/Icon.jsx
+ui/src/components/Metric.jsx
+ui/src/components/Panel.jsx
+ui/src/components/ProvenanceBadge.jsx
+ui/src/components/Shell.jsx
+ui/src/components/States.jsx
+ui/src/styles/app.css
+ui/src/styles/pages.css
+ui/src/styles/shell.css
+ui/src/styles/tokens.css
+ui/test/forbidden.test.mjs
+ui/test/motion.v2.test.mjs
+ui/test/tokens.materials.test.mjs
+ui/test/tokens.test.mjs

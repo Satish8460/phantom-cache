@@ -1,0 +1,43 @@
+{
+  "build_profile": "release",
+  "created_utc": "2026-10-30T18:00:42Z",
+  "ended_utc": "2026-10-30T18:01:40Z",
+  "error": {
+    "code": "interrupted",
+    "message": "the gateway process stopped or restarted while this run was active; the run was not resumed and has no result"
+  },
+  "exit_code": null,
+  "gateway_created_ft": "134378568441644179",
+  "gateway_pid": 17908,
+  "kind": "scenario_b",
+  "persistence_errors": 0,
+  "progress": {
+    "done": 0,
+    "total": 30
+  },
+  "recovery": {
+    "gateway_pid": 17908,
+    "gateway_reap": "not_running"
+  },
+  "run_id": "20261030T180042Z-fb9d750a",
+  "spec": {
+    "aimd_max": 32,
+    "aimd_min": 12,
+    "arms": [
+      "BASE",
+      "STATIC-CAP",
+      "AIMD-CAP"
+    ],
+    "degraded_s": 10,
+    "healthy_s": 5,
+    "n_keys": 5000,
+    "rate_rps": 300.0,
+    "recovery_s": 8,
+    "repetitions": 10,
+    "static_cap": 24,
+    "warmup_s": 5
+  },
+  "started_utc": "2026-10-30T18:00:42Z",
+  "state": "interrupted",
+  "tier": "MEASURED_LOOPBACK"
+}

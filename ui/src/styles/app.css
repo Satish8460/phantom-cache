@@ -1,0 +1,402 @@
+/* Base, layout and component styles. Only tokens from tokens.css are used for colour, space, type, radius, motion, elevation.
+   Spec: docs/design/phantomcache_design_system_spec.md and docs/design/phantomcache_design_direction_v2.md (DD v2). Skill sections (S1..S17) are cited where they drove a rule.
+   V1 foundations v2 (2026-10-30): paper-and-ink surfaces, ink-filled primary, glass on application chrome only (section "Materials"), no pill shapes, motion tokens. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + var(--space-3)); scroll-padding-bottom: 6rem; } /* WCAG 2.4.11: the sticky header and run bar must not hide a focused element */
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  /* Technical grid on the page ground only (DD 4.1 item 4): static gradients, no per-frame cost; every data surface is solid and covers it. */
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
+  letter-spacing: var(--type-body-ls);
+  font-variant-numeric: tabular-nums;
+}
+::selection { background: var(--accent); color: var(--accent-contrast); }
+
+/* ---------- Type tiers (S15: size, leading and tracking move together; tracking tightens as size grows) ---------- */
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
+h1, .t-display { font-size: var(--type-display); line-height: var(--type-display-lh); letter-spacing: var(--type-display-ls); font-weight: var(--type-display-wt); }
+h2, .t-headline { font-size: var(--type-headline); line-height: var(--type-headline-lh); letter-spacing: var(--type-headline-ls); font-weight: var(--type-headline-wt); }
+h3, .t-title { font-size: var(--type-title); line-height: var(--type-title-lh); letter-spacing: var(--type-title-ls); font-weight: var(--type-title-wt); }
+h4 { font-size: var(--type-dense); line-height: var(--type-dense-lh); letter-spacing: var(--type-dense-ls); font-weight: var(--weight-semibold); }
+.t-body { font-size: var(--type-body); line-height: var(--type-body-lh); letter-spacing: var(--type-body-ls); font-weight: var(--type-body-wt); }
+.t-dense { font-size: var(--type-dense); line-height: var(--type-dense-lh); letter-spacing: var(--type-dense-ls); font-weight: var(--type-dense-wt); }
+.t-caption { font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); font-weight: var(--type-caption-wt); }
+.t-metric { font-size: var(--type-metric); line-height: var(--type-metric-lh); letter-spacing: var(--type-metric-ls); font-weight: var(--type-metric-wt); font-variant-numeric: tabular-nums; }
+.t-mono { font-family: var(--font-mono); font-size: var(--type-mono); line-height: var(--type-mono-lh); letter-spacing: var(--type-mono-ls); font-weight: var(--type-mono-wt); font-variant-numeric: tabular-nums; }
+.t-upper { text-transform: uppercase; letter-spacing: var(--tracking-label); } /* uppercase labels need more tracking than lower-case captions */
+/* Eyebrow: a short caps label (group captions, field headers); never a sentence (DD 4.4; documented exception in external_design_skills_project_rules.md rule 11). */
+.t-eyebrow { font-size: var(--type-eyebrow); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; color: var(--text-3); }
+p { margin: 0; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--font-mono); font-size: var(--type-mono); line-height: var(--type-mono-lh); font-variant-numeric: tabular-nums; }
+
+/* Prose (rendered descriptions): a readable measure and looser leading (S15 leading inverse to size). */
+.prose { max-width: 70ch; font-size: var(--type-body); line-height: 1.6; }
+.prose > * + * { margin-top: var(--space-3); }
+.prose ul, .prose ol { padding-left: var(--space-5); }
+
+/* Focus: always visible, 3:1 against adjacent colours (verified in check-contrast, including over worst-case glass). */
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+[tabindex="-1"]:focus { outline: none; }
+
+[hidden] { display: none !important; } /* .btn and other display rules must not defeat the hidden attribute */
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute; left: var(--space-2); top: -4rem; z-index: 10;
+  background: var(--primary); color: var(--on-primary);
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-control); text-decoration: none;
+}
+.skip-link:focus { top: var(--space-2); }
+
+/* ---------- Layout primitives. Shell (header, navigation, main, footer) lives in shell.css; page structure in pages.css. ---------- */
+.grid { display: grid; gap: var(--space-group); grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+
+/* Section: heading + content separated by whitespace, no box (spec section 4: a panel needs a reason). */
+.section { display: flex; flex-direction: column; gap: var(--space-group); min-width: 0; }
+
+/* ---------- Surfaces: elevation L1..L3 (spec section 4). L1 is SOLID ALWAYS; shadows come only from --shadow-1..3. ---------- */
+/* L1: panels, tables, forms. A hairline and a 10 px radius; no shadow in either theme (--shadow-1 is none). */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-1); padding: var(--space-group); display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.panel__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2); }
+.panel__title { font-size: var(--type-title); line-height: var(--type-title-lh); letter-spacing: var(--type-title-ls); font-weight: var(--type-title-wt); }
+.panel__note { color: var(--text-2); font-size: var(--type-dense); line-height: var(--type-dense-lh); }
+.panel h3 { font-size: var(--type-dense); line-height: var(--type-dense-lh); letter-spacing: var(--type-dense-ls); font-weight: var(--weight-semibold); }
+/* No nested panels: a panel inside a panel becomes a ruled section (group with a rule and whitespace, not a second box). */
+.panel .panel, .panel--plain { background: transparent; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+.panel .panel { border-top: 1px solid var(--border); padding-top: var(--space-group); }
+/* L2: menus and popovers are SOLID raised surfaces (they open from the glass header; glass never sits on glass, DD 4.3). `transform-origin` is the trigger (S7). */
+.elev-2, .menu, .popover { background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-2); }
+.menu, .popover { transform-origin: var(--origin, top left); padding: var(--space-1); min-width: 10rem; }
+.menu, .popover { animation: pc-pop var(--d-base) var(--ease-spring); }
+.sticky-bar { position: sticky; z-index: 2; background: var(--surface-raised); border: 1px solid var(--border); box-shadow: var(--shadow-2); }
+/* L3: dialogs over a dim-only scrim (S12 dim to focus; no blur on the scrim). The dialog itself is chrome and uses glass on desktop (Materials, below). */
+.scrim { position: fixed; inset: 0; z-index: 20; background: var(--scrim); display: grid; place-items: center; padding: var(--space-4); }
+.dialog { background: var(--surface-overlay); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-3); padding: var(--space-5); width: min(100%, 32rem); max-height: 100%; overflow: auto; display: flex; flex-direction: column; gap: var(--space-group); animation: pc-pop var(--d-base) var(--ease-spring); }
+.dialog__title { font-size: var(--type-title); line-height: var(--type-title-lh); letter-spacing: var(--type-title-ls); font-weight: var(--type-title-wt); }
+.dialog__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+
+/* ---------- Metrics ---------- */
+.metric-grid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); margin: 0; }
+.metric { background: var(--surface-2); border-radius: var(--radius-md); padding: var(--space-3); min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); border-left: 3px solid transparent; }
+.metric dt { color: var(--text-2); font-size: var(--type-dense); line-height: var(--type-dense-lh); }
+.metric dd { margin: 0; }
+.metric__value { font-size: var(--type-metric); line-height: var(--type-metric-lh); letter-spacing: var(--type-metric-ls); font-weight: var(--type-metric-wt); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.metric__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); color: var(--text-3); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+.metric__reason { color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+.metric--unavailable .metric__value, .metric--missing .metric__value, .metric--rejected .metric__value, .metric--loading .metric__value { font-size: var(--type-body); line-height: var(--type-body-lh); letter-spacing: var(--type-body-ls); font-weight: var(--weight-medium); color: var(--text-2); }
+.metric--stale .metric__value { color: var(--text-2); } /* stale is told by the "stale" tag (glyph + word), not by a dotted underline */
+.metric--critical { border-left-color: var(--critical); background: var(--critical-bg); }
+.metric--critical .metric__value { color: var(--critical); }
+
+/* ---------- Provenance mark (spec section 11) ----------
+   Anatomy: glyph + word (+ short qualifier), caption tier, 22 px high, 5 px radius, 1 px border. REAL, DERIVED (and INFERRED shown as DERIVED): solid.
+   SIMULATED, REPLAYED, PREDICTED: dashed. UNAVAILABLE: dotted. Dashed and dotted borders are used ONLY here (spec section 5).
+   Distinguished by glyph and border pattern as well as hue; never colour alone. */
+.prov { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 1.375rem; padding: 1px var(--space-2); border-radius: var(--radius-sm); font-size: var(--type-caption); line-height: var(--type-caption-lh); font-weight: var(--weight-semibold); text-transform: uppercase; letter-spacing: var(--tracking-label); border: 1px solid currentColor; max-width: 100%; flex-wrap: wrap; } /* the word stays whole; a long basis qualifier wraps at 200% text instead of widening the page (A11Y-02) */
+.prov__word { white-space: nowrap; }
+.prov svg { width: 0.75rem; height: 0.75rem; flex: none; }
+.prov__q { margin-left: var(--space-1); padding-left: var(--space-2); border-left: 1px solid currentColor; font-weight: var(--weight-medium); text-transform: none; letter-spacing: var(--type-caption-ls); }
+.prov--measured { color: var(--prov-measured); background: var(--prov-measured-bg); }
+.prov--derived, .prov--inferred { color: var(--prov-derived); background: var(--prov-derived-bg); }
+.prov--simulated { color: var(--prov-simulated); background: var(--prov-simulated-bg); border-style: dashed; }
+.prov--replayed { color: var(--prov-replayed); background: var(--prov-replayed-bg); border-style: dashed; }
+.prov--predicted { color: var(--prov-predicted); background: var(--prov-predicted-bg); border-style: dashed; }
+.prov--unavailable { color: var(--prov-unavailable); background: var(--prov-unavailable-bg); border-style: dotted; }
+
+/* Small neutral tags (stale age, etc.): solid, never dashed, never filled with hue unless the tag is a state. */
+.tag { display: inline-flex; align-items: center; gap: var(--space-1); padding: 1px var(--space-2); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); font-weight: var(--weight-medium); color: var(--text-2); white-space: nowrap; }
+.tag svg { width: 0.75rem; height: 0.75rem; flex: none; }
+.tag--stale { color: var(--warn); background: var(--warn-bg); border-color: var(--warn); }
+/* RETAINED stamp (DD 7.4, 8.2): one of the only two bordered marks (with the provenance mark). Ink, solid, caps eyebrow type. A separate axis from provenance; never animated. */
+.stamp { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 1.375rem; padding: 1px var(--space-2); border: 1px solid var(--text); border-radius: var(--radius-sm); color: var(--text); font-size: var(--type-eyebrow); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; white-space: nowrap; }
+.stamp svg { width: 0.75rem; height: 0.75rem; flex: none; }
+
+/* ---------- Status indicator / banners / state grammar (spec section 10) ----------
+   .pill keeps its name and markup (StatusPill) but is no longer a pill: a 5 px radius indicator with glyph + word (DD 7.4 tier 1). */
+.pill { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-sm); font-size: var(--type-dense); font-weight: var(--weight-medium); border: 1px solid transparent; }
+.pill svg { width: 0.875rem; height: 0.875rem; flex: none; }
+.tone-ok { color: var(--ok); background: var(--ok-bg); }
+.tone-warn { color: var(--warn); background: var(--warn-bg); }
+.tone-critical { color: var(--critical); background: var(--critical-bg); }
+.tone-info { color: var(--info); background: var(--info-bg); }
+.tone-neutral { color: var(--text-2); background: var(--surface-2); }
+
+/* Notice: tinted ground, a hairline, and a heavy leading rule in the state hue (DD 11). The left rule and the glyph carry the hue; the body text stays ink. */
+.banner { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) var(--space-4); border-radius: var(--radius-card); border: 1px solid var(--border); border-left: 4px solid currentColor; }
+.banner svg { width: 1.125rem; height: 1.125rem; flex: none; margin-top: 2px; }
+.banner__body { display: flex; flex-direction: column; gap: var(--space-1); color: var(--text); font-size: var(--type-body); line-height: var(--type-body-lh); }
+.banner__title { font-size: var(--type-body); font-weight: var(--weight-semibold); }
+.banner--simulated { color: var(--prov-simulated); background: var(--prov-simulated-bg); }
+.banner--simulated .banner__title { text-transform: uppercase; letter-spacing: var(--tracking-label); }
+
+.state-block { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-5); background: var(--surface); border: 1px solid var(--border); border-left-width: 3px; border-left-color: var(--border-strong); border-radius: var(--radius-card); }
+.state-block__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--type-title); line-height: var(--type-title-lh); letter-spacing: var(--type-title-ls); font-weight: var(--weight-semibold); }
+.state-block__head svg { width: 1.25rem; height: 1.25rem; flex: none; }
+.state-block p { color: var(--text-2); max-width: 70ch; font-size: var(--type-dense); line-height: var(--type-body-lh); }
+.state-block[data-state-kind="error"] { border-left-color: var(--critical); }
+.state-block[data-state-kind="error"] .state-block__head { color: var(--critical); }
+.state-block[data-state-kind="warning"], .state-block[data-state-kind="stale"] { border-left-color: var(--warn); }
+.state-block[data-state-kind="warning"] .state-block__head, .state-block[data-state-kind="stale"] .state-block__head { color: var(--warn); }
+.state-block[data-state-kind="success"] { border-left-color: var(--ok); }
+.state-block[data-state-kind="success"] .state-block__head { color: var(--ok); }
+.state-block[data-state-kind="simulated"] { border-left-color: var(--prov-simulated); }
+.state-block[data-state-kind="loading"] .state-block__head svg { animation: pc-spin 0.9s linear infinite; }
+/* Unavailable and empty regions: a hatched well says "this is not a value" without a border style (hatch = not real, DD 4.1 item 2). */
+.state-block[data-state-kind="unavailable"], .state-block[data-state-kind="notEnabled"], .state-block[data-state-kind="empty"] { background-image: repeating-linear-gradient(135deg, transparent 0 0.5rem, var(--hatch) 0.5rem calc(0.5rem + 1px)); }
+
+.spinner { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-2); font-size: var(--type-dense); }
+.spinner svg { width: 1rem; height: 1rem; flex: none; animation: pc-spin 0.9s linear infinite; }
+.inline-success { display: flex; align-items: center; gap: var(--space-2); color: var(--ok); font-size: var(--type-dense); font-weight: var(--weight-medium); }
+.inline-success svg { width: 1rem; height: 1rem; flex: none; }
+.disabled-reason { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+.disabled-reason svg { width: 0.875rem; height: 0.875rem; flex: none; }
+
+/* Indeterminate progress: the only decorative-free loop (spec section 6). Static striped bar under reduced motion. */
+.progress-indeterminate { position: relative; height: 0.5rem; border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden; }
+.progress-indeterminate::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 35%; background: var(--text-2); border-radius: inherit; animation: pc-slide 1.4s var(--ease-out) infinite; }
+
+/* Disclosure: details styled with a chevron; the summary is a full-size target. The chevron turns (transform only); content fades in. Height is never animated. */
+.disclosure > summary { list-style: none; display: flex; align-items: center; gap: var(--space-2); min-height: var(--target-desktop); border-radius: var(--radius-sm); }
+.disclosure > summary::-webkit-details-marker { display: none; }
+.disclosure > summary::before { content: ""; width: 0.5rem; height: 0.5rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform var(--dur-base) var(--ease-out); flex: none; }
+.disclosure[open] > summary::before { transform: rotate(45deg); }
+.disclosure[open] > :not(summary) { animation: pc-appear var(--dur-base) var(--ease-out); }
+
+/* ---------- Controls (S1: press feedback lives on pointer-down) ----------
+   Primary = ink-filled (DD 4.1); secondary = outlined; ghost = text; danger = outlined red. Height 36 px (44 px on touch), radius 6. */
+.btn { min-height: var(--target); min-width: var(--target-min); padding: 0 var(--space-4); border-radius: var(--radius-control); border: 1px solid var(--border-strong); background-color: var(--surface); background-image: linear-gradient(transparent, transparent); color: var(--text); font: inherit; font-size: var(--type-dense); font-weight: var(--weight-medium); line-height: var(--type-dense-lh); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  transition: background-color var(--dur-fast) var(--ease-in-out), border-color var(--dur-fast) var(--ease-in-out), transform var(--dur-press) ease-out; }
+.btn:hover { background-image: linear-gradient(var(--tint-hover), var(--tint-hover)); }
+.btn:active { background-image: linear-gradient(var(--tint-press), var(--tint-press)); transform: scale(0.97); }
+.btn--primary { background-color: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.btn--primary:hover { background-color: var(--text-2); border-color: var(--text-2); }
+.btn--ghost { background-color: transparent; border-color: transparent; color: var(--accent); }
+.btn--danger { border-color: var(--critical); color: var(--critical); }
+.btn svg { width: 1rem; height: 1rem; flex: none; }
+/* Disabled: stays visible, lower contrast, solid border; the reason is stated next to it (<DisabledReason>). aria-disabled keeps it focusable. */
+.btn:disabled, .btn[aria-disabled="true"] { color: var(--text-3); background-color: var(--surface-2); background-image: none; border-color: var(--border); cursor: not-allowed; transform: none; }
+/* Busy: spinner glyph + text, aria-busy; presses are ignored. */
+.btn[aria-busy="true"] { cursor: progress; transform: none; }
+.btn[aria-busy="true"] svg { animation: pc-spin 0.9s linear infinite; }
+
+/* Text-like inputs (spec section 7: 36 px, 44 px at touch). Field wells use --surface-2 (DD 11). Same values as the Lab form rules so there is one look. */
+input[type="text"], input[type="password"], input[type="number"], input[type="search"], select, textarea { min-height: var(--target); padding: 0 var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-control); background: var(--surface-2); color: var(--text); font: inherit; font-size: var(--type-dense); line-height: var(--type-dense-lh); }
+textarea { padding: var(--space-2) var(--space-3); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--primary); }
+
+/* Tabs and segmented controls: label plus a selected state that is not colour alone (2 px ink underline that slides in by scaleX, weight; a raised surface for segments). */
+.tabs { display: flex; flex-wrap: wrap; gap: var(--space-1); border-bottom: 1px solid var(--border); }
+.tab { position: relative; display: inline-flex; align-items: center; min-height: var(--target-desktop); padding: 0 var(--space-3); border: 0; border-radius: var(--radius-sm) var(--radius-sm) 0 0; background: transparent; background-image: linear-gradient(transparent, transparent); color: var(--text-2); font: inherit; font-size: var(--type-dense); font-weight: var(--weight-medium); text-decoration: none; cursor: pointer; }
+.tab::after { content: ""; position: absolute; left: var(--space-3); right: var(--space-3); bottom: 0; height: 2px; background: var(--text); transform: scaleX(0); transform-origin: left; transition: transform var(--d-base) var(--ease-out); }
+.tab:hover { background-image: linear-gradient(var(--tint-hover), var(--tint-hover)); color: var(--text); }
+.tab:active { background-image: linear-gradient(var(--tint-press), var(--tint-press)); }
+.tab[aria-selected="true"], .tab[aria-current="page"] { color: var(--text); font-weight: var(--weight-semibold); }
+.tab[aria-selected="true"]::after, .tab[aria-current="page"]::after { transform: scaleX(1); }
+
+.seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-control); }
+.seg__btn { min-height: calc(var(--target-desktop) - 6px); padding: 0 var(--space-3); border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; background-image: linear-gradient(transparent, transparent); color: var(--text-2); font: inherit; font-size: var(--type-dense); font-weight: var(--weight-medium); cursor: pointer; }
+.seg__btn:hover { background-image: linear-gradient(var(--tint-hover), var(--tint-hover)); }
+.seg__btn:active { background-image: linear-gradient(var(--tint-press), var(--tint-press)); }
+.seg__btn[aria-pressed="true"] { background-color: var(--surface-raised); border-color: var(--border-strong); color: var(--text); font-weight: var(--weight-semibold); }
+
+/* ---------- Forms (spec section 9): reusable classes for fieldset / label / helper / inline error / summary / sticky action bar ---------- */
+.form { display: flex; flex-direction: column; gap: var(--space-section); min-width: 0; }
+/* Group = fieldset with a title-tier legend; a rule above and whitespace, no box. The legend floats so the rule is not cut. */
+.field-group { margin: 0; padding: var(--space-group) 0 0; border: 0; border-top: 1px solid var(--border); min-width: 0; display: flex; flex-direction: column; gap: var(--space-group); }
+.field-group > legend { float: left; width: 100%; padding: 0; margin: 0 0 var(--space-label); font-size: var(--type-title); line-height: var(--type-title-lh); letter-spacing: var(--type-title-ls); font-weight: var(--type-title-wt); }
+.field-group > legend + * { clear: both; }
+.field-group__help { color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+.field { display: flex; flex-direction: column; gap: var(--space-label); min-width: 0; }
+.field__label { font-size: var(--type-dense); line-height: var(--type-dense-lh); font-weight: var(--weight-medium); }
+.field__hint { color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+.field__row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.field__unit { color: var(--text-2); font-size: var(--type-dense); white-space: nowrap; }
+/* Validation is by touched state: nothing shows on a pristine form; the error appears after blur or after a submit attempt. */
+.field__error { display: flex; align-items: flex-start; gap: var(--space-1); color: var(--critical); font-size: var(--type-dense); line-height: var(--type-dense-lh); font-weight: var(--weight-medium); }
+.field__error svg { width: 1rem; height: 1rem; flex: none; margin-top: 1px; }
+.field:not([data-touched]) .field__error { display: none; }
+.field[data-touched] [aria-invalid="true"] { border-color: var(--critical); }
+.form-summary { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid var(--critical); border-left-width: 4px; border-radius: var(--radius-card); background: var(--critical-bg); font-size: var(--type-dense); }
+.form-summary ul { margin: 0; padding-left: var(--space-5); }
+.form-summary a { color: var(--critical); }
+/* Choice list: a checkbox or radio list with tools (select all / clear) and a count. Each row is a full-width label target. */
+.choice-list { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.choice-list__tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); color: var(--text-2); font-size: var(--type-caption); }
+.choice { display: flex; align-items: center; gap: var(--space-2); min-height: var(--target-desktop); padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: var(--type-dense); cursor: pointer; background-image: linear-gradient(transparent, transparent); }
+.choice:hover { background-image: linear-gradient(var(--tint-hover), var(--tint-hover)); }
+.choice:active { background-image: linear-gradient(var(--tint-press), var(--tint-press)); }
+/* Sticky run bar (L2, chrome): solid by default; glass on desktop (Materials). A11Y-02: rem spacing only, wraps instead of clipping, and never takes more than 40% of the viewport height. */
+.form-bar { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); padding: var(--space-3) var(--space-4); max-height: 40vh; overflow-y: auto; background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-2); }
+.form-bar__next { flex: 1 1 min(100%, 14rem); min-width: 0; color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+
+/* ---------- Charts and tables (solid, never glass) ---------- */
+.spark { width: 100%; height: auto; display: block; background: var(--surface-2); border-radius: var(--radius-md); }
+.spark__line { fill: none; stroke: var(--chart-line); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.spark__grid { stroke: var(--chart-grid); stroke-width: 1; }
+.chart-meta { display: flex; justify-content: space-between; gap: var(--space-2); color: var(--text-3); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+
+/* ChartFrame: title, badge, Chart/Table toggle, then full-width axis captions (never a cramped corner label). */
+.chart-frame { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.chart-frame__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.chart-frame__title { margin-right: auto; font-size: var(--type-dense); line-height: var(--type-dense-lh); letter-spacing: var(--type-dense-ls); font-weight: var(--weight-semibold); }
+.chart-frame__pane[hidden] { display: none; }
+.chart-frame__axes { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); width: 100%; color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); letter-spacing: var(--type-caption-ls); }
+.chart-frame__axis-key { color: var(--text-3); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; letter-spacing: var(--tracking-label); }
+.chart-frame__caption { color: var(--text-2); font-size: var(--type-caption); line-height: var(--type-caption-lh); }
+
+.bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.bars li { display: grid; grid-template-columns: 3rem 1fr 7rem; align-items: center; gap: var(--space-3); font-size: var(--type-dense); }
+.bars__track { height: 0.625rem; background: var(--surface-2); border-radius: var(--radius-sm); overflow: hidden; }
+.bars__fill { height: 100%; background: var(--chart-line); }
+.bars__value { text-align: right; font-weight: var(--weight-medium); }
+
+.table-wrap { overflow-x: auto; max-height: 18rem; border: 1px solid var(--border); border-radius: var(--radius-md); }
+table { border-collapse: collapse; width: 100%; font-size: var(--type-dense); line-height: var(--type-dense-lh); font-variant-numeric: tabular-nums; }
+caption { text-align: left; padding: var(--space-2) var(--space-3); color: var(--text-2); }
+th, td { text-align: left; padding: var(--space-1) var(--space-3); border-bottom: 1px solid var(--border); vertical-align: top; }
+thead th { position: sticky; top: 0; background: var(--surface-2); font-weight: var(--weight-semibold); }
+td.num { text-align: right; }
+/* Rows: hover tint, pointer-down tint (S1; scale on dense rows would read as jitter). */
+tbody tr { background-image: linear-gradient(transparent, transparent); }
+tbody tr:hover { background-image: linear-gradient(var(--tint-hover), var(--tint-hover)); }
+tbody tr:active { background-image: linear-gradient(var(--tint-press), var(--tint-press)); }
+details > summary { cursor: pointer; min-height: var(--target-min); color: var(--accent); font-size: var(--type-dense); }
+
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-1) var(--space-4); margin: 0; font-size: var(--type-dense); line-height: var(--type-dense-lh); }
+.kv dt { color: var(--text-2); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+
+.cap-state { font-weight: var(--weight-semibold); }
+
+/* ---------- Motion keyframes (transform and opacity only, S11) ---------- */
+@keyframes pc-spin { to { transform: rotate(360deg); } }
+@keyframes pc-slide { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+@keyframes pc-appear { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes pc-pop { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes pc-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Materials (DD 4.3, 12.4). Glass is application chrome ONLY: the sticky header, the desktop rail, the run bar and the dialog.
+   Never on data, charts, tables, evidence or cards. At most 4 glass surfaces on desktop (header, rail, run bar, dialog); on phones only the header is glass
+   (the menu sheet, run bar and dialog are solid). Blur radius and saturation are fixed: never animated. Order of the ladder:
+   1. no backdrop-filter support -> the solid default below stays; 2. prefers-reduced-transparency, 3. prefers-contrast: more, 4. forced-colors -> solid again.
+   The contrast guarantee does NOT depend on 2..4: the glass alphas keep text legible over pure black and pure white (check-contrast). ---------- */
+.app-header, .glass-1, .glass-2 { background-color: var(--surface); }
+@media (min-width: 820px) { .app-nav__panel { background-color: var(--surface); } }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-1, .app-header { background-color: var(--glass-1); -webkit-backdrop-filter: blur(var(--blur-1)) saturate(var(--sat)); backdrop-filter: blur(var(--blur-1)) saturate(var(--sat)); }
+  .glass-2 { background-color: var(--glass-2); -webkit-backdrop-filter: blur(var(--blur-2)) saturate(var(--sat)); backdrop-filter: blur(var(--blur-2)) saturate(var(--sat)); }
+  @media (min-width: 820px) {
+    .app-nav__panel { background-color: var(--glass-1); -webkit-backdrop-filter: blur(var(--blur-1)) saturate(var(--sat)); backdrop-filter: blur(var(--blur-1)) saturate(var(--sat)); }
+    .form-bar { background-color: var(--glass-2); -webkit-backdrop-filter: blur(var(--blur-2)) saturate(var(--sat)); backdrop-filter: blur(var(--blur-2)) saturate(var(--sat)); }
+    .dialog { background-color: var(--glass-1); -webkit-backdrop-filter: blur(var(--blur-1)) saturate(var(--sat)); backdrop-filter: blur(var(--blur-1)) saturate(var(--sat)); }
+  }
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+    .glass-1, .glass-2, .app-header { background-color: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .form-bar { background-color: var(--surface-raised); -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .dialog { background-color: var(--surface-overlay); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  }
+  @media (min-width: 820px) and (prefers-reduced-transparency: reduce), (min-width: 820px) and (prefers-contrast: more), (min-width: 820px) and (forced-colors: active) {
+    .app-nav__panel { background-color: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  }
+}
+/* Edge of a floating layer: a hairline plus a lighter top edge (replaces a heavy border; no inset shadow). */
+.glass-1, .glass-2, .form-bar, .dialog { border-color: var(--glass-hair); border-top-color: var(--glass-edge); }
+.hatch { background-image: repeating-linear-gradient(135deg, transparent 0 0.5rem, var(--hatch) 0.5rem calc(0.5rem + 1px)); }
+
+/* ---------- Preferences ---------- */
+/* Reduced motion (S14): no movement. Appearing things cross-fade (opacity only, at most 120 ms where the fade is a state change); loops become static; press scale is removed (the tint stays). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+  .btn:active, .btn[aria-busy="true"] { transform: none; }
+  .dialog, .menu, .popover, .disclosure[open] > :not(summary) { animation-name: pc-fade; animation-duration: var(--d-fast); }
+  .btn { transition: background-color var(--d-press) linear, border-color var(--d-press) linear; }
+  .spinner svg, .btn[aria-busy="true"] svg, .state-block[data-state-kind="loading"] .state-block__head svg { animation: none; }
+  .progress-indeterminate::before { animation: none; width: 100%; background: repeating-linear-gradient(135deg, var(--text-2) 0 0.5rem, var(--surface-2) 0.5rem 1rem); }
+  .disclosure > summary::before { transition: none; }
+  .tab::after { transform: none; opacity: 0; transition: opacity var(--d-press) linear; }
+  .tab[aria-selected="true"]::after, .tab[aria-current="page"]::after { opacity: 1; }
+}
+
+@media (forced-colors: active) {
+  .metric, .panel, .banner, .pill, .state-block, .btn, .menu, .popover, .dialog, .form-bar, .tag, .stamp, .seg { border: 1px solid CanvasText; }
+  .prov { border-color: CanvasText; } /* keep the border STYLE (solid, dashed, dotted) and the glyph and word */
+  .banner { border-left-width: 4px; }
+  /* A11Y-11: selection and focus must be told apart. Selected = a filled Highlight ground (forced-color-adjust off keeps it); focus = a CanvasText ring offset from the control. */
+  .seg__btn[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; outline: none; } /* the nav's current-page rule is in shell.css (it loads after this file) */
+  .tab[aria-selected="true"]::after, .tab[aria-current="page"]::after { background: Highlight; height: 3px; }
+  :focus-visible { outline: 3px solid CanvasText; outline-offset: 3px; }
+  .btn:disabled, .btn[aria-disabled="true"] { color: GrayText; border-color: GrayText; }
+  body { background-image: none; }
+  .state-block { background-image: none; }
+  .hatch { background-image: none; }
+}
+
+@media (prefers-contrast: more) {
+  body { background-image: none; }
+}
+
+@media (max-width: 480px) {
+  .bars li { grid-template-columns: 2.5rem 1fr 5.5rem; }
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Phones: the dialog fades only (no scale), the run bar is solid with a card radius (DD 6.3, 7.3). */
+@media (max-width: 819px) {
+  .dialog { animation-name: pc-fade; }
+  .form-bar { border-radius: var(--radius-card); }
+}
+
+/* ---------- Layout robustness (WCAG 1.4.10 reflow) and target sizes (WCAG 2.5.8) ---------- */
+/* Flex and grid children may shrink below their content; long ids, hashes and paths wrap; wide things scroll inside their own box. */
+.panel, .banner, .banner__body, .state-block, .metric, figure { min-width: 0; max-width: 100%; }
+.mono, p, dd, dt, li, h1, h2, h3, h4, figcaption, summary, label, legend, caption { overflow-wrap: anywhere; }
+pre { max-width: 100%; overflow: auto; }
+.table-wrap { max-width: 100%; position: relative; } /* containing block: absolute .visually-hidden cell text must not widen the page (N-1a) */
+.banner__body, .banner__body * { overflow-wrap: anywhere; min-width: 0; max-width: 100%; } /* unbreakable paths in banners wrap at 320 px (N-1b) */
+input[type="text"], input[type="password"] { max-width: 100%; min-width: 0; }
+/* Checkbox and radio controls are 24 px (WCAG 2.5.8) inside the full-row .choice label (the row is the target). */
+.choice input[type="checkbox"], .choice input[type="radio"] { width: 1.5rem; height: 1.5rem; margin: 0; flex: none; }
+/* A11Y-01: `overflow-wrap: anywhere` lets a table column shrink to one character, so a run-id link was 23 px wide. An id link keeps its word width
+   (the table scrolls inside .table-wrap) and is never narrower than the 24 px target floor. */
+.app-main a.mono, .app-main th a { overflow-wrap: break-word; min-width: max(var(--target-min), 8ch); }
+
+/* Interactive targets: at least 32 px on desktop pointers, 44 px on narrow screens and coarse pointers (24 px is the floor everywhere). Navigation links are sized in shell.css. */
+.btn, summary, details > summary, .app-main a, .app-footer a { min-height: var(--target-desktop); }
+details > summary { display: flex; align-items: center; } /* the plain `details > summary` 24 px rule above is more specific than `summary` (N-3) */
+.app-main a, .app-footer a { display: inline-flex; align-items: center; }
+@media (max-width: 819px), (pointer: coarse) {
+  .btn, summary, details > summary, .disclosure > summary, .app-main a, .app-footer a, .tab, .seg__btn, .choice, input[type="text"], input[type="password"] { min-height: var(--target-touch); }
+  .btn { min-width: var(--target-touch); }
+  summary { display: flex; align-items: center; }
+}
+
+/* Interactive Console & Workload Generator (tokens only, no hex colors) */
+.console-box, .generator-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: var(--space-group); display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.console-row { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; }
+.console-input { flex: 1 1 280px; }
+.console-head { display: flex; justify-content: space-between; align-items: center; }
+.console-result { padding: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface-2); font-size: var(--type-dense); display: flex; flex-direction: column; gap: var(--space-2); }
+.console-result--ok { border-color: var(--ok); }
+.console-result--error { border-color: var(--critical); }
+.generator-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--space-2); }
+.generator-stat { background: var(--surface-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.generator-stat__label { font-size: var(--type-caption); color: var(--text-2); }
+.generator-stat__value { font-size: var(--type-title); font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+

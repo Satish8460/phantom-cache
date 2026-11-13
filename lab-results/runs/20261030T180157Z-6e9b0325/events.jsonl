@@ -1,0 +1,5 @@
+{"data":{"state":"queued","tier":"MEASURED_LOOPBACK"},"event":"state","id":1,"ts":"2026-10-30T18:01:57Z"}
+{"data":{"state":"running"},"event":"state","id":2,"ts":"2026-10-30T18:01:57Z"}
+{"data":{"state":"cancelling"},"event":"state","id":3,"ts":"2026-10-30T18:01:57Z"}
+{"data":{"state":"cancelled"},"event":"state","id":4,"ts":"2026-10-30T18:01:59Z"}
+{"data":{"exit_code":130,"state":"cancelled"},"event":"done","id":5,"ts":"2026-10-30T18:01:59Z"}

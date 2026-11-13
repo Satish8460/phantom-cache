@@ -6,7 +6,7 @@
 [![Axum: 0.7](https://img.shields.io/badge/Axum-0.7-purple.svg)](https://docs.rs/axum/latest/axum/)
 [![React: 18](https://img.shields.io/badge/React-18-cyan.svg)](https://react.dev/)
 
-An intelligent in-memory distributed cache and request coalescing engine engineered for high-concurrency enterprise microservice tiers. Designed to mitigate database queue collapse, thundering herds, and cache stampedes during sudden traffic surges and flash crowds.
+An in-memory caching gateway and request coalescing engine (research prototype) aimed at high-concurrency microservice tiers. Distributed operation is experimental. Designed to mitigate database queue collapse, thundering herds, and cache stampedes during sudden traffic surges and flash crowds.
 
 ---
 
@@ -17,8 +17,8 @@ In modern cloud-native architectures, sudden traffic surges and flash crowds fre
 **PhantomCache** solves this problem through:
 1. **Partitioned Sharded Concurrency:** Eliminates global cache lock contention using power-of-two sharding.
 2. **Single-Flight Request Coalescing:** Synchronizes in-flight queries using asynchronous channels, ensuring that only one request hits the database for a given key, while concurrent duplicates wait and share the single result.
-3. **Low-Overhead Eviction (SIEVE):** Implements visited-sweep eviction, outperforming traditional LRU with $O(1)$ operations and zero lock overhead on cache hits.
-4. **Adaptive Intelligence (PIE):** Employs Count-Min Sketches to track key frequencies and uses a Policy Intelligence & Evaluation (PIE) closed-loop canary controller to safely test and deploy caching strategy shifts.
+3. **Eviction (SIEVE default, LRU and S3-FIFO selectable):** Per-shard eviction policies behind a common trait. Relative performance versus LRU has not been established by a release-grade measurement; see `docs/research/claims_ledger.md`.
+4. **Phantom Intelligence (experimental, off by default):** observe/advisory/canary/active modes with audit records and an origin-concurrency cap. **A benefit from adaptive control has not been established**; the legacy `src/control/pie.rs` is a threshold stub and is not wired in. Do not rely on adaptive behavior for production capacity or latency.
 
 ---
 
@@ -29,13 +29,14 @@ To ensure complete engineering transparency and academic rigor, the project clea
 | Architectural Tier | Implementation Status | Technical Mechanism |
 | :--- | :--- | :--- |
 | **Partitioned Cache & Eviction** | **Real Executable Code** | Sharded mutex hash maps with visited-sweep (SIEVE) replacement in `src/core/cache.rs`. |
-| **Request Coalescer** | **Real Executable Code** | Single-flight synchronization via Tokio `oneshot` rendezvous channels in `src/core/coalesce.rs`. |
-| **Statistical Telemetry** | **Real Executable Code** | Lockless rolling observation circular buffer & Count-Min Sketch in `src/intel/`. |
-| **Adaptive Policy Controller** | **Real Executable Code** | Multi-objective utility optimization with canary guardrails and rollback cooldowns in `src/control/pie.rs`. |
-| **Distributed Router** | **Real Executable Code** | Highest Random Weight (Weighted Rendezvous Hashing) partition routing in `src/dist/router.rs`. |
+| **Request Coalescer (single-flight)** | **Real Executable Code** | The HTTP serving path uses `PartitionedCache::begin_fetch_atomic` (`src/core/cache.rs`) with the `SharedOp` waiter list and Tokio `oneshot` channels (`src/core/coalesce.rs`). The older `Coalescer` type in the same file is legacy: it is constructed in `src/main.rs` and `src/dist/node.rs` but not used by the HTTP serving path. |
+| **Statistical Telemetry** | **Real Executable Code** | Atomic counters and log-linear latency histogram in `src/intel/` (the Count-Min Sketch type exists but is not used by the serving path). |
+| **Adaptive Policy Controller** | **Legacy stub, not active** | `src/control/pie.rs` is a threshold trigger (not wired in `main.rs`). The Phantom Intelligence modules live in `src/intelligence/`; their benefit is not established. |
+| **Distributed Router** | **Real Executable Code** | Highest Random Weight (Weighted Rendezvous Hashing) routing in `src/dist/router.rs`. It is used by `DELETE` invalidation only; `GET` is always served from the local gateway cache and never goes through the router. |
 | **HTTP & Telemetry API** | **Real Executable Code** | Axum REST endpoints and Server-Sent Events (SSE) streaming at 10Hz in `src/api/server.rs`. |
+| **Dashboard values from `PHANTOM_SIMULATION=true`** | **Simulated (synthetic)** | The simulation loop generates synthetic throughput, latency and cost values. They are not measurements. |
 | **Operations Dashboard** | **Real Executable Code** | React 18 single-page application with SVG topology, sparklines, and control panel in `ui/`. |
-| **Cluster Topology & Nodes** | **Modeled / Simulated** | In-process virtual node state machines (`Active`, `Degraded`, `Failed`) in `src/dist/node.rs`. |
+| **Cluster Topology & Nodes** | **Mixed: Modeled / Simulated and Real (experimental)** | The three demo nodes built when no cluster is configured are in-process virtual node state machines (`Active`, `Degraded`, `Failed`) in `src/dist/node.rs`, each with its own cache. In the mTLS cluster configuration (`src/main.rs`) the local node shares the gateway's HTTP serving cache (`VirtualNode::new_with_cache`) and the other members are address-only descriptors reached over mutual TLS; this path is experimental and tested on loopback only. |
 | **Network Link & Jitter** | **Modeled / Simulated** | Queue-based delay model with configurable packet loss and latency distributions in `src/sim/network.rs`. |
 | **Backend Database Queue** | **Modeled / Simulated** | M/M/1 queuing model with IOPS saturation limits and non-linear wait times in `src/sim/backend.rs`. |
 | **Traffic Generator** | **Modeled / Simulated** | Poisson arrival process and Zipfian key popularity distribution in `src/sim/traffic.rs`. |
@@ -46,6 +47,7 @@ To ensure complete engineering transparency and academic rigor, the project clea
 ## 3. System Architecture
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#F8FAFC', 'primaryTextColor': '#0F172A', 'primaryBorderColor': '#64748B', 'lineColor': '#334155', 'secondaryColor': '#F1F5F9', 'tertiaryColor': '#FFFFFF', 'background': '#FFFFFF' }}}%%
 flowchart TD
     subgraph Client Tier
         UI[React 18 Control Center]
@@ -60,10 +62,10 @@ flowchart TD
 
     subgraph Core Engine [Real Executable Rust Core]
         Router[Rendezvous Hash Router]
-        Coalescer[Single-Flight Request Coalescer]
+        Coalescer["Single-flight (begin_fetch_atomic + SharedOp)"]
         Cache[Partitioned Cache - SIEVE Eviction]
-        PIE[PIE Closed-Loop Canary Controller]
-        Sketch[Count-Min Sketch Heavy Hitters]
+        PIE["Phantom Intelligence (experimental, off by default)"]
+        Sketch["Telemetry counters"]
     end
 
     subgraph Simulated Environment [Discrete-Event Simulation]
@@ -72,14 +74,14 @@ flowchart TD
         DBSim[M/M/1 Database Saturation Queue]
     end
 
-    Bench -->|Requests| Router
-    Router -->|Primary Node| Coalescer
+    Bench -->|GET requests, local gateway only| Coalescer
+    Bench -.->|DELETE only| Router
     Coalescer -->|Cache Probe| Cache
     Coalescer -->|Miss: 1 Single Flight| DBSim
     Coalescer -->|Waiters Receive Fanout| Bench
     Cache -->|Access Telemetry| Sketch
-    Sketch -->|Frequency Evidence| PIE
-    PIE -->|Adaptive Strategy| Cache
+    Sketch -->|Observed signals| PIE
+    PIE -.->|"Only in canary or active mode"| Cache
 
     UI -->|Scenario Triggers| Control
     SSE -->|Live Metrics Frame| UI
@@ -92,7 +94,7 @@ flowchart TD
 ## 4. Technology Stack
 
 * **Core Backend:** Rust (2021 Edition) — Memory-safe, zero-cost abstractions, multi-threaded concurrency.
-* **Async Runtime:** Tokio 1.38 — Multi-threaded asynchronous work-stealing scheduler.
+* **Async Runtime:** Tokio (`Cargo.toml` requires 1.38 or newer; `Cargo.lock` pins 1.53.1) — Multi-threaded asynchronous work-stealing scheduler.
 * **Web Framework:** Axum 0.7 — High-performance HTTP server with Server-Sent Events (SSE) support.
 * **Serialization:** Serde 1.0 & Serde JSON.
 * **Frontend UI:** React 18, Vite 5 — Modern, reactive single-page operations dashboard.
@@ -103,7 +105,7 @@ flowchart TD
 ## 5. Prerequisites
 
 Verify installed tools before setting up the project:
-* **Rust:** `cargo 1.75+` (verified on `1.98.0`)
+* **Rust:** verified on `1.98.0`. The code probably needs about Rust 1.88 or newer (finding G4C F28, reported by an AI review and not re-derived); `Cargo.toml` declares no `rust-version`, so `1.75+` is not supported by evidence.
 * **Node.js:** `v18.0+` (verified on `v24.5.0` with `npm 11.5.1`)
 * **Git:** `2.40+`
 
@@ -121,10 +123,11 @@ cd phantom-cache
 cargo check
 
 # Run automated tests
-cargo test
+cargo test --all-targets -j 1
 
 # Start the backend server (runs on port 8085)
-cargo run
+# The package has two binaries (phantom-cache-demo and phantom-lab), so name the one to run
+cargo run --bin phantom-cache-demo
 ```
 
 ### 6.2 Frontend Setup
@@ -135,7 +138,7 @@ cd ui
 # Install dependencies reproducibly
 npm ci
 
-# Start development server (runs on port 5173 / 3000)
+# Start development server (runs on port 3000, pinned in ui/vite.config.js)
 npm run dev
 
 # Or build optimized static bundle
@@ -155,6 +158,27 @@ The launcher performs pre-flight environment diagnostics, detects port conflicts
 
 ---
 
+## 6.5 Configuration and Operation
+
+The binary validates its configuration at startup and fails fast with exit code 2 on invalid or conflicting settings.
+
+```bash
+cargo run --release --bin phantom-cache-demo -- --check-config                 # print the effective configuration (secrets redacted) and exit
+cargo run --release --bin phantom-cache-demo -- --config packaging/phantom.example.conf --bind 127.0.0.1:8085
+```
+
+See [docs/user/](docs/user/README.md) (install, configure, run, operate, troubleshoot, security, limitations) and [docs/release/](docs/release/reproduction_guide.md) (reproduction guide, artifact manifest, release notes template).
+
+### Evidence labels used in this project
+
+* **Simulated:** produced by the in-process models or `PHANTOM_SIMULATION=true`; never a measurement.
+* **Loopback:** measured on one host over the loopback interface; not representative of a network deployment.
+* **Real:** measured on real hardware and networks with a recorded workload, seed and repetitions. No such result is claimed by this README.
+
+Performance and adaptive-control claims require a release-build measurement with the conditions recorded; none are made here.
+
+---
+
 ## 7. API Reference
 
 The Axum backend exposes the following REST and streaming endpoints:
@@ -163,6 +187,9 @@ The Axum backend exposes the following REST and streaming endpoints:
 * **Description:** Health check probe verifying server operational status.
 * **Response:** `200 OK`
 * **Body:** `"OK"`
+
+### `GET /health/live` and `GET /health/ready`
+* **Description:** Liveness (`200` while the process serves requests) and readiness (`200` only when configuration is valid, the listener accepts connections and the process is not shutting down; otherwise `503` with the failing checks). `/health` is unchanged.
 
 ### `POST /api/control`
 * **Description:** Dispatches cluster scenario mutations and environmental perturbations.
@@ -212,6 +239,23 @@ The Axum backend exposes the following REST and streaming endpoints:
   }
   ```
 
+### Additional routes (registered in `src/api/server.rs` and `src/api/lab_api.rs`)
+Authentication, roles and request/response details are in [docs/user/run.md](docs/user/run.md) and [docs/user/lab_api.md](docs/user/lab_api.md).
+
+| Route | Methods |
+|---|---|
+| `/api/v1/cache/*key` | `GET`, `DELETE` |
+| `/api/v1/cache` | `GET`, `DELETE` |
+| `/api/v1/metrics` | `GET` |
+| `/api/v1/diagnostics/summary`, `/api/v1/diagnostics/events` | `GET` |
+| `/api/v1/intelligence/status`, `/api/v1/intelligence/audit` | `GET` |
+| `/api/v1/lab/capabilities`, `/api/v1/lab/evidence`, `/api/v1/lab/evidence/:id` | `GET` |
+| `/api/v1/lab/runs` | `POST`, `GET` |
+| `/api/v1/lab/runs/:id`, `/api/v1/lab/runs/:id/events`, `/api/v1/lab/runs/:id/artifacts`, `/api/v1/lab/runs/:id/artifacts/:name` | `GET` |
+| `/api/v1/lab/runs/:id/cancel` | `POST` |
+
+The `/api/v1/lab/*` routes are registered only when the lab service is enabled.
+
 ---
 
 ## 8. Verification & Quality Assurance
@@ -227,15 +271,22 @@ cargo clippy --all-targets --all-features -- -D warnings
 
 ### Automated Testing Suites
 ```bash
-# Run all 17 automated tests across 4 modular test files
-cargo test
+# Run all automated tests sequentially
+cargo test --all-targets -j 1
 ```
 
-Test coverage includes:
-* **WP1 Tests (4 tests):** Virtual monotonic clock, deterministic PRNG seed repeatability, partitioned sharded cache operations, and single-flight request coalescing.
-* **WP2 Tests (5 tests):** Count-Min Sketch mathematical error bounds, lockless telemetry calculation, PIE insufficient evidence guards, PIE latency constraint violations, and PIE cooldown guardrail enforcement.
-* **WP3 Tests (3 tests):** Highest Random Weight (Rendezvous) hash routing, primary and secondary replica election, and failed-node routing exclusion.
-* **WP4 Tests (5 tests):** Server-Sent Events state projection, live HTTP `GET /health` endpoint, live HTTP `POST /api/control` scenario mutation, and `404 Not Found` error handling.
+The suite covers the areas below. Test counts change as work lands; the current reproduced baseline (count, targets, profile, date, command) is recorded in [docs/STATUS.md](docs/STATUS.md), and the per-area counts below are historical. A passing test run does not by itself establish correctness or performance:
+* **Core Unit Tests (`lib.rs`, `main.rs` - 32 tests):** Frame codecs, header serialization, error handling, session tracking.
+* **WP1-WP4 Work Package Tests (18 tests):** Monotonic virtual clock, PRNG repeatability, partitioned sharded cache operations, 200k unique-key flood capacity, single-flight coalescing, Count-Min Sketch error bounds, PIE adaptive canary guardrails, Rendezvous hash routing, and live SSE control mutations.
+* **Core HTTP & Engine Suites (`m1_http_tests`, `coalesce_tradeoffs_tests` - 37 tests):** Full HTTP lifecycle (MISS -> HIT -> DELETE -> MISS), stampede barriers, waiter bounds, body size limits, head-of-line blocking mitigation, and waiter fairness.
+* **Traffic Simulation & Adaptive Eviction (`p3_traffic_tests`, `p4_pie_tests` - 11 tests):** Live workload pacing, Zipf distributions, SIEVE vs LRU vs S3-FIFO comparative benchmarks, and dynamic policy switching.
+* **Phase 1 Zero-Trust Ingress (`security_phase1_tests` - 15 tests):** TLS 1.3, JWT key rotation, unknown kid rejection, tenant isolation, and RBAC endpoint gating.
+* **Phase 2 Upstream Security (`security_phase2_upstream_tests` - 23 tests):** SSRF mitigation (cloud metadata, IPv4-mapped IPv6, DNS rebinding), TLS custom CA pinning, and strict chunked transfer encoding parsing.
+* **Phase 3 Inter-Node Transport (`security_phase3_cluster_tests`, `security_phase3b_framing_tests`, `security_phase3c_pooling_tests` - 48 tests):** Mutual TLS 1.3, RFC 1035 SAN identity validation, CA rollover, quarantine, 28-byte binary framing, and bounded connection pooling with keepalives.
+* **Phase 4 Distributed Consistency (`security_phase4a_invalidation_tests`, `security_phase4b_router_tests`, `security_phase4c_antientropy_tests` - 41 tests):** Wire invalidation codecs, O(1) tenant epochs, 10,000 tenant capacity bounds, rendezvous primary coordination, acting primary failover, fail-closed HTTP consistency contract, dual-bounded ring buffers (4,096 entries, 4 MB RAM), SHA-256 state digests, stream sequence gap detection, and deterministic partition cache flushing.
+
+
+
 
 ---
 

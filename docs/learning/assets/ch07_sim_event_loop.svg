@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" font-family="Arial, Helvetica, sans-serif" font-size="14">
+<title>T1 simulation event loop with virtual time</title>
+<desc>A min-heap ordered by virtual microsecond time and a sequence number. Each loop turn pops the earliest event, sets virtual time to its timestamp, handles it by calling the real cache with now in milliseconds, and schedules follow-up events. No wall clock is read for ordering.</desc>
+<defs><marker id="b" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#222"/></marker></defs>
+<rect width="900" height="520" fill="#fff"/>
+<text x="450" y="24" text-anchor="middle" font-weight="bold" font-size="17">One turn of the T1 loop (src/lab/t1_sim.rs::run_cell)</text>
+<rect x="20" y="50" width="250" height="168" fill="#eee" stroke="#222" stroke-width="2"/>
+<text x="145" y="72" text-anchor="middle" font-weight="bold">EventQueue (events.rs)</text><text x="145" y="92" text-anchor="middle">BinaryHeap, min-heap on</text><text x="145" y="110" text-anchor="middle">(time_us, seq_id)</text>
+<text x="145" y="132" text-anchor="middle">t=1,000,000 #7  Arrive</text><text x="145" y="150" text-anchor="middle">t=1,000,000 #8  Timeout</text><text x="145" y="168" text-anchor="middle">t=1,060,000 #5  FetchDone</text><text x="145" y="186" text-anchor="middle">t=2,000,000 #9  Ctl</text>
+<text x="145" y="206" text-anchor="middle" font-size="13">equal time: lower seq first</text>
+<rect x="330" y="50" width="260" height="60" fill="#d9d9d9" stroke="#222" stroke-width="2"/>
+<text x="460" y="76" text-anchor="middle" font-weight="bold">1. pop earliest event</text><text x="460" y="95" text-anchor="middle">t = event.time_us (never goes back)</text>
+<rect x="330" y="150" width="260" height="70" fill="#d9d9d9" stroke="#222" stroke-width="2"/>
+<text x="460" y="174" text-anchor="middle" font-weight="bold">2. handle by kind</text><text x="460" y="192" text-anchor="middle">Arrive | Attempt | Timeout</text><text x="460" y="208" text-anchor="middle">FetchDone | Ctl | Restart</text>
+<rect x="625" y="50" width="260" height="178" fill="#bdbdbd" stroke="#222" stroke-width="3"/>
+<text x="755" y="72" text-anchor="middle" font-weight="bold">REAL product code</text><text x="755" y="92" text-anchor="middle">PartitionedCache (now_ms = t/1000)</text><text x="755" y="110" text-anchor="middle">begin_fetch_atomic, finalize_fetch</text><text x="755" y="128" text-anchor="middle">check_stale_serving</text><text x="755" y="146" text-anchor="middle">DefaultPolicyExecutor origin gate</text><text x="755" y="164" text-anchor="middle">AIMD controller (on Ctl ticks)</text>
+<text x="755" y="192" text-anchor="middle" font-size="13">no sleep, no network; event order</text><text x="755" y="209" text-anchor="middle" font-size="13">does not read the wall clock</text>
+<rect x="330" y="290" width="260" height="88" fill="#fff" stroke="#222" stroke-width="3" stroke-dasharray="8 4"/>
+<text x="460" y="314" text-anchor="middle" font-weight="bold">SIMULATED origin</text><text x="460" y="332" text-anchor="middle">origin_sim.rs::fetch(now_us)</text><text x="460" y="350" text-anchor="middle">c servers, queue, degradation</text><text x="460" y="367" text-anchor="middle" font-size="13">returns finish_service_us</text>
+<rect x="20" y="290" width="250" height="88" fill="#fff" stroke="#222" stroke-width="3" stroke-dasharray="8 4"/>
+<text x="145" y="314" text-anchor="middle" font-weight="bold">SIMULATED workload</text><text x="145" y="332" text-anchor="middle">workloads.rs: Poisson gaps,</text><text x="145" y="350" text-anchor="middle">Zipf keys by alias sampler</text><text x="145" y="367" text-anchor="middle" font-size="13">streams from MasterRng(seed)</text>
+<rect x="625" y="290" width="260" height="88" fill="#eee" stroke="#222" stroke-width="2"/>
+<text x="755" y="314" text-anchor="middle" font-weight="bold">3. schedule follow-ups</text><text x="755" y="334" text-anchor="middle">next Arrive, FetchDone at</text><text x="755" y="352" text-anchor="middle">finish_service_us, Timeout, Ctl</text>
+<line x1="270" y1="100" x2="328" y2="85" stroke="#222" stroke-width="2" marker-end="url(#b)"/>
+<line x1="460" y1="110" x2="460" y2="148" stroke="#222" stroke-width="2" marker-end="url(#b)"/>
+<line x1="590" y1="190" x2="623" y2="172" stroke="#222" stroke-width="2" marker-end="url(#b)"/>
+<line x1="460" y1="220" x2="460" y2="288" stroke="#222" stroke-width="2" marker-end="url(#b)"/>
+<line x1="330" y1="334" x2="272" y2="334" stroke="#222" stroke-width="2" stroke-dasharray="3 3" marker-end="url(#b)"/>
+<line x1="590" y1="334" x2="623" y2="334" stroke="#222" stroke-width="2" marker-end="url(#b)"/>
+<path d="M755 380 L755 440 L10 440 L10 130 L18 130" fill="none" stroke="#222" stroke-width="2" marker-end="url(#b)"/>
+<text x="385" y="430" text-anchor="middle" font-size="13">push new events back into the heap, repeat until the heap is empty or the drain bound is reached</text>
+<text x="450" y="476" text-anchor="middle" font-size="13">Same seed + same arm + same source gives the same event order and the same cells.csv row (tests: section 7.4).</text>
+<text x="450" y="496" text-anchor="middle" font-size="13">Note: lab::clock::VirtualClock exists and is tested, but run_cell uses the popped event time directly.</text>
+</svg>

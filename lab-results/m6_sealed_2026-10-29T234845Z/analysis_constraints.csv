@@ -1,0 +1,12 @@
+# tier=SIMULATED
+# banner=SIMULATION RESULT (T1 deterministic virtual-time simulation driving the real cache/executor code). NOT A MEASUREMENT of any network, host or process.
+# role=constraints, PIE-Retained vs BL-12b (fresh-hit loss <= 1 pp, error-rate increase <= 0.5 pp, zero cap/stale-cap violations)
+scenario,d_fresh_hit_ratio,d_error_rate,cap_violations,stale_cap_violations,hit_ratio_ok,error_rate_ok
+O-DEG,0.016495,-0.017424,0,0,true,true
+O-BRN,-0.033184,0.014945,0,0,false,false
+O-SLW,0.005637,-0.025784,0,0,true,true
+O-CO,0.115354,-0.213623,0,0,true,true
+O-RT,-0.004072,0.001244,0,0,true,true
+O-FL,-0.046842,0.031208,0,0,false,false
+O-HET,-0.094407,0.037744,0,0,false,false
+O-GRD,0.043496,-0.054170,0,0,true,true

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 790" width="900" height="790" role="img" aria-labelledby="t3 d3">
+<title id="t3">Cache miss with request coalescing and origin fetch</title>
+<desc id="d3">Client A misses and becomes the single-flight leader. The handler registers the fetch in the cache and spawns a detached task. Client B arrives while the fetch is in flight and waits on the same operation. The task fetches from the origin, finalizes into the cache only if the generation and epochs still match, and delivers the result to both waiters.</desc>
+<defs>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111}
+.h{font-size:14px;font-weight:bold}
+.s{font-size:13px;fill:#333;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.sb{font-size:13px;fill:#333}
+.pb{fill:#e4e4e4;stroke:#222;stroke-width:1.5}
+.pd{fill:#fff;stroke:#222;stroke-width:1.5;stroke-dasharray:6 4}
+.l{stroke:#555;stroke-width:1.2;stroke-dasharray:3 4}
+.a{stroke:#222;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+.r{stroke:#222;stroke-width:1.6;fill:none;stroke-dasharray:7 4;marker-end:url(#ar)}
+.n{fill:#f2f2f2;stroke:#222;stroke-width:1.2}
+.c{fill:#222}
+.w{fill:#fff;font-weight:bold;font-size:13px}
+</style>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker>
+</defs>
+<rect width="900" height="790" fill="#fff"/>
+<rect class="pb" x="10" y="12" width="100" height="38" rx="4"/><text x="60" y="36" text-anchor="middle" class="h">Client A</text>
+<rect class="pb" x="140" y="12" width="100" height="38" rx="4"/><text x="190" y="36" text-anchor="middle" class="h">Client B</text>
+<rect class="pb" x="270" y="12" width="120" height="38" rx="4"/><text x="330" y="36" text-anchor="middle" class="h">Handler</text>
+<rect class="pb" x="440" y="12" width="140" height="38" rx="4"/><text x="510" y="36" text-anchor="middle" class="h">PartitionedCache</text>
+<rect class="pb" x="620" y="12" width="110" height="38" rx="4"/><text x="675" y="36" text-anchor="middle" class="h">Fetch task</text>
+<rect class="pd" x="770" y="12" width="110" height="38" rx="4"/><text x="825" y="36" text-anchor="middle" class="h">Origin</text>
+<line class="l" x1="60" y1="50" x2="60" y2="745"/><line class="l" x1="190" y1="50" x2="190" y2="745"/><line class="l" x1="330" y1="50" x2="330" y2="745"/><line class="l" x1="510" y1="50" x2="510" y2="745"/><line class="l" x1="675" y1="50" x2="675" y2="745"/><line class="l" x1="825" y1="50" x2="825" y2="745"/>
+
+<path class="a" d="M60 84 L330 84"/>
+<circle class="c" cx="82" cy="72" r="11"/><text x="82" y="76" text-anchor="middle" class="w">1</text><text x="100" y="68" class="s">GET /item</text><text x="100" y="100" class="s">(cold key)</text>
+
+<path class="a" d="M330 136 L510 136"/>
+<circle class="c" cx="352" cy="124" r="11"/><text x="352" y="128" text-anchor="middle" class="w">2</text><text x="370" y="120" class="s">begin_fetch_atomic</text>
+<text x="344" y="154" class="s">Initiate: in_flight set,</text><text x="344" y="168" class="s">op_gen recorded,</text><text x="344" y="182" class="s">cache_misses + 1</text>
+
+<path class="a" d="M330 232 L675 232"/>
+<circle class="c" cx="352" cy="220" r="11"/><text x="352" y="224" text-anchor="middle" class="w">3</text>
+<text x="522" y="190" class="s">tokio::spawn fetch</text><text x="522" y="204" class="s">task; A waits on</text><text x="522" y="218" class="s">its channel</text>
+
+<path class="a" d="M190 286 L330 286"/>
+<circle class="c" cx="212" cy="274" r="11"/><text x="212" y="278" text-anchor="middle" class="w">4</text><text x="230" y="262" class="s">GET /item</text><text x="230" y="276" class="s">(fetch running)</text>
+
+<path class="a" d="M330 346 L510 346"/>
+<circle class="c" cx="352" cy="334" r="11"/><text x="352" y="338" text-anchor="middle" class="w">5</text><text x="370" y="330" class="s">begin_fetch_atomic</text>
+<text x="344" y="364" class="s">Wait(rx): joins</text><text x="344" y="378" class="s">in-flight op,</text><text x="344" y="392" class="s">coalesced_waiters + 1</text><text x="344" y="406" class="s">(limit 1000)</text>
+
+<path class="a" d="M675 452 L825 452"/>
+<circle class="c" cx="697" cy="440" r="11"/><text x="697" y="444" text-anchor="middle" class="w">6</text><text x="722" y="436" class="s">GET /item</text>
+<text x="683" y="470" class="s">permit, pinned IP,</text><text x="683" y="484" class="s">5 s timeouts</text>
+<path class="r" d="M825 530 L675 530"/>
+<circle class="c" cx="803" cy="518" r="11"/><text x="803" y="522" text-anchor="middle" class="w">7</text><text x="690" y="514" class="s">200 + headers</text>
+
+<rect class="n" x="545" y="548" width="260" height="36" rx="3"/>
+<text x="553" y="563" class="sb">evaluate_response_freshness</text><text x="553" y="578" class="sb">(Cache-Control, ETag, default 60 s)</text>
+
+<path class="a" d="M675 624 L510 624"/>
+<circle class="c" cx="652" cy="612" r="11"/><text x="652" y="616" text-anchor="middle" class="w">8</text><text x="530" y="608" class="s">finalize_fetch</text>
+<rect class="n" x="250" y="640" width="300" height="36" rx="3"/>
+<text x="258" y="655" class="sb">store only if generation == op_gen and</text><text x="258" y="670" class="sb">tenant and global epochs unchanged</text>
+
+<path class="r" d="M675 710 L190 710"/>
+<path class="r" d="M675 725 L60 725"/>
+<circle class="c" cx="652" cy="698" r="11"/><text x="652" y="702" text-anchor="middle" class="w">9</text>
+<rect x="280" y="683" width="270" height="20" fill="#fff"/>
+<text x="290" y="698" class="sb">waiters delivered (WaiterBatch::deliver)</text>
+<rect class="n" x="40" y="738" width="520" height="0" fill="none"/>
+<text x="10" y="765" class="s">A: 200 MISS     B: 200 COALESCED     origin saw one request</text>
+<text x="10" y="784" class="s">Solid arrow: call. Dashed arrow: return or delivery.</text>
+</svg>

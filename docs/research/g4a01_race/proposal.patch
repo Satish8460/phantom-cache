@@ -1,0 +1,27 @@
+--- /d/Personal/phantom-cache/src/core/cache.rs	2026-10-30 03:22:16.310917100 +0530
++++ fix/cache.rs	2026-10-30 15:50:46.389952900 +0530
+@@ -1453,6 +1453,7 @@
+         // COMMIT BOUNDARY 2: Update cache state and lifecycle accounting
+         let mut should_reclaim_placeholder = false;
+         let mut store_resource: Option<(CachedResource, usize, usize)> = None;
++        let mut fenced_epochs: (u64, u64) = (0, 0);
+ 
+         if let Some(state) = shard.map.get_mut(key) {
+             if state.state_instance_id == state_instance_id {
+@@ -1466,6 +1467,7 @@
+                             {
+                                 let old_res_bytes = calculate_resource_bytes(state.entry.as_ref());
+                                 let new_res_bytes = calculate_resource_bytes(Some(resource));
++                                fenced_epochs = (current_tenant_epoch, current_global_epoch);
+                                 store_resource = Some(((**resource).clone(), old_res_bytes, new_res_bytes));
+                             } else {
+                                 self.counters
+@@ -1514,7 +1516,7 @@
+                     self.counters.byte_budget_rejections.fetch_add(1, Ordering::Relaxed);
+                 } else {
+                     shard.bytes = shard.bytes.saturating_sub(old_res_bytes).saturating_add(new_res_bytes);
+-                    let (current_tenant_epoch, current_global_epoch) = self.get_effective_epochs(&key.tenant_id);
++                    let (current_tenant_epoch, current_global_epoch) = fenced_epochs; // PROPOSAL: stamp the epochs validated by the fence check
+                     let mut inserted = false;
+                     let pending_meta = match shared_op.pending_freshness.lock() {
+                         Ok(mut g) => g.take(),

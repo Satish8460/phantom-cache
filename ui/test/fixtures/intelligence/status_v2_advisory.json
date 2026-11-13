@@ -1,0 +1,111 @@
+{
+ "status": "ok",
+ "intelligence_mode": "Advisory",
+ "active_candidate": null,
+ "revert_count": 0,
+ "truthful": true,
+ "truthful_basis": "computed",
+ "v2": {
+  "schema": "pie-api-v1",
+  "installed": true,
+  "registry_version": "1.0.0",
+  "mode": {
+   "value": "advisory",
+   "src": "measured",
+   "samples": 1
+  },
+  "max_mode": "advisory",
+  "fault": null,
+  "queue": {
+   "capacity": 65536,
+   "enqueued_total": {
+    "value": 48210,
+    "src": "measured",
+    "samples": 48210
+   },
+   "dropped_total": {
+    "value": 17,
+    "src": "measured",
+    "samples": 48210
+   },
+   "depth": {
+    "value": 3,
+    "src": "measured",
+    "samples": 1
+   }
+  },
+  "window": {
+   "window_ms": 1000,
+   "decision_every_windows": 10,
+   "windows_closed": {
+    "value": 412,
+    "src": "measured",
+    "samples": 412
+   },
+   "last_window_degraded": {
+    "value": false,
+    "src": "measured",
+    "samples": 1
+   },
+   "last_tick_ms": {
+    "value": 412500,
+    "src": "measured",
+    "samples": 1
+   }
+  },
+  "memory": {
+   "bytes": {
+    "value": 3145728,
+    "src": "derived",
+    "samples": 1,
+    "note": "sum of declared capacities"
+   },
+   "budget_bytes": 8388608,
+   "breakdown": {
+    "queue": 1048576,
+    "window_state": 524288,
+    "shadow_caches": 1310720,
+    "decision_ring": 262144
+   }
+  },
+  "decisions": {
+   "recorded_total": {
+    "value": 31,
+    "src": "measured",
+    "samples": 31
+   },
+   "retained": {
+    "value": 3,
+    "src": "measured",
+    "samples": 3
+   },
+   "ring_capacity": 100,
+   "ring_bytes": {
+    "value": 20480,
+    "src": "derived",
+    "samples": 3
+   },
+   "suppressed_by_cooldown": {
+    "value": 4,
+    "src": "measured",
+    "samples": 4
+   },
+   "collapsed_repeat_noaction": {
+    "value": 24,
+    "src": "measured",
+    "samples": 24
+   }
+  },
+  "config": {
+   "lab_mode": false,
+   "cache_capacity_entries": 1024,
+   "shadow_sample_modulus": 16,
+   "incumbent_policy": "SIEVE",
+   "declared": true
+  },
+  "claims": {
+   "benefit_claim": "none",
+   "note": "M6 H1 remains NOT_SUPPORTED; advisory output is a shadow estimate, never an applied change"
+  }
+ }
+}

@@ -1,0 +1,9 @@
+{
+  "file": "decision_traces.json",
+  "mode": "Canary",
+  "records_count": 5,
+  "schema_version": "v1.0",
+  "trace_hash": "d0cf8cbd7bd716b3",
+  "validity": "VALID",
+  "verified_at_ist": "2026-10-29 17:50 IST"
+}

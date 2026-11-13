@@ -1,0 +1,95 @@
+{
+ "status": "ok",
+ "schema": "pie-api-v1",
+ "installed": true,
+ "registry_version": "1.0.0",
+ "max_mode": "advisory",
+ "process_mode": {
+  "value": "advisory",
+  "src": "measured",
+  "samples": 1
+ },
+ "doc_fields": [
+  "objective",
+  "trigger",
+  "expected_effect",
+  "evaluation_method",
+  "limitations",
+  "lifecycle",
+  "safety_constraints"
+ ],
+ "policies": [
+  {
+   "policy_id": "POL-EVICT-1",
+   "name": "Eviction shadow selection",
+   "kind": "Eviction",
+   "implemented": true,
+   "objective": "Estimate whether another replacement policy would have kept more hits than the incumbent on the sampled stream.",
+   "trigger": "Every decision window with at least 100 samples of F2.",
+   "required_inputs": [
+    {
+     "feature": "F2",
+     "min_samples": 100,
+     "allowed_src": [
+      "measured",
+      "derived"
+     ]
+    },
+    {
+     "feature": "F17",
+     "min_samples": 100,
+     "allowed_src": [
+      "derived"
+     ]
+    }
+   ],
+   "parameters": [
+    {
+     "name": "p2.delta_min",
+     "default": 0.02,
+     "min": 0,
+     "max": 0.5,
+     "unit": "hit_ratio_abs",
+     "current": 0.02
+    }
+   ],
+   "safety_constraints": [
+    "never changes the serving eviction policy",
+    "stale cap unchanged"
+   ],
+   "expected_effect": "A shadow estimate of the hit ratio difference with an interval.",
+   "evaluation_method": "Sampled shadow caches replay the same key stream.",
+   "limitations": "Sampled stream; not verified on the serving path.",
+   "version": "1.0.0",
+   "lifecycle": "ShadowEvaluated",
+   "max_runtime_state": "advisory",
+   "effective_runtime_state": {
+    "value": "advisory",
+    "src": "measured",
+    "samples": 1
+   }
+  },
+  {
+   "policy_id": "POL-TTL-1",
+   "name": "Freshness lifetime advice",
+   "kind": "RefreshAdvice",
+   "implemented": false,
+   "objective": "Not implemented.",
+   "trigger": "None.",
+   "required_inputs": [],
+   "parameters": [],
+   "safety_constraints": [],
+   "expected_effect": "None.",
+   "evaluation_method": "None.",
+   "limitations": "Listed so the gap is visible.",
+   "version": "1.0.0",
+   "lifecycle": "Proposed",
+   "max_runtime_state": "off",
+   "effective_runtime_state": {
+    "value": "off",
+    "src": "measured",
+    "samples": 1
+   }
+  }
+ ]
+}

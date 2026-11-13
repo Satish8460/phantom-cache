@@ -1,0 +1,43 @@
+{
+  "artifact_index": {
+    "manifest.json": {
+      "bytes": 6501,
+      "sha256": "61e911d57b2175a3c1c34411406772eb36d6f3a4fce8963a0786c00f7ede890b"
+    },
+    "summary.json": {
+      "bytes": 14083,
+      "sha256": "c4266ac2baae20bb120bab3e2bc6efd9d552b50ab2a30796cb72742e0c2fd849"
+    }
+  },
+  "build_profile": "release",
+  "created_utc": "2026-10-30T18:01:57Z",
+  "ended_utc": "2026-10-30T18:01:59Z",
+  "exit_code": 130,
+  "kind": "scenario_b",
+  "persistence_errors": 0,
+  "progress": {
+    "done": 0,
+    "total": null
+  },
+  "run_id": "20261030T180157Z-6e9b0325",
+  "spec": {
+    "aimd_max": 32,
+    "aimd_min": 12,
+    "arms": [
+      "BASE",
+      "STATIC-CAP",
+      "AIMD-CAP"
+    ],
+    "degraded_s": 10,
+    "healthy_s": 5,
+    "n_keys": 5000,
+    "rate_rps": 300.0,
+    "recovery_s": 8,
+    "repetitions": 10,
+    "static_cap": 24,
+    "warmup_s": 5
+  },
+  "started_utc": "2026-10-30T18:01:57Z",
+  "state": "cancelled",
+  "tier": "MEASURED_LOOPBACK"
+}

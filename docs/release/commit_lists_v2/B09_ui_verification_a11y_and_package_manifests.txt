@@ -1,0 +1,29 @@
+# commit_lists_v2/B09_ui_verification_a11y_and_package_manifests.txt
+# UI browser verification scripts, axe/a11y runners, package manifests
+# Generated 2026-10-30 16:41 IST from git status --short -uall (4644 entries). One repo-relative path per line; lines starting with # are comments.
+# Use: GIT_LITERAL_PATHSPECS=1 git add --pathspec-from-file=<this file> after stripping comment lines (see g5_batch_plan_v2.md section 6).
+ui/package-lock.json
+ui/package.json
+ui/scripts/browser-a11y-final.mjs
+ui/scripts/browser-a11y.mjs
+ui/scripts/browser-gallery.mjs
+ui/scripts/browser-journey.mjs
+ui/scripts/browser-r2-f09.mjs
+ui/scripts/browser-r2-fixes.mjs
+ui/scripts/browser-r2-journey.mjs
+ui/scripts/browser-r2-probe.mjs
+ui/scripts/browser-r2-stall.mjs
+ui/scripts/browser-r2-stall2.mjs
+ui/scripts/browser-r2-stall3.mjs
+ui/scripts/browser-r3-cancel.mjs
+ui/scripts/browser-r3-clips.mjs
+ui/scripts/browser-r3-jwt.mjs
+ui/scripts/browser-r3-layout.mjs
+ui/scripts/browser-r3-mkrun.mjs
+ui/scripts/browser-r3-stall.mjs
+ui/scripts/browser-recheck.mjs
+ui/scripts/browser-usability.mjs
+ui/scripts/browser-verify.mjs
+ui/scripts/cdp-lib.mjs
+ui/scripts/check-a11y.mjs
+ui/scripts/check-axe.mjs

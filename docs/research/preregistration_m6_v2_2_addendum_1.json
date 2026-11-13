@@ -1,0 +1,62 @@
+{
+  "addendum_version": 1,
+  "protocol_version": "2.2",
+  "written_utc": "2026-10-30T01:45:00Z",
+  "written_local": "2026-10-30 07:15:00 +05:30",
+  "note": "Written after the sealed run. Accepts ONLY the listed post-freeze changes; see addendum prose.",
+  "freeze_record": "docs/research/preregistration_m6_v2_2_freeze.json",
+  "freeze_record_sha256": "65cf88db98f17c3c149e5569a876f9cfba8408731b02643641caa3f370a4ee57",
+  "amendment": "docs/research/preregistration_m6_v2_2_amendment.md",
+  "amendment_sha256": "10d31c2e36de50802922b778b81c5aa6054a8d53e31e3ce883bd29f06d4ea443",
+  "addendum_md": "docs/research/preregistration_m6_v2_2_addendum_1.md",
+  "addendum_md_sha256": "324d2181e7e5bcd7d5e9be48e77ef8c40041066e960ac570831c02b8bd2d0e7f",
+  "pin_file": "docs/research/preregistration_m6_v2_2_addendum_1.pin",
+  "sealed_run_reference": {
+    "marker": "lab-results/m6_sealed_run_started.marker",
+    "marker_utc": "2026-10-29T23:48:45Z",
+    "artifacts_dir": "lab-results/m6_sealed_2026-10-29T234845Z",
+    "cells_csv_sha256": "3073a04431837a200b0cf962bb56c87b0e7554b4b8a9f6f818d556ec8525ecb5",
+    "verdict_reference": "H1 NOT_SUPPORTED (as recorded in verdict.json; not reinterpreted)"
+  },
+  "changed_files": [
+    {
+      "path": "Cargo.toml",
+      "frozen_sha256": "eec40383ff1fdb25a9de9edfabe61aaaa9e555d6812ee86825b4726a7d9fe9e2",
+      "current_sha256": "bea0e5c079040ce443cccaf7b5bc1057e248cd643849f32a21dfcd4844a788b5",
+      "category": "additive stanza",
+      "why": "Scenario B: added [[test]] lab_live_scenario_b_tests; no dependency or profile change",
+      "pre_change_copy": "D:/Temp/sec3_scratch/Cargo.toml (hash equals frozen_sha256)"
+    },
+    {
+      "path": "src/lib.rs",
+      "frozen_sha256": "25361ff30d51baa8f1e13b8afa5696046c0eb5fa9e2a0426b3b2f5be1ee6bf57",
+      "current_sha256": "6ca352b64511c851a1c9d90934e627ea476f41ce4cb43d9f730b1f00ad50cf21",
+      "category": "additive mod line",
+      "why": "Scenario B: added pub mod lab_live;",
+      "pre_change_copy": "D:/Temp/sec3_scratch/src/lib.rs (hash equals frozen_sha256)"
+    },
+    {
+      "path": "src/lab/eval.rs",
+      "frozen_sha256": "f56da990096673e445e8d180fa0580b3d0d8447f159f1f787a318eee80e4b466",
+      "current_sha256": "cd619534feffa5286e037c40e41375127c0ddaf47434baf152907431e213c327",
+      "category": "other: verifier (R-01)",
+      "why": "verify_freeze refactored into verify_freeze_core (same checks); added verify_freeze_with_addendum",
+      "pre_change_copy": "D:/Temp/r01_eval.rs.pre (hash equals frozen_sha256)"
+    },
+    {
+      "path": "tests/integration/m6_research_evaluation_tests.rs",
+      "frozen_sha256": "2aec7dadb770ef1e0428758f5b6b602616d159d873d28483cfbc02b6e000243e",
+      "current_sha256": "dee62a1afe7cce6188c10de1e1e4b7010fba1b7abe841139ce7d38b445ac09f3",
+      "category": "other: tests (R-01)",
+      "why": "real-tree test uses addendum-aware verification; added synthetic addendum tests",
+      "pre_change_copy": "D:/Temp/r01_m6tests.rs.pre (hash equals frozen_sha256)"
+    }
+  ],
+  "anchor_files": {
+    "docs/research/preregistration_m6_v2_2_freeze.json": "65cf88db98f17c3c149e5569a876f9cfba8408731b02643641caa3f370a4ee57",
+    "docs/research/preregistration_m6_v2_2_amendment.md": "10d31c2e36de50802922b778b81c5aa6054a8d53e31e3ce883bd29f06d4ea443",
+    "docs/research/preregistration_m6_v2_2_addendum_1.md": "324d2181e7e5bcd7d5e9be48e77ef8c40041066e960ac570831c02b8bd2d0e7f",
+    "Cargo.lock": "6e8db01416a539c71f20157849300d5e462a546ab70e778ebd8dfd9c7038a226 (unchanged vs freeze)"
+  },
+  "lab_live_statement": "src/lab_live/** is outside the frozen scope; no file in src/lab, src/core, src/intelligence or tests/support references it; it only imports public crate::lab APIs."
+}

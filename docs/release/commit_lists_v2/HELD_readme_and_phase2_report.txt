@@ -1,0 +1,6 @@
+# commit_lists_v2/HELD_readme_and_phase2_report.txt
+# HELD: README.md and PHASE_2_WORK_REPORT.md
+# Generated 2026-10-30 16:41 IST from git status --short -uall (4644 entries). One repo-relative path per line; lines starting with # are comments.
+# Use: GIT_LITERAL_PATHSPECS=1 git add --pathspec-from-file=<this file> after stripping comment lines (see g5_batch_plan_v2.md section 6).
+README.md
+docs/PHASE_2_WORK_REPORT.md

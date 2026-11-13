@@ -1,0 +1,115 @@
+=== Scenario B independent recompute ===
+root=lab-results/scenario_b/20261030T003932Z  reps=10  arms=BASE,STATIC-CAP,AIMD-CAP  seed=20261030  bootstrap=10000
+phases(ms from load start): warm-up [0,8000) excluded; healthy [8000,13000); degraded [13000,23000); recovery [23000,31000)
+
+[integrity] {"runs":30,"all_idx_contiguous":true,"dup_idx_total":0,"all_sched_nondecreasing":true,"window_flag_matches_definition_all":true,"window_count_matches_run_metrics_all":true,"nonfinite_total":0,"never_written_total":0,"lat_le0_total":0,"svc_le0_total":0,"lag_neg_total":0,"done_before_send_total":0,"identity_bad_total":0,"snap_t_monotone_all":false,"snap_counters_monotone_all":true,"snap_null_total":0,"origin_arrival_backsteps_total":0,"origin_conc_le0_total":0,"rows_min":9141,"rows_max":9418,"schedule_identical_across_arms_all":true,"send_lag_p99_max_over_runs":26.616,"send_lag_max_over_runs":50.264,"frac_lag_gt10_mean":0.3593190149405274,"frac_lag_gt50_mean":0.000003617683235655886,"contention_runs_p99_gt_100":0,"burst_mean_size":3.7903481228264284,"burst_max_size":20,"cv_scheduled_mean":0.18158791528998,"cv_sent_mean":0.20490141384399818,"lag_first_s_mean":8.62407864980109,"lag_after_8s_mean":8.39319449389187}
+[accounting BASE] window: scheduled=69107 resp=69107 200=69107 503=0 {} other=0 errors=0 warmup_excluded=23827 success=1.00000 shed=0.00000 allNon200IsCapReject=true
+[accounting STATIC-CAP] window: scheduled=69107 resp=69107 200=65686 503=3421 {"CapacityExceeded":3421} other=0 errors=0 warmup_excluded=23827 success=0.95050 shed=0.04950 allNon200IsCapReject=true
+[accounting AIMD-CAP] window: scheduled=69107 resp=69107 200=57273 503=11834 {"CapacityExceeded":11834} other=0 errors=0 warmup_excluded=23827 success=0.82876 shed=0.17124 allNon200IsCapReject=true
+[origin peaks BASE] whole=39,37,40,42,40,37,38,37,42,38 window=39,37,40,42,40,37,38,37,42,38 degraded=39,37,40,42,40,37,38,37,42,38 sweep=39,37,40,42,40,37,38,37,42,38
+[origin peaks STATIC-CAP] whole=24,24,24,24,24,24,24,24,24,24 window=24,24,24,24,24,24,24,24,24,24 degraded=24,24,24,24,24,24,24,24,24,24 sweep=24,24,24,24,24,24,24,24,24,24
+[origin peaks AIMD-CAP] whole=15,18,14,14,15,15,15,19,15,16 window=14,14,14,14,13,15,14,14,15,13 degraded=14,12,14,12,12,15,12,13,15,12 sweep=15,18,14,14,15,15,15,19,15,16
+[mechanism STATIC-CAP] cap_max=24 whole-run peaks<=cap in all runs: true; snap in_flight>cap: 0,0,0,0,0,0,0,0,0,0
+[mechanism AIMD-CAP] cap_max=32 whole-run peaks<=cap in all runs: true; exceed vs snapshot cap (est offset)=0,0,0,1,0,0,0,1,1,1 (zero offset)=0,0,0,1,0,0,0,1,1,1 relaxed(+-300ms max cap)=0,0,0,1,0,0,0,0,0,0 offsets=1,1,1,1,1,1,1,1,1,1
+
+[latency, scheduled-time, all window rows, nearest-rank] arm: pooled | mean-of-per-run  (p50 p90 p95 p99)
+  BASE n=69107 pooled: 36.976 145.387 153.352 166.938 | mean-of-runs: 36.977 145.423 153.277 167.095
+  STATIC-CAP n=69107 pooled: 32.597 143.038 151.816 166.835 | mean-of-runs: 32.586 143.094 151.841 166.850
+  AIMD-CAP n=69107 pooled: 21.187 130.386 145.240 162.549 | mean-of-runs: 21.228 130.411 145.278 162.672
+
+[paired STATIC-CAP vs BASE] n=10 (unit = repetition)
+  origin_peak_concurrency_window           base=39.000 treat=24.000 diff=-15.000 sd=1.944 bootCI=[-16.200,-13.900] tCI=[-16.390,-13.610] p=0.00195 rel=38.33% relCI=[36.64,40.14]%
+  origin_peak_concurrency_degraded         base=39.000 treat=24.000 diff=-15.000 sd=1.944 bootCI=[-16.200,-13.900] tCI=[-16.390,-13.610] p=0.00195 rel=38.33% relCI=[36.64,40.14]%
+  origin_peak_concurrency_whole_run        base=39.000 treat=24.000 diff=-15.000 sd=1.944 bootCI=[-16.200,-13.900] tCI=[-16.390,-13.610] p=0.00195 rel=38.33% relCI=[36.64,40.14]%
+  origin_peak_concurrency_degraded_plus_500ms base=39.000 treat=24.000 diff=-15.000 sd=1.944 bootCI=[-16.200,-13.900] tCI=[-16.390,-13.610] p=0.00195 rel=38.33% relCI=[36.64,40.14]%
+  client_success_rate_pp                   base=100.000 treat=95.053 diff=-4.947 sd=0.503 bootCI=[-5.233,-4.644] tCI=[-5.307,-4.587] p=0.00195
+  shed_fraction_pp                         base=0.000 treat=4.947 diff=4.947 sd=0.503 bootCI=[4.644,5.233] tCI=[4.587,5.307] p=0.00195
+  origin_p99_service_ms_window             base=143.824 treat=144.026 diff=0.202 sd=1.849 bootCI=[-0.961,1.224] tCI=[-1.120,1.525] p=0.73047 rel=-0.15% relCI=[-0.86,0.66]%
+  origin_p99_service_ms_degraded           base=146.112 treat=146.343 diff=0.231 sd=1.714 bootCI=[-0.767,1.258] tCI=[-0.995,1.457] p=0.66797 rel=-0.16% relCI=[-0.87,0.52]%
+  origin_requests_window                   base=4177.500 treat=3858.200 diff=-319.300 sd=36.878 bootCI=[-340.500,-297.000] tCI=[-345.681,-292.919] p=0.00195 rel=7.64% relCI=[7.15,8.10]%
+  origin_requests_whole_run                base=5650.700 treat=5329.900 diff=-320.800 sd=37.570 bootCI=[-342.500,-298.500] tCI=[-347.676,-293.924] p=0.00195 rel=5.67% relCI=[5.29,6.04]%
+  client_p50_ms                            base=36.977 treat=32.586 diff=-4.392 sd=0.939 bootCI=[-4.872,-3.770] tCI=[-5.063,-3.720] p=0.00195 rel=11.82% relCI=[10.29,12.98]%
+  client_p90_ms                            base=145.423 treat=143.094 diff=-2.329 sd=1.373 bootCI=[-3.152,-1.553] tCI=[-3.311,-1.347] p=0.00195 rel=1.60% relCI=[1.07,2.15]%
+  client_p95_ms                            base=153.277 treat=151.841 diff=-1.436 sd=1.499 bootCI=[-2.285,-0.537] tCI=[-2.509,-0.364] p=0.02148 rel=0.93% relCI=[0.35,1.49]%
+  client_p99_ms                            base=167.095 treat=166.850 diff=-0.245 sd=1.360 bootCI=[-1.068,0.524] tCI=[-1.218,0.728] p=0.58984 rel=0.14% relCI=[-0.31,0.63]%
+  client_p99_ms_interp                     base=167.049 treat=166.790 diff=-0.259 sd=1.412 bootCI=[-1.120,0.530] tCI=[-1.269,0.752] p=0.58008 rel=0.15% relCI=[-0.32,0.67]%
+  client_p50_ms_200only                    base=36.977 treat=34.928 diff=-2.049 sd=0.810 bootCI=[-2.486,-1.534] tCI=[-2.628,-1.470] p=0.00195 rel=5.49% relCI=[4.15,6.60]%
+  client_p95_ms_200only                    base=153.277 treat=152.432 diff=-0.845 sd=1.549 bootCI=[-1.732,0.074] tCI=[-1.953,0.263] p=0.13281 rel=0.55% relCI=[-0.05,1.13]%
+  client_p99_ms_200only                    base=167.095 treat=167.238 diff=0.143 sd=1.339 bootCI=[-0.656,0.905] tCI=[-0.815,1.101] p=0.73242 rel=-0.09% relCI=[-0.54,0.39]%
+  client_p99_service_latency_ms            base=159.454 treat=158.138 diff=-1.316 sd=1.732 bootCI=[-2.421,-0.400] tCI=[-2.555,-0.077] p=0.02344 rel=0.82% relCI=[0.25,1.51]%
+  client_p50_service_latency_ms            base=29.355 treat=26.827 diff=-2.528 sd=0.572 bootCI=[-2.865,-2.187] tCI=[-2.937,-2.119] p=0.00195 rel=8.62% relCI=[7.44,9.78]%
+
+[paired AIMD-CAP vs BASE] n=10 (unit = repetition)
+  origin_peak_concurrency_window           base=39.000 treat=14.000 diff=-25.000 sd=2.000 bootCI=[-26.200,-23.900] tCI=[-26.431,-23.569] p=0.00195 rel=64.03% relCI=[62.58,65.38]%
+  origin_peak_concurrency_degraded         base=39.000 treat=13.100 diff=-25.900 sd=2.183 bootCI=[-27.200,-24.600] tCI=[-27.462,-24.338] p=0.00195 rel=66.36% relCI=[64.25,68.38]%
+  origin_peak_concurrency_whole_run        base=39.000 treat=15.600 diff=-23.400 sd=3.273 bootCI=[-25.200,-21.500] tCI=[-25.741,-21.059] p=0.00195 rel=59.79% relCI=[56.19,62.91]%
+  origin_peak_concurrency_degraded_plus_500ms base=39.000 treat=13.200 diff=-25.800 sd=2.201 bootCI=[-27.100,-24.500] tCI=[-27.375,-24.225] p=0.00195 rel=66.09% relCI=[64.03,68.07]%
+  client_success_rate_pp                   base=100.000 treat=82.882 diff=-17.118 sd=0.851 bootCI=[-17.607,-16.607] tCI=[-17.727,-16.509] p=0.00195
+  shed_fraction_pp                         base=0.000 treat=17.118 diff=17.118 sd=0.851 bootCI=[16.607,17.607] tCI=[16.509,17.727] p=0.00195
+  origin_p99_service_ms_window             base=143.824 treat=142.392 diff=-1.432 sd=1.754 bootCI=[-2.452,-0.386] tCI=[-2.687,-0.177] p=0.03516 rel=0.99% relCI=[0.26,1.69]%
+  origin_p99_service_ms_degraded           base=146.112 treat=145.520 diff=-0.593 sd=1.599 bootCI=[-1.561,0.315] tCI=[-1.737,0.552] p=0.28516 rel=0.40% relCI=[-0.22,1.06]%
+  origin_requests_window                   base=4177.500 treat=3106.000 diff=-1071.500 sd=63.300 bootCI=[-1109.700,-1034.600] tCI=[-1116.782,-1026.218] p=0.00195 rel=25.64% relCI=[24.96,26.34]%
+  origin_requests_whole_run                base=5650.700 treat=4537.200 diff=-1113.500 sd=61.386 bootCI=[-1151.100,-1078.400] tCI=[-1157.413,-1069.587] p=0.00195 rel=19.70% relCI=[19.19,20.24]%
+  client_p50_ms                            base=36.977 treat=21.228 diff=-15.750 sd=1.296 bootCI=[-16.440,-14.918] tCI=[-16.676,-14.823] p=0.00195 rel=42.55% relCI=[40.86,43.96]%
+  client_p90_ms                            base=145.423 treat=130.411 diff=-15.013 sd=0.941 bootCI=[-15.584,-14.483] tCI=[-15.686,-14.340] p=0.00195 rel=10.32% relCI=[9.98,10.68]%
+  client_p95_ms                            base=153.277 treat=145.278 diff=-7.999 sd=0.846 bootCI=[-8.516,-7.526] tCI=[-8.604,-7.393] p=0.00195 rel=5.22% relCI=[4.91,5.55]%
+  client_p99_ms                            base=167.095 treat=162.672 diff=-4.422 sd=1.587 bootCI=[-5.356,-3.500] tCI=[-5.558,-3.287] p=0.00195 rel=2.64% relCI=[2.10,3.19]%
+  client_p99_ms_interp                     base=167.049 treat=162.570 diff=-4.479 sd=1.549 bootCI=[-5.389,-3.575] tCI=[-5.587,-3.370] p=0.00195 rel=2.68% relCI=[2.14,3.21]%
+  client_p50_ms_200only                    base=36.977 treat=30.286 diff=-6.692 sd=0.790 bootCI=[-7.114,-6.186] tCI=[-7.257,-6.127] p=0.00195 rel=18.06% relCI=[16.96,18.95]%
+  client_p95_ms_200only                    base=153.277 treat=147.944 diff=-5.333 sd=0.715 bootCI=[-5.780,-4.947] tCI=[-5.845,-4.822] p=0.00195 rel=3.48% relCI=[3.23,3.76]%
+  client_p99_ms_200only                    base=167.095 treat=164.312 diff=-2.782 sd=1.664 bootCI=[-3.763,-1.812] tCI=[-3.973,-1.592] p=0.00195 rel=1.66% relCI=[1.09,2.24]%
+  client_p99_service_latency_ms            base=159.454 treat=154.286 diff=-5.168 sd=1.676 bootCI=[-6.135,-4.208] tCI=[-6.367,-3.969] p=0.00195 rel=3.24% relCI=[2.64,3.84]%
+  client_p50_service_latency_ms            base=29.355 treat=1.075 diff=-28.280 sd=0.330 bootCI=[-28.469,-28.074] tCI=[-28.516,-28.044] p=0.00195 rel=96.34% relCI=[95.96,96.66]%
+[cache mix BASE] window all={"MISS":41759,"HIT":26366,"COALESCED":982} 200-only={"MISS":41759,"HIT":26366,"COALESCED":982}
+[cache mix STATIC-CAP] window all={"MISS":38557,"HIT":26189,"COALESCED":940,"NONE":3421} 200-only={"MISS":38557,"HIT":26189,"COALESCED":940}
+[cache mix AIMD-CAP] window all={"MISS":31050,"HIT":25467,"COALESCED":756,"NONE":11834} 200-only={"MISS":31050,"HIT":25467,"COALESCED":756}
+[recovery BASE] err_s(pooled healthy)=0,0,0,0,0,0,0,0,0,0 err_s(max healthy bin)=0,0,0,0,0,0,0,0,0,0 inflight_s(healthy max)=7.6788547,7.788543799999999,7.874596600000001,2.063199700000001,0,0,0,0,0,0 | runner err=0,0,0,0,0,0,0,0,0,0 runner inflight=7.678,7.788,5.691,0,0,0,0,0,0,0
+[recovery STATIC-CAP] err_s(pooled healthy)=0,1,1,0,0,0,1,0,0,1 err_s(max healthy bin)=0,1,1,0,0,0,1,0,0,1 inflight_s(healthy max)=2.0793381000000006,0,0,0.2595557000000008,8.0589529,7.985419399999999,0,0.28366530000000056,3.4358149999999985,3.9639061 | runner err=0,0,0,0,0,0,0,0,0,0 runner inflight=0.27,0,0,0.259,7.147,7.985,0,0.283,3.435,0
+[recovery AIMD-CAP] err_s(pooled healthy)=5,3,1,6,,,6,,,7 err_s(max healthy bin)=1,2,1,2,7,0,0,0,4,4 inflight_s(healthy max)=0,4.052032800000001,7.115959699999999,0.2705652999999984,0,6.648088100000001,5.6358924,6.5509385,6.056174299999999,1.5301356000000015 | runner err=1,1,0,2,0,,0,5,4,4 runner inflight=0,0,0,0,0,6.648,5.635,6.55,6.056,1.53
+[cap evidence STATIC-CAP] rejections_final=299,327,332,366,400,359,277,321,368,371 client503(CapExceeded,whole)=299,327,332,366,400,359,277,321,369,371 diff=0,0,0,0,0,0,0,0,-1,0 dispatched-originRows=0,0,0,0,0,0,0,0,0,0
+[cap evidence AIMD-CAP] rejections_final=1138,1264,1180,1232,1337,1238,1121,1211,1266,1291 client503(CapExceeded,whole)=1139,1264,1180,1232,1337,1238,1121,1211,1266,1291 diff=-1,0,0,0,0,0,0,0,0,0 dispatched-originRows=0,0,0,0,0,0,0,0,0,0
+[phase BASE] non-200 rate by phase: {"warmup":0,"healthy":0,"degraded":0,"recovery":0,"recovery_last4s":0} cap by phase: {} atMin=undefined originHealthy p50/p99=28.252499999999998/43.9369
+[phase STATIC-CAP] non-200 rate by phase: {"warmup":0,"healthy":0,"degraded":0.11354389797440143,"recovery":0.0006605514406821443,"recovery_last4s":0} cap by phase: {"warmup":24,"healthy":24,"degraded":24,"recovery":24,"recovery_last4s":24} atMin=1 originHealthy p50/p99=28.151400000000002/44.389199999999995
+[phase AIMD-CAP] non-200 rate by phase: {"warmup":0.01868380458435967,"healthy":0.0237679927465793,"degraded":0.36430542292812174,"recovery":0.023314076944910167,"recovery_last4s":0.020475341916701795} cap by phase: {"warmup":14.07537634408602,"healthy":12.805058479532164,"degraded":12.032005689900426,"recovery":12.777626992955136,"recovery_last4s":12.892857142857142} atMin=0.6745762711864407 originHealthy p50/p99=28.1664/44.785
+
+[stale] {"BASE":{"client_rows_STALE":0,"client_rows_error_stale_tag":0,"snap_stale_served_max":0,"snap_stale_cap_violations_max":0,"x_cache_status_values":["MISS","HIT","COALESCED"],"x_cache_error_values":[]},"STATIC-CAP":{"client_rows_STALE":0,"client_rows_error_stale_tag":0,"snap_stale_served_max":0,"snap_stale_cap_violations_max":0,"x_cache_status_values":["MISS","HIT","COALESCED","NONE"],"x_cache_error_values":["CapacityExceeded"]},"AIMD-CAP":{"client_rows_STALE":0,"client_rows_error_stale_tag":0,"snap_stale_served_max":0,"snap_stale_cap_violations_max":0,"x_cache_status_values":["MISS","HIT","NONE","COALESCED"],"x_cache_error_values":["CapacityExceeded"]},"origin_script_swr":null,"origin_script_sie":null,"swr_sie_variant_run":false}
+[verdict STATIC-CAP] TRADE_OFF_FAILURE: benefit on origin load but success rate -4.947 pp vs BASE (limit -1 pp)
+[verdict AIMD-CAP] TRADE_OFF_FAILURE: benefit on origin load but success rate -17.118 pp vs BASE (limit -1 pp)
+
+[P99] pooled NR base=166.938 aimd=162.549 diff=-4.389 (2.63%) | mean-of-runs base=167.095 aimd=162.672 diff=-4.422 (2.647%; mean of per-rep rel=2.644%) bootCI=[-5.356,-3.500] tCI=[-5.558,-3.287] p=0.001953125
+
+[summary.json comparison] 161/168 match (within tolerance); mismatches:
+  AIMD-CAP recovery median error_s (offset0, pooled-healthy def): mine=5.00000 theirs=1.00000
+  AIMD-CAP runs with error recovery: mine=6.00000 theirs=9.00000
+  STATIC-CAP client_p95_ms mean_diff: mine=-1.43640 theirs=-1.43636
+  STATIC-CAP client_p99_ms mean_diff: mine=-0.24480 theirs=-0.24488
+  STATIC-CAP client_p99_ms perm_p: mine=0.58984 theirs=0.59180
+  STATIC-CAP origin_p99_service_ms mean_diff: mine=0.20240 theirs=0.20243
+  STATIC-CAP origin_p99_service_ms perm_p: mine=0.73047 theirs=0.71680
+[run_metrics.json per-run comparison] field: n, max|diff|, mismatches
+  client_p50_ms: n=30 max|diff|=0.0004960 mismatches=0
+  client_p90_ms: n=30 max|diff|=0.0004720 mismatches=0
+  client_p95_ms: n=30 max|diff|=0.0004970 mismatches=0
+  client_p99_ms: n=30 max|diff|=0.0004890 mismatches=0
+  client_max_ms: n=30 max|diff|=0.0004930 mismatches=0
+  origin_peak_whole_run: n=30 max|diff|=0.000 mismatches=0
+  origin_peak_window: n=30 max|diff|=0.000 mismatches=0
+  origin_peak_degraded: n=30 max|diff|=0.000 mismatches=0
+  origin_p99_service_ms: n=30 max|diff|=0.0005000 mismatches=0
+  origin_requests_window: n=30 max|diff|=0.000 mismatches=0
+  origin_requests_whole_run: n=30 max|diff|=0.000 mismatches=0
+  success_rate: n=30 max|diff|=0.000 mismatches=0
+  shed_fraction: n=30 max|diff|=0.000 mismatches=0
+  n_scheduled_window: n=30 max|diff|=0.000 mismatches=0
+  recovery_error_s (pooled-healthy def, offset0): n=30 max|diff|=6.000 mismatches=13
+  recovery_in_flight_s (healthy-max def, offset0): n=30 max|diff|=7.116 mismatches=8
+  recovery_in_flight_s (healthy-max def, est offset): n=30 max|diff|=7.117 mismatches=19
+  recovery_error_s (POSTHOC healthy+2pp tolerance, offset0): n=30 max|diff|=0.000 mismatches=0
+  recovery_in_flight_s (POSTHOC healthy-max+1, offset0): n=30 max|diff|=0.0009385 mismatches=0
+  error_rate_healthy: n=30 max|diff|=0.000 mismatches=0
+  send_lag_p99_ms (window rows only): n=30 max|diff|=0.0004700 mismatches=0
+  send_lag_p99_ms (all rows): n=30 max|diff|=0.6532 mismatches=29
+  gateway_in_flight_max: n=30 max|diff|=0.000 mismatches=0
+  gateway_rejections_final: n=30 max|diff|=0.000 mismatches=0
+
+wrote recompute_report.json, recompute_report.md, console_output.txt to docs/demo/scenario_b_verification

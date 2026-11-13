@@ -1,0 +1,1563 @@
+{
+ "mode": "gpu",
+ "started": "2026-10-30T09:40:18.228Z",
+ "scrollMs": 3000,
+ "pxPerSec": 1800,
+ "reps": 5,
+ "rows": [
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "a",
+   "framesPerRun": {
+    "median": 719,
+    "min": 718,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.17
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.5,
+    "min": 4.4,
+    "max": 8.2
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 9.1,
+    "PrePaint": 21.4,
+    "Layerize": 2.4,
+    "Commit": 32.4,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 2.5,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 51.9,
+    "UpdateLayer": 2.1,
+    "GPUTask": 17.5
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.5,
+     4.6,
+     4.5,
+     8.2,
+     4.4
+    ]
+   }
+  },
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "b",
+   "framesPerRun": {
+    "median": 719,
+    "min": 713,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.2
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.9,
+    "min": 4.4,
+    "max": 12.5
+   },
+   "layerCount": 10,
+   "traceMsSummedAllThreads": {
+    "Paint": 6.7,
+    "PrePaint": 21.5,
+    "Layerize": 1.6,
+    "Commit": 27.5,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 1.9,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 41.4,
+    "UpdateLayer": 1.9,
+    "GPUTask": 13.3
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.2,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     12.5,
+     4.9,
+     4.9,
+     4.4,
+     4.4
+    ]
+   }
+  },
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "c",
+   "framesPerRun": {
+    "median": 718,
+    "min": 713,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 1
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.2
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.4,
+    "min": 4.4,
+    "max": 24.9
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 7,
+    "PrePaint": 24.1,
+    "Layerize": 1.5,
+    "Commit": 34.9,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 2.1,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 44.7,
+    "UpdateLayer": 2.4,
+    "GPUTask": 12.2
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     1
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.17,
+     4.2
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.4,
+     4.4,
+     4.4,
+     4.4,
+     24.9
+    ]
+   }
+  },
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "d",
+   "framesPerRun": {
+    "median": 719,
+    "min": 719,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.17
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.5,
+    "min": 4.4,
+    "max": 4.7
+   },
+   "layerCount": 10,
+   "traceMsSummedAllThreads": {
+    "Paint": 6.6,
+    "PrePaint": 18.8,
+    "Layerize": 1.5,
+    "Commit": 25.9,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 1.8,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 36.7,
+    "UpdateLayer": 1.9,
+    "GPUTask": 10.6
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.7,
+     4.4,
+     4.5,
+     4.5,
+     4.4
+    ]
+   }
+  },
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "d32",
+   "framesPerRun": {
+    "median": 718,
+    "min": 717,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.17
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.5,
+    "min": 4.4,
+    "max": 8.4
+   },
+   "layerCount": 10,
+   "traceMsSummedAllThreads": {
+    "Paint": 7.4,
+    "PrePaint": 24,
+    "Layerize": 1.6,
+    "Commit": 31.3,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 2,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 45.2,
+    "UpdateLayer": 2.1,
+    "GPUTask": 12.3
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.5,
+     4.4,
+     8.4,
+     4.4,
+     8.3
+    ]
+   }
+  },
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "e",
+   "framesPerRun": {
+    "median": 718,
+    "min": 718,
+    "max": 718
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.17
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.4,
+    "min": 4.4,
+    "max": 4.5
+   },
+   "layerCount": 23,
+   "traceMsSummedAllThreads": {
+    "Paint": 8.4,
+    "PrePaint": 287.7,
+    "Layerize": 2.4,
+    "Commit": 60.9,
+    "UpdateLayoutTree": 98.3,
+    "Layout": 0,
+    "RasterTask": 3.3,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 169.3,
+    "UpdateLayer": 6.4,
+    "GPUTask": 20.4
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.4,
+     4.4,
+     4.4,
+     4.4,
+     4.5
+    ]
+   }
+  },
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "f",
+   "framesPerRun": {
+    "median": 717,
+    "min": 703,
+    "max": 718
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 2
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.26
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 8.2,
+    "min": 4.9,
+    "max": 20.9
+   },
+   "layerCount": 64,
+   "traceMsSummedAllThreads": {
+    "Paint": 792.4,
+    "PrePaint": 225.7,
+    "Layerize": 86.4,
+    "Commit": 82.2,
+    "UpdateLayoutTree": 64.4,
+    "Layout": 0,
+    "RasterTask": 28,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 123.9,
+    "UpdateLayer": 23.9,
+    "GPUTask": 284.4
+   },
+   "raw": {
+    "long17": [
+     2,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.26,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     20.9,
+     4.9,
+     8.4,
+     8.2,
+     8.2
+    ]
+   }
+  },
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "g",
+   "framesPerRun": {
+    "median": 718,
+    "min": 673,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 5
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.45
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.8,
+    "min": 4.5,
+    "max": 25.2
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 12,
+    "PrePaint": 27.9,
+    "Layerize": 2.8,
+    "Commit": 43.2,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 3,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 64.7,
+    "UpdateLayer": 2.8,
+    "GPUTask": 16.5
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     5,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.45,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.5,
+     4.8,
+     25.2,
+     4.8,
+     4.5
+    ]
+   }
+  },
+  {
+   "viewport": "desktop-1280x800",
+   "variant": "h",
+   "framesPerRun": {
+    "median": 718,
+    "min": 712,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 1
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.2
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.6,
+    "min": 4.5,
+    "max": 29.2
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 1.9,
+    "PrePaint": 24.8,
+    "Layerize": 2.3,
+    "Commit": 68.9,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 2.5,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 46.8,
+    "UpdateLayer": 12.6,
+    "GPUTask": 20.7
+   },
+   "raw": {
+    "long17": [
+     1,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.2,
+     4.2,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     29.2,
+     12.5,
+     4.6,
+     4.5,
+     4.5
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "a",
+   "framesPerRun": {
+    "median": 719,
+    "min": 717,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.18
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.5,
+    "min": 4.4,
+    "max": 8.3
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 13.9,
+    "PrePaint": 71.8,
+    "Layerize": 8.7,
+    "Commit": 127.6,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 1.3,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 229.8,
+    "UpdateLayer": 9.6,
+    "GPUTask": 10.4
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.18,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.5,
+     8.3,
+     4.5,
+     8.3,
+     4.4
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "b",
+   "framesPerRun": {
+    "median": 718,
+    "min": 712,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 1
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.21
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 8.2,
+    "min": 4.5,
+    "max": 20.8
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 18.8,
+    "PrePaint": 124.7,
+    "Layerize": 6.8,
+    "Commit": 168.7,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 1.4,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 278,
+    "UpdateLayer": 12,
+    "GPUTask": 9.9
+   },
+   "raw": {
+    "long17": [
+     0,
+     1,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.21,
+     4.17,
+     4.17,
+     4.18
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.5,
+     20.8,
+     8.2,
+     4.6,
+     8.4
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "c",
+   "framesPerRun": {
+    "median": 719,
+    "min": 717,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.17
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.5,
+    "min": 4.4,
+    "max": 8.4
+   },
+   "layerCount": 11,
+   "traceMsSummedAllThreads": {
+    "Paint": 16.6,
+    "PrePaint": 129.7,
+    "Layerize": 8.2,
+    "Commit": 154,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 1.2,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 276,
+    "UpdateLayer": 12.7,
+    "GPUTask": 10
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     8.2,
+     4.4,
+     8.4,
+     4.4,
+     4.5
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "d",
+   "framesPerRun": {
+    "median": 718,
+    "min": 718,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.17
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.5,
+    "min": 4.4,
+    "max": 8.3
+   },
+   "layerCount": 10,
+   "traceMsSummedAllThreads": {
+    "Paint": 17.6,
+    "PrePaint": 111.8,
+    "Layerize": 6.9,
+    "Commit": 146.8,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 1.3,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 231.6,
+    "UpdateLayer": 9.6,
+    "GPUTask": 9.8
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     8.3,
+     4.5,
+     4.4,
+     4.5,
+     5
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "d32",
+   "framesPerRun": {
+    "median": 719,
+    "min": 718,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.17
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.4,
+    "min": 4.3,
+    "max": 5.9
+   },
+   "layerCount": 10,
+   "traceMsSummedAllThreads": {
+    "Paint": 18.5,
+    "PrePaint": 134,
+    "Layerize": 8.7,
+    "Commit": 160.4,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 1.6,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 293.5,
+    "UpdateLayer": 12.2,
+    "GPUTask": 11.2
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.17,
+     4.17
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.5,
+     5.9,
+     4.4,
+     4.4,
+     4.3
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "e",
+   "framesPerRun": {
+    "median": 680,
+    "min": 549,
+    "max": 718
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 1
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.39,
+    "min": 4.17,
+    "max": 5.45
+   },
+   "p95FrameMs": {
+    "median": 4.4,
+    "min": 4.3,
+    "max": 8.5
+   },
+   "maxFrameMs": {
+    "median": 12.6,
+    "min": 4.4,
+    "max": 20.8
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 19.2,
+    "PrePaint": 1061.2,
+    "Layerize": 11.8,
+    "Commit": 224.9,
+    "UpdateLayoutTree": 395.8,
+    "Layout": 0,
+    "RasterTask": 1.6,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 715.2,
+    "UpdateLayer": 22.2,
+    "GPUTask": 16.5
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     1,
+     0,
+     0
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.28,
+     4.17,
+     5.45,
+     4.39,
+     4.4
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     8.5,
+     8.2,
+     4.4
+    ],
+    "maxs": [
+     12.6,
+     4.4,
+     20.8,
+     12.6,
+     16.8
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "f",
+   "framesPerRun": {
+    "median": 295,
+    "min": 258,
+    "max": 338
+   },
+   "long_gt17_7ms": {
+    "median": 29,
+    "min": 16,
+    "max": 40
+   },
+   "long_gt34ms": {
+    "median": 2,
+    "min": 0,
+    "max": 6
+   },
+   "meanFrameMs": {
+    "median": 10.17,
+    "min": 8.85,
+    "max": 11.6
+   },
+   "p95FrameMs": {
+    "median": 25,
+    "min": 16.9,
+    "max": 29.1
+   },
+   "maxFrameMs": {
+    "median": 41.6,
+    "min": 33.5,
+    "max": 58.5
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 1546.2,
+    "PrePaint": 499.4,
+    "Layerize": 181.3,
+    "Commit": 175.8,
+    "UpdateLayoutTree": 141.9,
+    "Layout": 0,
+    "RasterTask": 16.3,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 288,
+    "UpdateLayer": 52.5,
+    "GPUTask": 176.1
+   },
+   "raw": {
+    "long17": [
+     40,
+     19,
+     29,
+     32,
+     16
+    ],
+    "long34": [
+     6,
+     2,
+     0,
+     2,
+     2
+    ],
+    "means": [
+     11.6,
+     9.45,
+     10.17,
+     10.46,
+     8.85
+    ],
+    "p95s": [
+     29.1,
+     20.8,
+     25,
+     25,
+     16.9
+    ],
+    "maxs": [
+     58.5,
+     41.7,
+     33.5,
+     41.6,
+     37.4
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "g",
+   "framesPerRun": {
+    "median": 705,
+    "min": 682,
+    "max": 712
+   },
+   "long_gt17_7ms": {
+    "median": 1,
+    "min": 0,
+    "max": 1
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.24,
+    "min": 4.21,
+    "max": 4.39
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.4
+   },
+   "maxFrameMs": {
+    "median": 20.8,
+    "min": 16.6,
+    "max": 20.9
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 14.9,
+    "PrePaint": 104.2,
+    "Layerize": 10.3,
+    "Commit": 153.1,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 1.5,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 279.4,
+    "UpdateLayer": 10,
+    "GPUTask": 9.6
+   },
+   "raw": {
+    "long17": [
+     1,
+     0,
+     1,
+     0,
+     1
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.31,
+     4.24,
+     4.39,
+     4.21,
+     4.21
+    ],
+    "p95s": [
+     4.3,
+     4.4,
+     4.4,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     20.9,
+     16.6,
+     20.8,
+     16.8,
+     20.8
+    ]
+   }
+  },
+  {
+   "viewport": "mobile-390x844-cpu4x",
+   "variant": "h",
+   "framesPerRun": {
+    "median": 718,
+    "min": 683,
+    "max": 719
+   },
+   "long_gt17_7ms": {
+    "median": 0,
+    "min": 0,
+    "max": 2
+   },
+   "long_gt34ms": {
+    "median": 0,
+    "min": 0,
+    "max": 0
+   },
+   "meanFrameMs": {
+    "median": 4.17,
+    "min": 4.17,
+    "max": 4.37
+   },
+   "p95FrameMs": {
+    "median": 4.3,
+    "min": 4.3,
+    "max": 4.3
+   },
+   "maxFrameMs": {
+    "median": 4.5,
+    "min": 4.4,
+    "max": 29.2
+   },
+   "layerCount": null,
+   "traceMsSummedAllThreads": {
+    "Paint": 6.5,
+    "PrePaint": 164.3,
+    "Layerize": 10.9,
+    "Commit": 402.6,
+    "UpdateLayoutTree": 0,
+    "Layout": 0,
+    "RasterTask": 2.4,
+    "CompositeLayers": 0,
+    "DrawFrame": 0,
+    "FunctionCall": 349.2,
+    "UpdateLayer": 73.9,
+    "GPUTask": 22.6
+   },
+   "raw": {
+    "long17": [
+     0,
+     0,
+     0,
+     0,
+     2
+    ],
+    "long34": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "means": [
+     4.17,
+     4.17,
+     4.17,
+     4.18,
+     4.37
+    ],
+    "p95s": [
+     4.3,
+     4.3,
+     4.3,
+     4.3,
+     4.3
+    ],
+    "maxs": [
+     4.5,
+     4.4,
+     4.4,
+     12.5,
+     29.2
+    ]
+   }
+  }
+ ],
+ "browser": "Chrome/156.0.8078.79",
+ "gpu": "SystemInfo unavailable {\"code\":-32000,\"message\":\"SystemInfo.getInfo is only supported on the browser target\"}",
+ "cores": 24,
+ "glRendererInPage": "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "pidKilled": true,
+ "finished": "2026-10-30T09:49:02.267Z"
+}

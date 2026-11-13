@@ -1,0 +1,121 @@
+{
+  "capacity": 100,
+  "records": [
+    {
+      "decision_id": 1,
+      "timestamp_ms": 11000,
+      "mode": "Canary",
+      "trigger_reason": "TraceExportTest",
+      "candidate": {
+        "candidate_id": "POLICY_1",
+        "kind": "Eviction",
+        "parameters": {},
+        "bounds": {},
+        "expected_effect": "Optimization"
+      },
+      "estimated_effect": 0.08,
+      "confidence_interval": [
+        0.051,
+        0.109
+      ],
+      "guardrails_passed": true,
+      "verdict": "Commit",
+      "explanation": "Demonstrated statistical superiority for candidate 1",
+      "config_hash_before": "CONF_BASE",
+      "config_hash_after": "CONF_NEW_1"
+    },
+    {
+      "decision_id": 2,
+      "timestamp_ms": 12000,
+      "mode": "Canary",
+      "trigger_reason": "TraceExportTest",
+      "candidate": {
+        "candidate_id": "POLICY_2",
+        "kind": "Eviction",
+        "parameters": {},
+        "bounds": {},
+        "expected_effect": "Optimization"
+      },
+      "estimated_effect": 0.08,
+      "confidence_interval": [
+        0.051,
+        0.109
+      ],
+      "guardrails_passed": true,
+      "verdict": "Commit",
+      "explanation": "Demonstrated statistical superiority for candidate 2",
+      "config_hash_before": "CONF_BASE",
+      "config_hash_after": "CONF_NEW_2"
+    },
+    {
+      "decision_id": 3,
+      "timestamp_ms": 13000,
+      "mode": "Canary",
+      "trigger_reason": "TraceExportTest",
+      "candidate": {
+        "candidate_id": "POLICY_3",
+        "kind": "Eviction",
+        "parameters": {},
+        "bounds": {},
+        "expected_effect": "Optimization"
+      },
+      "estimated_effect": 0.08,
+      "confidence_interval": [
+        0.051,
+        0.109
+      ],
+      "guardrails_passed": true,
+      "verdict": "Commit",
+      "explanation": "Demonstrated statistical superiority for candidate 3",
+      "config_hash_before": "CONF_BASE",
+      "config_hash_after": "CONF_NEW_3"
+    },
+    {
+      "decision_id": 4,
+      "timestamp_ms": 14000,
+      "mode": "Canary",
+      "trigger_reason": "TraceExportTest",
+      "candidate": {
+        "candidate_id": "POLICY_4",
+        "kind": "Eviction",
+        "parameters": {},
+        "bounds": {},
+        "expected_effect": "Optimization"
+      },
+      "estimated_effect": 0.08,
+      "confidence_interval": [
+        0.051,
+        0.109
+      ],
+      "guardrails_passed": true,
+      "verdict": "Commit",
+      "explanation": "Demonstrated statistical superiority for candidate 4",
+      "config_hash_before": "CONF_BASE",
+      "config_hash_after": "CONF_NEW_4"
+    },
+    {
+      "decision_id": 5,
+      "timestamp_ms": 15000,
+      "mode": "Canary",
+      "trigger_reason": "TraceExportTest",
+      "candidate": {
+        "candidate_id": "POLICY_5",
+        "kind": "Eviction",
+        "parameters": {},
+        "bounds": {},
+        "expected_effect": "Optimization"
+      },
+      "estimated_effect": 0.08,
+      "confidence_interval": [
+        0.051,
+        0.109
+      ],
+      "guardrails_passed": true,
+      "verdict": "Commit",
+      "explanation": "Demonstrated statistical superiority for candidate 5",
+      "config_hash_before": "CONF_BASE",
+      "config_hash_after": "CONF_NEW_5"
+    }
+  ],
+  "total_decisions_recorded": 5
+}

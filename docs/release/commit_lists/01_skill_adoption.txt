@@ -1,0 +1,5 @@
+.claude/skills/apple-design/LICENSE
+.claude/skills/apple-design/SKILL.md
+.claude/skills/apple-design/SOURCE.md
+docs/design/apple_design_skill_adoption_evidence.md
+docs/design/apple_design_skill_project_rules.md

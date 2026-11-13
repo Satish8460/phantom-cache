@@ -1,0 +1,36 @@
+id: 1
+event: state
+data: {"state":"queued","tier":"MEASURED_LOOPBACK"}
+
+id: 2
+event: state
+data: {"state":"running"}
+
+id: 3
+event: progress
+data: {"arm":"BASE","done":0,"gateway_pid":0,"phase":"starting","rep":1,"tier":"MEASURED_LOOPBACK","total":3}
+
+id: 4
+event: progress
+data: {"arm":"BASE","done":0,"gateway_pid":2036,"phase":"warmup","rep":1,"tier":"MEASURED_LOOPBACK","total":3}
+
+id: 5
+event: progress
+data: {"arm":"BASE","done":0,"gateway_pid":2036,"phase":"healthy","rep":1,"tier":"MEASURED_LOOPBACK","total":3}
+
+id: 6
+event: state
+data: {"state":"cancelling"}
+
+id: 7
+event: progress
+data: {"arm":"BASE","done":0,"gateway_pid":2036,"phase":"collect","rep":1,"tier":"MEASURED_LOOPBACK","total":3}
+
+id: 8
+event: state
+data: {"state":"cancelled"}
+
+id: 9
+event: done
+data: {"exit_code":130,"state":"cancelled"}
+

@@ -1,0 +1,82 @@
+{
+  "arm_params": {
+    "aimd_window": 16,
+    "bl12b_cap": 4,
+    "bl12b_stale_ms": 60000,
+    "bl4_max": 8,
+    "bl4_min": 1,
+    "bl4_p99_ceiling_ms": 200,
+    "bl5_err_threshold": 0.5,
+    "bl5_open_ms": 1000,
+    "bl6_by_scenario": {
+      "O-CO": [
+        8,
+        2000
+      ],
+      "O-DEG": [
+        4,
+        2000
+      ],
+      "O-GRD": [
+        4,
+        60000
+      ],
+      "O-HET": [
+        4,
+        60000
+      ],
+      "O-RT": [
+        8,
+        2000
+      ],
+      "O-SLW": [
+        4,
+        10000
+      ]
+    },
+    "pie_base_stale_ms": 60000,
+    "pie_error_threshold": 0.2,
+    "pie_max": 16,
+    "pie_min": 2,
+    "pie_p99_ceiling_ms": 100
+  },
+  "budget_per_tuned_arm": 18,
+  "git_head": "456bb25930004f1896a84c53e776e7b3ef29ee16",
+  "notes": [
+    "BL-12b: best feasible score 0.1814",
+    "PIE-Retained: best feasible score 0.2642",
+    "BL-4: best feasible score 0.2217"
+  ],
+  "tier": "SIMULATED",
+  "tuned_at_utc": "2026-10-29T14:06:23Z",
+  "tuning_families": [
+    "W-Z",
+    "W-FC",
+    "W-SC"
+  ],
+  "tuning_scenarios": [
+    "O-DEG",
+    "O-BRN",
+    "O-SLW",
+    "O-CO",
+    "O-RT",
+    "O-FL",
+    "O-HET",
+    "O-GRD"
+  ],
+  "tuning_seeds": [
+    10001,
+    10002,
+    10003,
+    10004,
+    10005,
+    10006,
+    10007,
+    10008
+  ],
+  "untuned_arms": [
+    "BL-0",
+    "BL-1",
+    "BL-5 (fixed defaults)"
+  ]
+}

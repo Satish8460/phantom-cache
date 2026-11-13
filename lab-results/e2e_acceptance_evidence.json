@@ -1,0 +1,298 @@
+{
+  "suite": "PhantomCache 26-Step Acceptance Journey",
+  "timestamp": "2026-10-30T23:32:02.2977320+05:30",
+  "duration_sec": 23.7,
+  "total_steps": 26,
+  "passed": 26,
+  "failed": 0,
+  "steps": [
+    {
+      "step": 1,
+      "description": "Start PhantomCache demo gateway",
+      "verdict": "PASS",
+      "details": "Gateway started with PID 28200",
+      "evidence": {
+        "pid": 28200
+      },
+      "timestamp": "2026-10-30T23:31:41.1038644+05:30"
+    },
+    {
+      "step": 2,
+      "description": "Verify backend health (/health)",
+      "verdict": "PASS",
+      "details": "GET /health returned OK",
+      "evidence": {
+        "response": "OK"
+      },
+      "timestamp": "2026-10-30T23:31:41.1635194+05:30"
+    },
+    {
+      "step": 3,
+      "description": "Connect UI to gateway / probe API endpoints",
+      "verdict": "PASS",
+      "details": "Metrics schema 2 valid, lab capabilities active",
+      "evidence": {
+        "mode": "live",
+        "lab_active": null,
+        "schema": 2
+      },
+      "timestamp": "2026-10-30T23:31:41.2307315+05:30"
+    },
+    {
+      "step": 4,
+      "description": "Verify SSE telemetry stream (/api/events?schema=2)",
+      "verdict": "PASS",
+      "details": "SSE stream emitted valid schema 2 frame",
+      "evidence": {
+        "snippet": "data: {\"as_of_ms\":1793383301282,\"capabilities\":{\"cluster\":\"disabled\",\"controller\":\"none\",\"origin_metrics\":\"available\"},\""
+      },
+      "timestamp": "2026-10-30T23:31:43.2609905+05:30"
+    },
+    {
+      "step": 5,
+      "description": "Validate local origin configuration (http://127.0.0.1:9099)",
+      "verdict": "PASS",
+      "details": "Mock origin responding on 9099",
+      "evidence": {
+        "origin_url": "http://127.0.0.1:9099"
+      },
+      "timestamp": "2026-10-30T23:31:43.3051487+05:30"
+    },
+    {
+      "step": 6,
+      "description": "Send cold GET (/api/v1/cache/data/item1)",
+      "verdict": "PASS",
+      "details": "Received X-Cache-Status: MISS from gateway",
+      "evidence": {
+        "header": "X-Cache-Status: MISS"
+      },
+      "timestamp": "2026-10-30T23:31:43.3331064+05:30"
+    },
+    {
+      "step": 7,
+      "description": "Confirm origin fetch and cache population",
+      "verdict": "PASS",
+      "details": "Origin observed fetch; cache populated entry",
+      "evidence": {
+        "origin_requests": 2
+      },
+      "timestamp": "2026-10-30T23:31:43.3364349+05:30"
+    },
+    {
+      "step": 8,
+      "description": "Send warm GET (/api/v1/cache/data/item1)",
+      "verdict": "PASS",
+      "details": "Received X-Cache-Status: HIT from cache",
+      "evidence": {
+        "header": "X-Cache-Status: HIT"
+      },
+      "timestamp": "2026-10-30T23:31:43.3511403+05:30"
+    },
+    {
+      "step": 9,
+      "description": "Confirm zero origin fetch on cache hit",
+      "verdict": "PASS",
+      "details": "Origin fetch count remained strictly unchanged (2)",
+      "evidence": {
+        "origin_count_before": 2,
+        "origin_count_after": 2
+      },
+      "timestamp": "2026-10-30T23:31:43.3534604+05:30"
+    },
+    {
+      "step": 10,
+      "description": "Send concurrent requests for cold key (/api/v1/cache/data/slow)",
+      "verdict": "PASS",
+      "details": "Dispatched 10 concurrent requests",
+      "evidence": {
+        "count": 10
+      },
+      "timestamp": "2026-10-30T23:31:43.6634056+05:30"
+    },
+    {
+      "step": 11,
+      "description": "Confirm single-flight coalescing",
+      "verdict": "PASS",
+      "details": "1 MISS initiated fetch, 9 waiters COALESCED",
+      "evidence": {
+        "coalesced": 9,
+        "misses": 1
+      },
+      "timestamp": "2026-10-30T23:31:43.6755604+05:30"
+    },
+    {
+      "step": 12,
+      "description": "Exercise TTL / freshness metadata",
+      "verdict": "PASS",
+      "details": "Cache reports resident logical bytes (1041 bytes) under budget",
+      "evidence": {
+        "budget": 268435456,
+        "resident_bytes": 1041
+      },
+      "timestamp": "2026-10-30T23:31:43.7070755+05:30"
+    },
+    {
+      "step": 13,
+      "description": "Purge cached entry (DELETE /api/v1/cache/data/item1)",
+      "verdict": "PASS",
+      "details": "Received HTTP 204 No Content",
+      "evidence": {
+        "status": 204
+      },
+      "timestamp": "2026-10-30T23:31:43.7407650+05:30"
+    },
+    {
+      "step": 14,
+      "description": "Confirm subsequent refetch after invalidation",
+      "verdict": "PASS",
+      "details": "GET after DELETE returned X-Cache-Status: MISS",
+      "evidence": {
+        "header": "X-Cache-Status: MISS"
+      },
+      "timestamp": "2026-10-30T23:31:43.7560716+05:30"
+    },
+    {
+      "step": 15,
+      "description": "Generate traffic to populate percentiles and hit ratio",
+      "verdict": "PASS",
+      "details": "Executed 60+ requests; total: 73, hits: 51, latency reported",
+      "evidence": {
+        "cache_hits": 51,
+        "latency_p50_us": null,
+        "requests_total": 73,
+        "hit_ratio_cumulative": 0.796875
+      },
+      "timestamp": "2026-10-30T23:31:44.8428416+05:30"
+    },
+    {
+      "step": 16,
+      "description": "Configure and test origin concurrency enforcement",
+      "verdict": "PASS",
+      "details": "Origin gate enforcing: True, cap: 10",
+      "evidence": {
+        "enforcing": true,
+        "cap": 10,
+        "dispatched": 13,
+        "controller_steps": 0
+      },
+      "timestamp": "2026-10-30T23:31:44.8472875+05:30"
+    },
+    {
+      "step": 17,
+      "description": "Open Phantom Lab and verify capabilities",
+      "verdict": "PASS",
+      "details": "Lab active with scenario_b available (tier: MEASURED_LOOPBACK)",
+      "evidence": {
+        "scenario_b_available": true,
+        "security_mode": "anonymous_dev_loopback_only",
+        "tier": "MEASURED_LOOPBACK"
+      },
+      "timestamp": "2026-10-30T23:31:44.8796185+05:30"
+    },
+    {
+      "step": 18,
+      "description": "Start Scenario B experiment run",
+      "verdict": "PASS",
+      "details": "Run started with run_id: 20261030T180144Z-d1ad2034",
+      "evidence": {
+        "run_id": "20261030T180144Z-d1ad2034",
+        "state": "queued"
+      },
+      "timestamp": "2026-10-30T23:31:44.9211903+05:30"
+    },
+    {
+      "step": 19,
+      "description": "Inspect Scenario B completed execution & evidence",
+      "verdict": "PASS",
+      "details": "Run reached state: completed",
+      "evidence": {
+        "links": {
+          "artifacts": "/api/v1/lab/runs/20261030T180144Z-d1ad2034/artifacts",
+          "cancel": "/api/v1/lab/runs/20261030T180144Z-d1ad2034/cancel",
+          "events": "/api/v1/lab/runs/20261030T180144Z-d1ad2034/events"
+        },
+        "final_state": "completed",
+        "run_id": "20261030T180144Z-d1ad2034"
+      },
+      "timestamp": "2026-10-30T23:31:57.3120850+05:30"
+    },
+    {
+      "step": 20,
+      "description": "Exercise cancellation and incomplete-run handling",
+      "verdict": "PASS",
+      "details": "Cancellation invoked: state=cancelling, false VALID suppressed",
+      "evidence": {
+        "cancelled_run_id": "20261030T180157Z-6e9b0325",
+        "cancel_response": {
+          "changed": true,
+          "run_id": "20261030T180157Z-6e9b0325",
+          "schema": "lab-1",
+          "state": "cancelling"
+        }
+      },
+      "timestamp": "2026-10-30T23:31:57.6013625+05:30"
+    },
+    {
+      "step": 21,
+      "description": "Run supported multi-node demonstration over TCP",
+      "verdict": "PASS",
+      "details": "3 distinct nodes communication verified",
+      "evidence": {
+        "test": "test_p2_multi_node_tcp_communication"
+      },
+      "timestamp": "2026-10-30T23:31:57.9379674+05:30"
+    },
+    {
+      "step": 22,
+      "description": "Verify genuine peer reads and peer-fill pipeline",
+      "verdict": "PASS",
+      "details": "Peer read populated local cache, 0 origin calls",
+      "evidence": {
+        "test": "test_peer_read_and_peer_fill_flow"
+      },
+      "timestamp": "2026-10-30T23:31:58.2905904+05:30"
+    },
+    {
+      "step": 23,
+      "description": "Exercise node failure, Suspect detection, failover and recovery",
+      "verdict": "PASS",
+      "details": "Actual TCP socket crash detected, failed over to replica, recovered",
+      "evidence": {
+        "failure_test": "test_p2_actual_tcp_connection_refused_socket_failover",
+        "recovery_test": "test_p2_partition_and_recovery"
+      },
+      "timestamp": "2026-10-30T23:31:59.5479681+05:30"
+    },
+    {
+      "step": 24,
+      "description": "Stop the application cleanly",
+      "verdict": "PASS",
+      "details": "Gateway process stopped",
+      "evidence": {
+        "status": "stopped"
+      },
+      "timestamp": "2026-10-30T23:32:00.5638291+05:30"
+    },
+    {
+      "step": 25,
+      "description": "Verify process and socket cleanup",
+      "verdict": "PASS",
+      "details": "Port 8085 successfully released and free",
+      "evidence": {
+        "port_8085_occupied": false
+      },
+      "timestamp": "2026-10-30T23:32:01.2697656+05:30"
+    },
+    {
+      "step": 26,
+      "description": "Restart and repeat essential workflow",
+      "verdict": "PASS",
+      "details": "Restarted gateway responded OK on /health",
+      "evidence": {
+        "health": "OK",
+        "restart_pid": 10816
+      },
+      "timestamp": "2026-10-30T23:32:02.2919486+05:30"
+    }
+  ]
+}

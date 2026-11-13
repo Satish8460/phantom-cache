@@ -1,0 +1,5 @@
+# Review brief (for a reviewer not anchored on this analysis)
+Question: can an epoch bump complete between the fence check and the entry stamp in `PartitionedCache::finalize_fetch` (src/core/cache.rs ~1462 and ~1517/1532), and does the proposal.patch close it without new races?
+Read: cache.rs 560-632 (epochs/invalidation), 1255-1371 (begin_fetch stamps), 1401-1560 (finalize). Run sandbox tests in sandbox_g4a01_race_tests.rs.txt (they need a hook field not in the main tree; hook placement is described in repro_attempts.md).
+Check specifically: (1) is any invalidation path serialised with the shard mutex that I missed (grep callers)? (2) With the patch, an entry stamped with fence-time epochs is purged on first read if a bump followed; confirm no regression for the global-fallback path (:587-592) and G4A-17 snapshot/global skew (a (tenant,global) pair read at :1462 may itself be inconsistent). (3) Per CLAUDE.md, a change here needs a test that fails without it; that test needs a permanent #[cfg(test)] hook decision by the owner.
+Do not treat this brief as a verdict.

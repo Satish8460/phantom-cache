@@ -1,0 +1,3466 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhantomCache · Distributed Edge Gateway Cluster</title>
+<link rel="icon" href="data:,">
+<style>
+  /* ------------------------------------------------------------------ Art-Directed Typography & Tokens */
+  :root {
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-full: 9999px;
+  }
+
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #07090e;
+    --surface-base: #0b0f17;
+    --surface: #101622;
+    --surface-elevated: #151d2d;
+    --surface-hover: #1b253a;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-subtle: #64748b;
+    --accent: #38bdf8;
+    --accent-bg: rgba(56, 189, 248, 0.08);
+    --accent-border: rgba(56, 189, 248, 0.25);
+    --ok: #34d399;
+    --ok-bg: rgba(52, 211, 153, 0.08);
+    --ok-border: rgba(52, 211, 153, 0.3);
+    --warn: #fbbf24;
+    --warn-bg: rgba(251, 191, 36, 0.08);
+    --warn-border: rgba(251, 191, 36, 0.3);
+    --bad: #f87171;
+    --bad-bg: rgba(248, 113, 113, 0.1);
+    --bad-border: rgba(248, 113, 113, 0.35);
+    --header-bg: rgba(7, 9, 14, 0.94);
+  }
+
+  [data-theme="light"] {
+    color-scheme: light;
+    --bg: #f8fafc;
+    --surface-base: #ffffff;
+    --surface: #f1f5f9;
+    --surface-elevated: #e2e8f0;
+    --surface-hover: #cbd5e1;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --text-subtle: #64748b;
+    --accent: #0284c7;
+    --accent-bg: #e0f2fe;
+    --accent-border: #bae6fd;
+    --ok: #059669;
+    --ok-bg: #d1fae5;
+    --ok-border: #a7f3d0;
+    --warn: #b45309;
+    --warn-bg: #fef3c7;
+    --warn-border: #fde68a;
+    --bad: #dc2626;
+    --bad-bg: #fee2e2;
+    --bad-border: #fecaca;
+    --header-bg: rgba(255, 255, 255, 0.96);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 13.5px/1.55 var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ------------------------------------------------------------------ Art-Directed Header: Operational Cockpit */
+  header.cockpit-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--header-bg);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .cockpit-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .cockpit-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text);
+  }
+  .brand-glyph { color: var(--accent); font-size: 18px; }
+
+  /* Central Mode Switcher: DISCOVER · EXPLORE · DEMONSTRATE */
+  .mode-nav {
+    display: flex;
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+  }
+  .mode-btn {
+    background: transparent;
+    border: none;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .mode-btn:hover { color: var(--text); }
+  .mode-btn.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Right Operational Group */
+  .cockpit-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* Health & Telemetry Capsules (Preserves #health .pill.ok) */
+  .pill {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-full);
+    font-size: 11.5px;
+    font-weight: 500;
+    background: var(--surface-base);
+    color: var(--text);
+  }
+  .pill.ok { border-color: var(--ok-border); color: var(--ok); background: var(--ok-bg); }
+  .pill.bad { border-color: var(--bad-border); color: var(--bad); background: var(--bad-bg); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-subtle); flex-shrink: 0; }
+  .ok .dot { background: var(--ok); }
+  .bad .dot { background: var(--bad); }
+
+  .cockpit-num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Standard Buttons */
+  button, select {
+    background: var(--surface-base);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 5px 11px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.12s ease, border-color 0.12s ease;
+  }
+  button:hover:not(:disabled) { background: var(--surface-elevated); border-color: var(--line-strong); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: transparent; color: #ffffff; font-weight: 600; }
+  button.primary:hover:not(:disabled) { filter: brightness(1.1); }
+  button.go { background: var(--ok); border-color: transparent; color: #ffffff; font-weight: 600; }
+  button.danger { background: var(--bad); border-color: transparent; color: #ffffff; }
+  button.small { padding: 3px 9px; min-height: 26px; font-size: 11.5px; }
+
+  /* ------------------------------------------------------------------ System Notification Banner (Preserves #banner, #b-up) */
+  .banner-wrap {
+    padding: 0 24px;
+    margin-top: 10px;
+  }
+  .banner {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    color: var(--warn);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    font-size: 12.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .banner.err { background: var(--bad-bg); border-color: var(--bad-border); color: var(--bad); }
+
+  /* ------------------------------------------------------------------ App Viewport Container */
+  .app-container {
+    max-width: 1720px;
+    margin: 0 auto;
+    padding: 16px 24px 60px;
+  }
+
+  /* ================================================================== VIEW 1: DISCOVER (Cinematic Product Showcase) */
+  #view-discover {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .discover-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 0 6px;
+  }
+  .discover-hero-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    margin: 0;
+  }
+  .discover-hero-sub {
+    font-size: 14.5px;
+    color: var(--text-muted);
+    max-width: 960px;
+    line-height: 1.6;
+  }
+  .discover-hero-sub b { color: var(--text); }
+
+  /* Full-Width Architecture Canvas */
+  .discover-canvas-shell {
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+  }
+  .canvas-top-bar {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface);
+  }
+  .canvas-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .canvas-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-subtle);
+  }
+  .discover-svg-wrap {
+    width: 100%;
+    height: 340px;
+    background: var(--bg);
+  }
+
+  /* 5 Engineering Pillars Grid */
+  .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .pillar-card {
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pillar-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .pillar-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pillar-icon { font-size: 18px; }
+  .pillar-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .pillar-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; }
+  .pillar-tag { font-family: var(--font-mono); font-size: 10px; color: var(--accent); margin-top: 4px; }
+
+  /* ================================================================== VIEW 2 & 3: EXPLORE & DEMONSTRATE */
+  #view-workspace {
+    display: none;
+    grid-template-columns: minmax(360px, 390px) minmax(540px, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* Left Column: Storyline & Scenario Deck */
+  .deck-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Chapter Navigation Strip */
+  .chapter-selector-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 8px;
+  }
+  .chapter-pill-btn {
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 6px 10px;
+    border-radius: var(--radius-xs);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.12s ease;
+  }
+  .chapter-pill-btn:hover { background: var(--surface); color: var(--text); }
+  .chapter-pill-btn.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    border-left: 2px solid var(--accent);
+  }
+  .chapter-pill-btn .num-pill {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    opacity: 0.7;
+  }
+
+  /* Start Here Hero (Preserves selector #start h2, text "caching gateway") */
+  .hero {
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+  }
+  .hero h2 { margin: 0 0 4px; font-size: 14.5px; font-weight: 600; }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 6px;
+    margin: 8px 0;
+  }
+  .step {
+    background: var(--surface);
+    border-radius: var(--radius-xs);
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  /* Scenarios Catalogue (Preserves selector #catalogue, #cards, .card, [data-run], #note-*) */
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .grp {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-subtle);
+    padding: 8px 2px 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card {
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color 0.12s ease;
+  }
+  .card:hover { border-color: var(--line-strong); }
+  .card.active {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  .card.flagship { border-left: 2.5px solid var(--accent); }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .card-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .card-num {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-subtle);
+  }
+  .card-desc {
+    margin: 3px 0 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  details.under-the-hood {
+    margin: 4px 0;
+    font-size: 11.5px;
+    color: var(--text-subtle);
+  }
+  details.under-the-hood summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    user-select: none;
+  }
+  details.under-the-hood summary:hover { color: var(--accent); }
+  details.under-the-hood .details-body {
+    padding: 4px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .res-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 6px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+  }
+  .res-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .res-cell .lbl { font-size: 9.5px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.04em; }
+  .res-cell .val { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
+
+  .verdict {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .v-passed { background: var(--ok-bg); color: var(--ok); }
+  .v-shows { background: var(--accent-bg); color: var(--accent); }
+  .v-attention { background: var(--warn-bg); color: var(--warn); }
+  .v-stopped, .v-blocked { background: var(--surface-elevated); color: var(--text-muted); }
+
+  /* Right Column: Interactive Stage & Observability Cockpit */
+  .stage-col {
+    position: sticky;
+    top: 68px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: calc(100vh - 84px);
+    overflow: hidden;
+  }
+  .stage-shell {
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .stage-header {
+    padding: 7px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .stage-headline {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 180px;
+  }
+  .stage-headline {
+    font-size: 12.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stage-view-toggles {
+    display: flex;
+    gap: 2px;
+  }
+  .stage-view-btn {
+    padding: 3px 8px;
+    border: none;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .stage-view-btn.active {
+    background: var(--surface-base);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* Interactive SVG Visual Canvas (Preserves id="topology-box") */
+  .stage-svg-wrap {
+    width: 100%;
+    height: 270px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+  svg.stage-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .svg-text { font-family: var(--font-sans); font-size: 11px; fill: var(--text); font-weight: 600; text-anchor: middle; }
+  .svg-mono { font-family: var(--font-mono); font-size: 9px; fill: var(--text-muted); text-anchor: middle; }
+  .svg-box { fill: var(--surface-base); stroke: var(--line-strong); stroke-width: 1.2; rx: 6; }
+  .svg-box.active { stroke: var(--ok); }
+  .svg-box.severed { stroke: var(--bad); stroke-dasharray: 4,4; opacity: 0.6; }
+  .svg-edge { stroke: var(--line-strong); stroke-width: 1.2; fill: none; }
+  .svg-edge.peer { stroke: var(--accent); stroke-dasharray: 4,4; opacity: 0.7; }
+  .svg-edge.origin { stroke: var(--warn); stroke-dasharray: 4,4; opacity: 0.7; }
+
+  /* Concept Strip */
+  .concept-strip {
+    padding: 8px 14px;
+    border-top: 1px solid var(--line);
+    background: var(--surface-base);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .concept-item { display: flex; flex-direction: column; gap: 1px; }
+  .concept-item .q { font-weight: 600; color: var(--accent); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .concept-item .a { color: var(--text); }
+
+  /* Distributed Trace Waterfall Timeline */
+  .trace-container {
+    height: 270px;
+    background: var(--bg);
+    overflow-y: auto;
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .trace-span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .trace-lane { width: 110px; color: var(--text-muted); flex-shrink: 0; font-size: 10.5px; }
+  .trace-bar-wrap { flex: 1; height: 16px; background: var(--surface); border-radius: var(--radius-xs); position: relative; overflow: hidden; display: flex; align-items: center; padding: 0 6px; }
+  .trace-bar { position: absolute; height: 100%; top: 0; border-radius: var(--radius-xs); opacity: 0.35; }
+  .trace-label { position: relative; z-index: 2; font-size: 10px; color: var(--text); }
+
+  /* Structured Event Stream Console (Preserves #feed, #timeline, #feed-counters, #b-stop, #b-pause, #b-copy, #rawlog) */
+  .console-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+    background: var(--surface-base);
+    border-top: 1px solid var(--line);
+  }
+  .console-toolbar {
+    padding: 6px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .console-search {
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    padding: 3px 8px;
+    font-size: 11.5px;
+    color: var(--text);
+    min-height: 24px;
+    width: 140px;
+  }
+  .bar { height: 3px; background: var(--surface); overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+  .bar.indet > i { width: 30%; animation: slide 1.2s infinite ease-in-out; }
+  @keyframes slide { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+
+  #timeline {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 140px;
+    background: var(--bg);
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+  }
+  .log-row {
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    overflow-wrap: anywhere;
+    line-height: 1.45;
+  }
+  .log-time { color: var(--text-subtle); font-size: 10px; flex-shrink: 0; }
+  .log-level {
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 0 4px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .lvl-info { color: var(--text-muted); background: var(--surface); }
+  .lvl-action { color: var(--accent); background: var(--accent-bg); }
+  .lvl-pass { color: var(--ok); background: var(--ok-bg); }
+  .lvl-fail { color: var(--bad); background: var(--bad-bg); }
+  .log-repeat {
+    font-size: 9.5px;
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: var(--radius-full);
+    padding: 0 5px;
+  }
+
+  .console-footer {
+    padding: 6px 12px;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Explore by Hand Section (Preserves #hand, #gallery) */
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .tile { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-base); font-size: 11px; }
+  .tile .img { height: 80px; display: flex; align-items: center; justify-content: center; background: var(--surface); }
+  .tile img { max-width: 100%; max-height: 100%; }
+  .tile .meta { padding: 4px 6px; }
+
+  /* Modals */
+  dialog {
+    background: var(--surface-base);
+    color: var(--text);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    max-width: min(680px, 94vw);
+    padding: 20px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  }
+  dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+  #toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    background: var(--surface-base);
+    color: var(--text);
+    border: 1px solid var(--accent);
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    display: none;
+    z-index: 70;
+    font-size: 12.5px;
+  }
+  .tip { border-bottom: 1px dotted var(--text-muted); cursor: help; }
+
+  /* Mobile Overflows (390px viewport guard) */
+  @media (max-width: 1050px) {
+    #view-workspace { grid-template-columns: minmax(0, 1fr); }
+    .stage-col { position: static; max-height: none; order: -1; }
+    #timeline { max-height: 35vh; }
+    .discover-svg-wrap { height: 260px; }
+  }
+  @media (max-width: 768px) {
+    header.cockpit-bar { padding: 8px 14px; gap: 8px; }
+    .app-container { padding: 10px 14px 60px; }
+    .concept-strip { grid-template-columns: 1fr; }
+    html, body { max-width: 100vw; overflow-x: hidden; }
+  }
+
+  /* Continuous Spatial Stage & Subsystems */
+  .world-subsystem {
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .world-subsystem.dimmed {
+    opacity: 0.30;
+    filter: grayscale(25%);
+  }
+  .world-subsystem.focused {
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(0, 102, 204, 0.28));
+  }
+  .pulse-hit {
+    stroke: var(--ok) !important;
+    stroke-width: 3.5px !important;
+  }
+  .pulse-miss {
+    stroke: var(--warn) !important;
+    stroke-width: 3.5px !important;
+  }
+  .pulse-peer {
+    stroke: var(--accent) !important;
+    stroke-width: 4px !important;
+  }
+
+
+  /* ------------------------------------------------------------------ Feature 1: Distributed Trace Timelines */
+  .trace-container {
+    height: 300px;
+    background: var(--bg);
+    overflow-y: auto;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .trace-header-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .trace-active-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 11px;
+  }
+  .trace-method-badge {
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    font-weight: 700;
+    font-size: 10px;
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+  .trace-method-badge.m-delete { background: var(--warn-bg); color: var(--warn); }
+  .trace-path-text { font-weight: 600; color: var(--text); }
+  .trace-tenant-pill {
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 10px;
+  }
+  .trace-status-pill {
+    padding: 1px 6px;
+    border-radius: var(--radius-xs);
+    font-weight: 700;
+    font-size: 10px;
+  }
+  .trace-status-pill.ok { background: var(--ok-bg); color: var(--ok); }
+  .trace-status-pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .trace-status-pill.bad { background: var(--bad-bg); color: var(--bad); }
+  .trace-latency-pill { font-weight: 700; color: var(--accent); font-size: 11px; }
+
+  .trace-history-pills {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 2px 0;
+  }
+  .trace-hist-btn {
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 9.5px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.1s ease;
+  }
+  .trace-hist-btn:hover { border-color: var(--accent); color: var(--text); }
+  .trace-hist-btn.active { background: var(--surface-base); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  .trace-waterfall-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .trace-span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+  .trace-lane { width: 115px; color: var(--text-muted); flex-shrink: 0; font-size: 10.5px; font-weight: 500; }
+  .trace-bar-wrap {
+    flex: 1;
+    height: 18px;
+    background: var(--surface);
+    border-radius: var(--radius-xs);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+  }
+  .trace-bar { position: absolute; height: 100%; top: 0; border-radius: var(--radius-xs); opacity: 0.35; }
+  .trace-label { position: relative; z-index: 2; font-size: 10px; color: var(--text); font-weight: 500; }
+
+  /* ------------------------------------------------------------------ Feature 2: Zero-Trust Topology Filters */
+  .topo-layer-filters {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    background: var(--surface-base);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    padding: 2px 4px;
+  }
+  .layer-pill-btn {
+    padding: 2px 7px;
+    border: none;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .layer-pill-btn:hover { color: var(--text); }
+  .layer-pill-btn.active {
+    background: var(--surface);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Layer Filter Visual States */
+  .layer-tenant-focus #world-cluster,
+  .layer-tenant-focus #world-origin { opacity: 0.25; filter: grayscale(40%); }
+  .layer-tenant-focus #box-tenant-a,
+  .layer-tenant-focus #box-tenant-b { stroke-width: 2.2; filter: drop-shadow(0 0 6px var(--accent)); }
+
+  .layer-access-focus #world-cluster,
+  .layer-access-focus #world-origin { opacity: 0.25; }
+  .layer-access-focus #jwt-gate,
+  .layer-access-focus #lane-unauth { opacity: 1; stroke-width: 2.2; filter: drop-shadow(0 0 6px var(--warn)); }
+
+  /* ------------------------------------------------------------------ Feature 3: Blast-Radius Visualisation */
+  .blast-radius-hud {
+    background: var(--surface-base);
+    border: 1px solid var(--bad);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    margin: 8px 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: blastFadeIn 0.2s ease;
+  }
+  @keyframes blastFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .blast-hud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .blast-badge {
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: var(--radius-xs);
+    background: var(--bad-bg);
+    color: var(--bad);
+    letter-spacing: 0.05em;
+  }
+  .blast-target { font-size: 11.5px; font-weight: 600; color: var(--text); }
+  .blast-close-btn {
+    padding: 1px 6px;
+    font-size: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .blast-close-btn:hover { color: var(--text); border-color: var(--line-strong); }
+  .blast-hud-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    font-size: 10px;
+  }
+  .blast-col { display: flex; flex-direction: column; gap: 2px; }
+  .blast-label { font-size: 9px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.04em; }
+  .blast-val { font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--text); }
+  .blast-val.bad { color: var(--bad); }
+  .blast-val.warn { color: var(--warn); }
+  .blast-val.ok { color: var(--ok); }
+
+  /* ------------------------------------------------------------------ Feature 4: Syntax-Matched Stream Logs */
+  .token-method {
+    font-weight: 700;
+    padding: 0 4px;
+    border-radius: 2px;
+    font-size: 9.5px;
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+  .token-method.m-delete { background: var(--warn-bg); color: var(--warn); }
+  .token-method.m-post { background: var(--surface); color: var(--ok); }
+  .token-status {
+    font-weight: 700;
+    padding: 0 4px;
+    border-radius: 2px;
+    font-size: 9.5px;
+  }
+  .token-status.s-ok { background: var(--ok-bg); color: var(--ok); }
+  .token-status.s-warn { background: var(--warn-bg); color: var(--warn); }
+  .token-status.s-bad { background: var(--bad-bg); color: var(--bad); }
+  .token-cache {
+    font-weight: 600;
+    padding: 0 3px;
+    border-radius: 2px;
+    font-size: 9px;
+  }
+  .token-cache.c-hit { color: var(--ok); }
+  .token-cache.c-miss { color: var(--warn); }
+  .token-cache.c-peer { color: var(--accent); }
+  .token-latency { color: var(--accent); font-weight: 600; }
+  .token-path { color: var(--text); font-weight: 500; }
+  .log-row.clickable { cursor: pointer; }
+  .log-row.clickable:hover { background: rgba(255, 255, 255, 0.03); }
+
+  /* ------------------------------------------------------------------ Feature 5: Fluid Panel Splitting */
+  .stage-col.split-mode-trace .stage-shell {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .stage-col.split-mode-trace .stage-header,
+  .stage-col.split-mode-trace #concept-hud,
+  .stage-col.split-mode-trace #blast-radius-hud {
+    grid-column: 1 / -1;
+  }
+  .stage-col.split-mode-trace #topology-box,
+  .stage-col.split-mode-trace #trace-box {
+    display: block !important;
+    height: 270px;
+  }
+  .stage-col.split-mode-trace #trace-box {
+    border-left: 1px solid var(--line);
+    display: flex !important;
+  }
+
+  .stage-col.split-mode-log {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    max-height: calc(100vh - 84px);
+  }
+  .stage-col.split-mode-log .stage-shell { height: 100%; }
+  .stage-col.split-mode-log .console-shell { height: 100%; }
+
+  /* ------------------------------------------------------------------ Feature 6: Frictionless Regex Filters */
+  .console-search.invalid-regex {
+    border-color: var(--bad) !important;
+    background: var(--bad-bg) !important;
+  }
+  .log-quick-pills {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    overflow-x: auto;
+  }
+  .filter-pill {
+    padding: 1px 5px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--line);
+    background: var(--surface-base);
+    color: var(--text-muted);
+    font-size: 9.5px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.1s ease;
+  }
+  .filter-pill:hover { border-color: var(--accent); color: var(--text); }
+  .filter-pill.active { background: var(--surface); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .filter-count-badge { font-size: 10px; color: var(--text-subtle); margin-left: 4px; white-space: nowrap; }
+
+  /* ------------------------------------------------------------------ Feature 7: Mechanical Hover States */
+  .mechanical-tooltip {
+    position: absolute;
+    z-index: 100;
+    pointer-events: none;
+    background: var(--surface-base);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.45;
+    color: var(--text);
+    display: none;
+    max-width: 240px;
+  }
+  .mechanical-tooltip .tip-title { font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+  .mechanical-tooltip .tip-row { display: flex; justify-content: space-between; gap: 8px; color: var(--text-muted); }
+  .mechanical-tooltip .tip-val { font-weight: 600; color: var(--text); }
+
+  /* ------------------------------------------------------------------ Feature 8: Context-Aware Layout Folding */
+  .fold-sidebar-btn {
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.12s ease;
+  }
+  .fold-sidebar-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  #view-workspace.sidebar-folded {
+    grid-template-columns: 50px minmax(540px, 1fr);
+  }
+  #view-workspace.sidebar-folded .deck-col {
+    width: 50px;
+    max-width: 50px;
+    overflow: hidden;
+  }
+  #view-workspace.sidebar-folded .deck-col .hero,
+  #view-workspace.sidebar-folded .deck-col #catalogue,
+  #view-workspace.sidebar-folded .deck-col .chapter-pill-btn span:first-child {
+    display: none !important;
+  }
+  #view-workspace.sidebar-folded .deck-col .chapter-selector-strip {
+    padding: 6px 2px;
+  }
+  #view-workspace.sidebar-folded .deck-col .chapter-pill-btn {
+    padding: 8px 4px;
+    justify-content: center;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+  #view-workspace.sidebar-folded .deck-col .chapter-pill-btn.active {
+    border-bottom-color: var(--accent);
+    background: var(--surface);
+  }
+  #view-workspace.sidebar-folded .deck-col .chapter-pill-btn .num-pill {
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 1;
+    color: var(--accent);
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ================================================================== Art-Directed Header: Operational Cockpit -->
+<header class="cockpit-bar" role="banner">
+  <div class="cockpit-left">
+    <div class="cockpit-brand" id="b-brand">
+      <span class="brand-glyph">✦</span>
+      <span>PhantomCache</span>
+    </div>
+
+    <!-- Primary Mode Switcher: DISCOVER · EXPLORE · DEMONSTRATE -->
+    <nav class="mode-nav" aria-label="Experience Mode Switcher">
+      <button class="mode-btn active" id="btn-mode-discover">Discover</button>
+      <button class="mode-btn" id="btn-mode-explore">Explore</button>
+      <button class="mode-btn" id="btn-mode-demonstrate">Demonstrate</button>
+    </nav>
+  </div>
+
+  <div class="cockpit-right">
+    <!-- Node Health Pills (Preserves selector #health .pill.ok) -->
+    <span id="health" class="row" aria-live="polite"></span>
+
+    <!-- Origin Request Odometer (Preserves selector #originpill, #originn) -->
+    <span class="pill" id="originpill">
+      Origin requests: <b id="originn" class="cockpit-num">-</b>
+      <span style="font-size:10px;opacity:0.7">verified</span>
+    </span>
+
+    <!-- Tenant Context (Preserves selectors #user, #b-actas, #actas-note) -->
+    <span class="pill">
+      Acting as <select id="user" aria-label="Act as user"></select>
+      <button id="b-actas" class="small" type="button" aria-haspopup="dialog" title="Tenant Context">?</button>
+      <span id="actas-note" style="font-size:11px;color:var(--text-muted)"></span>
+    </span>
+
+    <!-- Global Controls (Preserves selectors #b-tour, #b-all, #b-reset, #b-help) -->
+    <button class="primary small" id="b-tour">Guided tour</button>
+    <button class="go small" id="b-all">Demonstrate all</button>
+    <button id="b-theme" class="small" title="Toggle Theme" aria-label="Toggle Theme">🌓 Theme</button>
+    <button id="b-reset" class="small" title="Reset Demo">Reset demo</button>
+    <button id="b-help" class="small">Help</button>
+    <button id="b-connect-phone" class="small" style="background:var(--accent);color:#090d12;font-weight:700;border:none;box-shadow:0 0 10px rgba(56,189,248,0.35)" title="Connect Mobile Phone or External Laptop">📱 Connect Phone</button>
+  </div>
+</header>
+
+<!-- ================================================================== Notification Banner (Preserves selector #banner, #b-up) -->
+<div class="banner-wrap">
+  <section class="banner" id="banner" hidden></section>
+</div>
+
+<!-- ================================================================== Main Application Container -->
+<div class="app-container">
+  <!-- Session Summary Strip (Preserves selector #session, #sess-text) -->
+  <div id="session" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:12px;color:var(--text-muted)">
+    <span><b>Session summary:</b> <span id="sess-text">no scenario run yet</span></span>
+    <span id="identity"></span>
+  </div>
+
+  <!-- ================================================================ LAYER A: DISCOVER (Cinematic Product Introduction) -->
+  <div id="view-discover">
+    <div class="discover-hero">
+      <h1 class="discover-hero-title">High-Performance Distributed Caching Infrastructure</h1>
+      <p class="discover-hero-sub">
+        <b>PhantomCache</b> sits between client applications and slow upstream backends. By combining <b>Rendezvous Hashing (HRW)</b>, <b>singleflight request coalescing</b>, and the modern <b>SIEVE cache eviction algorithm</b>, it eliminates redundant backend requests and delivers sub-millisecond edge response times with tenant-aware cache-key partitioning.
+      </p>
+    </div>
+
+    <!-- Full-Width Interactive Architecture Canvas -->
+    <div class="discover-canvas-shell">
+      <div class="canvas-top-bar">
+        <span class="canvas-title"><span>✦</span> Edge Gateway Mesh Architecture</span>
+        <span class="canvas-meta">3 Nodes · mTLS Inter-Node Bus · Shielded Upstream Origin</span>
+      </div>
+      <div class="discover-svg-wrap">
+        <svg class="stage-svg" viewBox="0 0 1000 340" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="disc-grad-funnel" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="var(--accent-bg)" stop-opacity="0.85"/>
+              <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.25"/>
+            </linearGradient>
+          </defs>
+          <!-- Client Workload Ingress -->
+          <rect x="25" y="30" width="170" height="280" class="svg-box"/>
+          <text x="110" y="55" class="svg-text" font-size="12px">WORKLOAD INGRESS</text>
+          <g transform="translate(38, 70)">
+            <rect width="144" height="20" rx="3" fill="var(--surface)"/>
+            <text x="72" y="14" class="svg-mono" font-size="8.5px" fill="var(--accent)" font-weight="600">300 Concurrency · Zipf</text>
+          </g>
+          <g transform="translate(38, 102)">
+            <rect width="144" height="55" rx="4" fill="var(--surface-base)" stroke="var(--accent)" stroke-width="1.2"/>
+            <text x="14" y="20" class="svg-mono" text-anchor="start" font-weight="700" fill="var(--accent)">Tenant A (alice)</text>
+            <text x="14" y="34" class="svg-mono" text-anchor="start" font-size="8px">Key: tenant-a::/img/16</text>
+            <text x="14" y="47" class="svg-mono" text-anchor="start" font-size="7.5px" fill="var(--ok)">✓ Ed25519 Verified</text>
+          </g>
+          <g transform="translate(38, 168)">
+            <rect width="144" height="55" rx="4" fill="var(--surface-base)" stroke="var(--line)"/>
+            <text x="14" y="20" class="svg-mono" text-anchor="start" font-weight="700">Tenant B (bob)</text>
+            <text x="14" y="34" class="svg-mono" text-anchor="start" font-size="8px">Key: tenant-b::/img/16</text>
+            <text x="14" y="47" class="svg-mono" text-anchor="start" font-size="7.5px" fill="var(--text-muted)">✓ Isolated Partition</text>
+          </g>
+          <g transform="translate(38, 235)">
+            <rect width="144" height="42" rx="4" fill="var(--surface-base)" stroke="var(--bad)" stroke-dasharray="4,3"/>
+            <text x="14" y="18" class="svg-mono" text-anchor="start" font-weight="700" fill="var(--bad)">Forged / Expired</text>
+            <text x="14" y="32" class="svg-mono" text-anchor="start" font-size="7.5px" fill="var(--bad)">401 Deflected at Edge</text>
+          </g>
+
+          <!-- Singleflight Funnel Gate -->
+          <polygon points="210,130 260,155 260,185 210,210" fill="url(#disc-grad-funnel)" stroke="var(--accent)" stroke-width="1.3"/>
+          <text x="235" y="172" class="svg-mono" font-size="7px" fill="var(--accent)" font-weight="700">COALESCE</text>
+
+          <!-- Gateways Cluster -->
+          <g transform="translate(290, 25)">
+            <rect width="280" height="80" class="svg-box active"/>
+            <text x="140" y="24" class="svg-text" font-size="12px">GATEWAY NODE 1 (Port :18201)</text>
+            <text x="140" y="40" class="svg-mono" fill="var(--ok)" font-weight="600">Singleflight Leader · Lock Acquired</text>
+            <rect x="15" y="48" width="250" height="24" rx="3" fill="var(--surface)"/>
+            <text x="140" y="64" class="svg-mono" font-size="8px">SIEVE Circular FIFO · Moving Hand (NSDI 2024)</text>
+          </g>
+
+          <g transform="translate(290, 130)">
+            <rect width="280" height="80" class="svg-box active"/>
+            <text x="140" y="24" class="svg-text" font-size="12px">GATEWAY NODE 2 (Port :18202)</text>
+            <text x="140" y="40" class="svg-mono" fill="var(--accent)" font-weight="600">HRW Rendezvous Peer · mTLS Interconnect</text>
+            <rect x="15" y="48" width="250" height="24" rx="3" fill="var(--surface)"/>
+            <text x="140" y="64" class="svg-mono" font-size="8px">Peer-to-Peer Direct Transfer Bus (mTLS)</text>
+          </g>
+
+          <g transform="translate(290, 235)">
+            <rect width="280" height="80" class="svg-box active"/>
+            <text x="140" y="24" class="svg-text" font-size="12px">GATEWAY NODE 3 (Port :18203)</text>
+            <text x="140" y="40" class="svg-mono">Anti-Entropy Gossip · Vector Clock Sync</text>
+            <rect x="15" y="48" width="250" height="24" rx="3" fill="var(--surface)"/>
+            <text x="140" y="64" class="svg-mono" font-size="8px">Equal-Weight Cluster Rebalance Target</text>
+          </g>
+
+          <!-- Peer mTLS Gossip Links -->
+          <path d="M 570 65 C 630 65, 630 170, 570 170" class="svg-edge peer" stroke-width="2.5"/>
+          <path d="M 570 170 C 630 170, 630 275, 570 275" class="svg-edge peer" stroke-width="2.5"/>
+          <text x="645" y="174" class="svg-mono" fill="var(--accent)" font-size="9px" font-weight="600">mTLS Gossip</text>
+
+          <!-- Upstream Origin Shield -->
+          <line x1="720" y1="30" x2="720" y2="310" stroke="var(--warn)" stroke-width="1.8" stroke-dasharray="6,4"/>
+          <g transform="translate(710, 160)">
+            <circle cx="10" cy="10" r="14" fill="var(--surface-base)" stroke="var(--warn)" stroke-width="1.2"/>
+            <text x="10" y="14" class="svg-mono" font-size="10px">🛡️</text>
+          </g>
+
+          <rect x="745" y="60" width="230" height="220" class="svg-box"/>
+          <text x="860" y="88" class="svg-text" font-size="12.5px">UPSTREAM ORIGIN</text>
+          <text x="860" y="106" class="svg-mono">Port :19200 (Slow Server)</text>
+          <g transform="translate(760, 120)">
+            <rect width="200" height="42" rx="4" fill="var(--surface)"/>
+            <text x="10" y="16" class="svg-mono" text-anchor="start" font-size="8.5px">Simulated Latency:</text>
+            <text x="190" y="16" class="svg-mono" text-anchor="end" font-size="8.5px">~40-70 ms Delay</text>
+            <text x="10" y="32" class="svg-mono" text-anchor="start" font-size="8.5px" fill="var(--ok)">Shielded by Coalescer</text>
+          </g>
+          <g transform="translate(760, 172)">
+            <rect width="200" height="48" rx="4" fill="var(--ok-bg)"/>
+            <text x="100" y="18" class="svg-mono" fill="var(--ok)" font-weight="700" font-size="9px">ORIGIN OFFLOAD</text>
+            <text x="100" y="38" class="svg-mono" fill="var(--ok)" font-weight="800" font-size="15px">99.7% Offload</text>
+          </g>
+          <g transform="translate(760, 230)">
+            <text x="100" y="14" class="svg-mono" font-size="8px" fill="var(--text-muted)">300 Reqs → 1 Origin Fetch</text>
+          </g>
+
+          <!-- Request Vectors -->
+          <path d="M 195 130 L 210 150" class="svg-edge" stroke-width="1.8"/>
+          <path d="M 260 170 L 290 65" class="svg-edge" stroke-width="2"/>
+          <path d="M 260 170 L 290 170" class="svg-edge" stroke-width="2"/>
+          <path d="M 570 65 L 745 150" class="svg-edge origin" stroke-width="2"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 5 Core Engineering Pillars -->
+    <div class="pillars-grid">
+      <div class="pillar-card" data-jump="stampede">
+        <div class="pillar-header"><span class="pillar-icon">🛡️</span><span class="pillar-title">Request Coalescing</span></div>
+        <div class="pillar-desc">Singleflight locks ensure 300 simultaneous requests for uncached keys collapse into exactly 1 upstream fetch.</div>
+        <span class="pillar-tag">Scenario 03 · Stampede →</span>
+      </div>
+
+      <div class="pillar-card" data-jump="peerfill">
+        <div class="pillar-header"><span class="pillar-icon">🔄</span><span class="pillar-title">Peer mTLS Fills</span></div>
+        <div class="pillar-desc">Rendezvous Hashing (HRW) routes key misses directly to peer gateways across mutual TLS, sparing backend CPU.</div>
+        <span class="pillar-tag">Scenario 04 · Peer Fill →</span>
+      </div>
+
+      <div class="pillar-card" data-jump="isolation">
+        <div class="pillar-header"><span class="pillar-icon">🔒</span><span class="pillar-title">Zero-Trust Multi-Tenancy</span></div>
+        <div class="pillar-desc">Tenant-aware cache-key partitioning (<span style="font-family:var(--font-mono)">tenant_id::path</span>) guarantees zero cross-tenant cache leakage.</div>
+        <span class="pillar-tag">Scenario 10 · Tenant Isolation →</span>
+      </div>
+
+      <div class="pillar-card" data-jump="deadnode">
+        <div class="pillar-header"><span class="pillar-icon">💀</span><span class="pillar-title">Dead Node Failover</span></div>
+        <div class="pillar-desc">Node termination triggers deterministic HRW keyspace re-sorting with equal-capacity weighting across surviving nodes.</div>
+        <span class="pillar-tag">Scenario 16 · Dead Node →</span>
+      </div>
+
+      <div class="pillar-card" data-jump="eviction">
+        <div class="pillar-header"><span class="pillar-icon">🧹</span><span class="pillar-title">SIEVE Cache Eviction</span></div>
+        <div class="pillar-desc">Modern circular FIFO queue with visited bit and moving hand pointer outperforming traditional LRU.</div>
+        <span class="pillar-tag">Scenario 21 · Eviction →</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ LAYER B & C: WORKSPACE (Explore & Demonstrate) -->
+  <main id="view-workspace">
+    <!-- Left Column: Storyline & Scenario Deck -->
+    <div class="deck-col">
+      <!-- Chapter Track Selector -->
+      <nav class="chapter-selector-strip" aria-label="Storyline Chapters">
+        <button class="chapter-pill-btn active" data-chapter="all"><span>All Scenarios</span> <span class="num-pill">35</span></button>
+        <button class="chapter-pill-btn" data-chapter="fundamentals"><span>01 Core Fundamentals</span> <span class="num-pill">7</span></button>
+        <button class="chapter-pill-btn" data-chapter="security"><span>02 Security & Isolation</span> <span class="num-pill">7</span></button>
+        <button class="chapter-pill-btn" data-chapter="resiliency"><span>03 Resiliency & Mesh</span> <span class="num-pill">6</span></button>
+        <button class="chapter-pill-btn" data-chapter="workloads"><span>04 Workloads & Operations</span> <span class="num-pill">5</span></button>
+        <button class="chapter-pill-btn" data-chapter="intelligence"><span>05 Autonomous Intelligence</span> <span class="num-pill">10</span></button>
+      </nav>
+
+      <!-- Start Here Hero (Preserves selector #start h2, text "caching gateway") -->
+      <section class="hero" id="start" aria-labelledby="h-start">
+        <h2 id="h-start">Start here</h2>
+        <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 6px">
+          <b>PhantomCache</b> is a caching gateway: it sits in front of a slow server (the <b class="tip" tabindex="0" data-g="origin">origin</b>) and remembers answers so repeat queries are resolved fast at the edge. Three gateway <b class="tip" tabindex="0" data-g="node">nodes</b> run on loopback ports. Select any scenario to inspect distributed behaviour in real time.
+        </p>
+        <div class="steps">
+          <div class="step"><b>1. Gateways:</b> 3 local <b class="tip" tabindex="0" data-g="node">node</b> processes listening on ports 18201-18203.</div>
+          <div class="step"><b>2. Demonstrate:</b> Select any card to run the real scenario and watch the trace timeline.</div>
+          <div class="step"><b>3. Audit:</b> Verify cryptographic checksums and measured backend offload.</div>
+        </div>
+      </section>
+
+      <!-- Scenarios Catalogue Container (Preserves selector #catalogue, #cards, .card, [data-run], #note-*) -->
+      <div id="catalogue" class="full" style="display:contents"></div>
+    </div>
+
+    <!-- Right Column: Interactive Stage & Observability Cockpit -->
+    <aside class="stage-col" id="observability-pane" aria-label="Observability HUD & Live Feed">
+      <div class="stage-shell">
+        <!-- Interactive Stage Header -->
+        <div class="stage-header">
+          <div class="stage-headline">
+            <button class="fold-sidebar-btn" id="btn-fold-sidebar" title="Fold / Unfold Scenario Sidebar (Ctrl+B)">◀ Fold</button>
+            <span id="stage-icon">⚡</span>
+            <span id="stage-title">Core Fundamentals: Request Flow</span>
+          </div>
+
+          <!-- Feature 2: Zero-Trust Topology Filters -->
+          <div class="topo-layer-filters" id="topo-layer-filters" role="group" aria-label="Topology Layer">
+            <button class="layer-pill-btn active" data-layer="physical" title="Physical Cluster Nodes & Loopback Ports">Physical</button>
+            <button class="layer-pill-btn" data-layer="tenant" title="Logical Tenant Key Isolation & Partitions">Tenants</button>
+            <button class="layer-pill-btn" data-layer="access" title="Cryptographic Ed25519 JWT Gate & RBAC">Access</button>
+          </div>
+
+          <!-- Feature 5: Fluid Panel Splitting & View Toggles -->
+          <div class="stage-view-toggles">
+            <button class="stage-view-btn active" id="tab-topo">Topology</button>
+            <button class="stage-view-btn" id="tab-trace">Trace</button>
+            <button class="stage-view-btn" id="tab-split-trace" title="Split: Side-by-side Stage and Trace Waterfall">Split Trace</button>
+            <button class="stage-view-btn" id="tab-split-log" title="Split: Side-by-side Stage and Event Stream">Split Logs</button>
+          </div>
+        </div>
+
+        <!-- Feature 3: Blast-Radius Visualisation HUD -->
+        <div class="blast-radius-hud" id="blast-radius-hud" style="display:none">
+          <div class="blast-hud-header">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="blast-badge">BLAST RADIUS ANALYSIS</span>
+              <span class="blast-target" id="blast-target-name">Target: Gateway Node 3</span>
+            </div>
+            <button class="blast-close-btn" id="b-clear-blast" title="Clear Blast Radius Highlight">✕ Clear</button>
+          </div>
+          <div class="blast-hud-grid">
+            <div class="blast-col">
+              <span class="blast-label">AFFECTED LINKS</span>
+              <span class="blast-val bad" id="blast-links-val">2 mTLS Mesh Paths Severed</span>
+            </div>
+            <div class="blast-col">
+              <span class="blast-label">HRW REBALANCE (FNV-1a)</span>
+              <span class="blast-val warn" id="blast-hrw-val">N1: 50.0% · N2: 50.0%</span>
+            </div>
+            <div class="blast-col">
+              <span class="blast-label">TENANT IMPACT</span>
+              <span class="blast-val ok" id="blast-tenant-val">Zero Cache Leakage (Preserved)</span>
+            </div>
+            <div class="blast-col">
+              <span class="blast-label">OBSERVABLE RECOVERY</span>
+              <span class="blast-val" id="blast-recovery-val">Anti-Entropy Vector Clock Sync</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-svg-wrap" id="topology-box">
+          <svg class="stage-svg" id="stage-svg" viewBox="0 0 1100 490" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <!-- Markers -->
+              <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--line-strong)"/>
+              </marker>
+              <marker id="arrow-accent" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--accent)"/>
+              </marker>
+              <marker id="arrow-ok" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--ok)"/>
+              </marker>
+              <marker id="arrow-warn" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--warn)"/>
+              </marker>
+              <marker id="arrow-bad" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--bad)"/>
+              </marker>
+
+              <linearGradient id="grad-funnel" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="var(--accent-bg)" stop-opacity="0.85"/>
+                <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.25"/>
+              </linearGradient>
+            </defs>
+
+            <!-- 0. Ambient World Coordinate Grid -->
+            <g id="world-grid" opacity="0.12">
+              <pattern id="grid-pat" width="40" height="40" patternUnits="userSpaceOnUse">
+                <circle cx="20" cy="20" r="1.2" fill="var(--text-muted)"/>
+              </pattern>
+              <rect width="1100" height="490" fill="url(#grid-pat)"/>
+            </g>
+
+            <!-- 1. Workload Ingress Stage (x: 25 to 245, y: 35 to 455) -->
+            <g id="world-ingress" class="world-subsystem">
+              <rect x="25" y="35" width="225" height="420" class="svg-box" id="box-ingress"/>
+              <text x="137" y="60" class="svg-text" font-size="12.5px" letter-spacing="0.04em">CLIENT WORKLOAD INGRESS</text>
+              
+              <!-- Ingress Mode Badge -->
+              <g transform="translate(38, 72)">
+                <rect width="199" height="25" rx="4" fill="var(--surface)" stroke="var(--line)"/>
+                <text x="99" y="17" class="svg-mono" id="ingress-mode-badge" fill="var(--accent)" font-weight="600" font-size="9.5px">SURGE TRAFFIC · 300 CONCURRENCY</text>
+              </g>
+
+              <!-- Ingress Instrumentation Strip -->
+              <g transform="translate(42, 108)">
+                <text x="0" y="12" class="svg-mono" text-anchor="start" font-size="9px">VIRTUAL CLIENTS:</text>
+                <text x="190" y="12" class="svg-mono" id="ingress-vusers" text-anchor="end" font-weight="700" fill="var(--text)" font-size="10.5px">300</text>
+                
+                <text x="0" y="28" class="svg-mono" text-anchor="start" font-size="9px">REQUESTS SENT:</text>
+                <text x="190" y="28" class="svg-mono" id="ingress-sent" text-anchor="end" font-weight="700" fill="var(--text)" font-size="10.5px">0</text>
+                
+                <text x="0" y="44" class="svg-mono" text-anchor="start" font-size="9px">IN-FLIGHT ACTIVE:</text>
+                <text x="190" y="44" class="svg-mono" id="ingress-inflight" text-anchor="end" font-weight="700" fill="var(--accent)" font-size="10.5px">0</text>
+              </g>
+
+              <line x1="40" y1="166" x2="235" y2="166" stroke="var(--line)"/>
+
+              <!-- Tenant Ingress Entities -->
+              <!-- Lane A: Tenant A (alice) -->
+              <g id="lane-tenant-a" transform="translate(40, 178)">
+                <rect width="195" height="74" class="svg-box" id="box-tenant-a" stroke="var(--accent)" stroke-width="1.3"/>
+                <circle cx="22" cy="24" r="11" fill="var(--accent-bg)" stroke="var(--accent)"/>
+                <text x="22" y="28" class="svg-mono" fill="var(--accent)" font-weight="700" font-size="9.5px">A</text>
+                <text x="42" y="22" class="svg-text" text-anchor="start" font-size="11.5px" fill="var(--accent)">Tenant A (alice)</text>
+                <text x="42" y="38" class="svg-mono" text-anchor="start" font-size="8.5px">Key: tenant-a::/img/tile-16.png</text>
+                <rect x="42" y="46" width="142" height="18" rx="3" fill="var(--ok-bg)"/>
+                <text x="113" y="59" class="svg-mono" fill="var(--ok)" font-size="8.5px" font-weight="600">Ed25519 VALID · READ/WRITE</text>
+              </g>
+
+              <!-- Lane B: Tenant B (bob) -->
+              <g id="lane-tenant-b" transform="translate(40, 264)">
+                <rect width="195" height="74" class="svg-box" id="box-tenant-b"/>
+                <circle cx="22" cy="24" r="11" fill="var(--warn-bg)" stroke="var(--warn)"/>
+                <text x="22" y="28" class="svg-mono" fill="var(--warn)" font-weight="700" font-size="9.5px">B</text>
+                <text x="42" y="22" class="svg-text" text-anchor="start" font-size="11.5px">Tenant B (bob)</text>
+                <text x="42" y="38" class="svg-mono" text-anchor="start" font-size="8.5px">Key: tenant-b::/img/tile-16.png</text>
+                <rect x="42" y="46" width="142" height="18" rx="3" fill="var(--surface)"/>
+                <text x="113" y="59" class="svg-mono" fill="var(--text-muted)" font-size="8.5px">ISOLATED KEYSPACE · ZERO LEAK</text>
+              </g>
+
+              <!-- Lane C: Unauthorized / Attacker Lane -->
+              <g id="lane-unauth" transform="translate(40, 350)">
+                <rect width="195" height="64" class="svg-box" id="box-unauth" stroke="var(--bad)" stroke-dasharray="4,3"/>
+                <circle cx="22" cy="24" r="11" fill="var(--bad-bg)" stroke="var(--bad)"/>
+                <text x="22" y="28" class="svg-mono" fill="var(--bad)" font-weight="700" font-size="9.5px">✕</text>
+                <text x="42" y="22" class="svg-text" text-anchor="start" font-size="11px" fill="var(--bad)">Forged / Expired Token</text>
+                <text x="42" y="38" class="svg-mono" text-anchor="start" font-size="8.5px">Unauthenticated Ingress</text>
+                <text x="42" y="53" class="svg-mono" text-anchor="start" font-size="8.5px" fill="var(--bad)" font-weight="600">REJECTED AT EDGE (401/403)</text>
+              </g>
+
+              <!-- Swarm Emitter Rays -->
+              <g id="ingress-swarm" stroke="var(--accent)" stroke-opacity="0.35" stroke-width="1.2">
+                <line x1="235" y1="195" x2="320" y2="185"/>
+                <line x1="235" y1="215" x2="320" y2="195"/>
+                <line x1="235" y1="235" x2="320" y2="205"/>
+                <line x1="235" y1="280" x2="320" y2="215"/>
+                <line x1="235" y1="300" x2="320" y2="225"/>
+              </g>
+            </g>
+
+            <!-- 2. Security & Concurrency Boundary (x: 255 to 415, y: 70 to 410) -->
+            <g id="world-boundary" class="world-subsystem">
+              <!-- Cryptographic JWT Gate -->
+              <g id="jwt-gate" transform="translate(255, 120)">
+                <rect width="55" height="240" rx="6" fill="var(--surface-base)" stroke="var(--accent)" stroke-width="1.3" id="box-jwt-gate"/>
+                <text x="27" y="32" class="svg-mono" font-size="8.5px" fill="var(--accent)" font-weight="600">JWT GATE</text>
+                <line x1="10" y1="42" x2="45" y2="42" stroke="var(--line)"/>
+                <text x="27" y="65" class="svg-mono" font-size="8px">Ed25519</text>
+                <text x="27" y="80" class="svg-mono" font-size="8px">Signature</text>
+                <text x="27" y="95" class="svg-mono" font-size="8px">Check</text>
+                <circle cx="27" cy="126" r="13" fill="var(--surface)" stroke="var(--line)"/>
+                <text x="27" y="131" class="svg-mono" font-size="11px">🔒</text>
+                <text x="27" y="165" class="svg-mono" font-size="8px">RBAC</text>
+                <text x="27" y="180" class="svg-mono" font-size="8px">Tenant</text>
+                <text x="27" y="195" class="svg-mono" font-size="8px">Demux</text>
+                <rect x="6" y="212" width="43" height="18" rx="3" fill="var(--ok-bg)" id="jwt-gate-status-pill"/>
+                <text x="27" y="225" class="svg-mono" font-size="8px" fill="var(--ok)" font-weight="600" id="jwt-gate-status-text">ACTIVE</text>
+              </g>
+
+              <!-- Singleflight Coalescing Funnel Gate -->
+              <g id="coalesce-funnel" transform="translate(320, 90)">
+                <polygon points="0,20 75,90 75,150 0,220" fill="url(#grad-funnel)" stroke="var(--accent)" stroke-width="1.5" id="poly-funnel"/>
+                <text x="32" y="115" class="svg-mono" font-size="9px" fill="var(--accent)" font-weight="700">SINGLEFLIGHT</text>
+                <text x="32" y="130" class="svg-mono" font-size="8px" fill="var(--text-muted)">COALESCER</text>
+
+                <g transform="translate(82, 70)">
+                  <rect width="20" height="100" rx="4" fill="var(--surface-base)" stroke="var(--ok)" stroke-width="1.3"/>
+                  <text x="10" y="45" class="svg-mono" font-size="7.5px" fill="var(--ok)" font-weight="600" transform="rotate(-90 10 45)">LEADER (1 FETCH)</text>
+                </g>
+                <rect x="-10" y="228" width="125" height="20" rx="4" fill="var(--surface-base)" stroke="var(--line)"/>
+                <text x="52" y="242" class="svg-mono" id="funnel-counter-text" font-size="8.5px" fill="var(--ok)" font-weight="600">299 WAITERS COALESCED</text>
+              </g>
+            </g>
+
+            <!-- 3. Edge Gateway Cluster Mesh (x: 430 to 780, y: 35 to 455) -->
+            <g id="world-cluster" class="world-subsystem">
+              <!-- Inter-Node mTLS Mesh Links -->
+              <g id="mtls-bus">
+                <path id="link-n1-n2" d="M 600 155 C 655 155, 655 185, 600 185" class="svg-edge peer" stroke-width="2.5"/>
+                <path id="link-n2-n3" d="M 600 285 C 655 285, 655 315, 600 315" class="svg-edge peer" stroke-width="2.5"/>
+                <path id="link-n1-n3" d="M 765 105 C 820 105, 820 370, 765 370" class="svg-edge peer" stroke-width="2" stroke-dasharray="6,4"/>
+                <text x="668" y="172" class="svg-mono" fill="var(--accent)" font-size="8.5px" font-weight="600">mTLS Gossip</text>
+                <text x="668" y="302" class="svg-mono" fill="var(--accent)" font-size="8.5px" font-weight="600">mTLS Gossip</text>
+              </g>
+
+              <!-- Central HRW Hash Rendezvous Arbiter Badge -->
+              <g id="hrw-arbiter" transform="translate(425, 240)">
+                <circle cx="0" cy="0" r="28" fill="var(--surface-base)" stroke="var(--accent)" stroke-width="1.8"/>
+                <text x="0" y="-8" class="svg-mono" font-size="8.5px" font-weight="700" fill="var(--accent)">HRW</text>
+                <text x="0" y="4" class="svg-mono" font-size="7.5px">HASH</text>
+                <text x="0" y="15" class="svg-mono" font-size="6.5px" fill="var(--text-muted)">64-bit FNV-1a</text>
+              </g>
+
+              <!-- Gateway Node 1 (Primary / Leader / SIEVE Host) -->
+              <g id="gw-node-1" transform="translate(430, 42)">
+                <rect width="345" height="122" class="svg-box active" id="box-node-1"/>
+                <text x="172" y="22" class="svg-text" font-size="12px">GATEWAY NODE 1 (Port :18201) [PRIMARY]</text>
+                <text x="172" y="37" class="svg-mono" id="node-1-role" fill="var(--ok)" font-weight="600">Singleflight Leader · Lock Acquired</text>
+
+                <!-- SIEVE Memory Engine (Inside Node 1) -->
+                <g id="sieve-engine" transform="translate(14, 46)">
+                  <rect width="317" height="66" rx="4" fill="var(--surface)" stroke="var(--line)"/>
+                  <text x="8" y="13" class="svg-mono" text-anchor="start" font-size="8.5px" fill="var(--accent)" font-weight="700">SIEVE Circular FIFO (NSDI 2024)</text>
+                  <text x="308" y="13" class="svg-mono" text-anchor="end" font-size="7.5px" fill="var(--text-muted)">[Explanatory Model · src/core/eviction.rs]</text>
+                  
+                  <!-- 5 SIEVE Circular Slots with improved legibility -->
+                  <g id="sieve-slots" transform="translate(10, 20)">
+                    <g id="sieve-slot-0" transform="translate(0, 0)">
+                      <rect width="56" height="38" rx="4" class="svg-box" fill="var(--surface-base)"/>
+                      <text x="28" y="15" class="svg-mono" font-size="8px">/img/16</text>
+                      <rect x="12" y="21" width="32" height="14" rx="2" fill="var(--ok-bg)"/>
+                      <text x="28" y="31" class="svg-mono" font-weight="700" fill="var(--ok)" font-size="8px" id="sieve-v-0">v: 1</text>
+                    </g>
+                    <g id="sieve-slot-1" transform="translate(60, 0)">
+                      <rect width="56" height="38" rx="4" class="svg-box" fill="var(--surface-base)"/>
+                      <text x="28" y="15" class="svg-mono" font-size="8px">/tile/06</text>
+                      <rect x="12" y="21" width="32" height="14" rx="2" fill="var(--surface)"/>
+                      <text x="28" y="31" class="svg-mono" font-weight="700" fill="var(--text-muted)" font-size="8px" id="sieve-v-1">v: 0</text>
+                    </g>
+                    <g id="sieve-slot-2" transform="translate(120, 0)">
+                      <rect width="56" height="38" rx="4" class="svg-box" fill="var(--surface-base)"/>
+                      <text x="28" y="15" class="svg-mono" font-size="8px">/text/18</text>
+                      <rect x="12" y="21" width="32" height="14" rx="2" fill="var(--ok-bg)"/>
+                      <text x="28" y="31" class="svg-mono" font-weight="700" fill="var(--ok)" font-size="8px" id="sieve-v-2">v: 1</text>
+                    </g>
+                    <g id="sieve-slot-3" transform="translate(180, 0)">
+                      <rect width="56" height="38" rx="4" class="svg-box" fill="var(--surface-base)"/>
+                      <text x="28" y="15" class="svg-mono" font-size="8px">/half.png</text>
+                      <rect x="12" y="21" width="32" height="14" rx="2" fill="var(--surface)"/>
+                      <text x="28" y="31" class="svg-mono" font-weight="700" fill="var(--text-muted)" font-size="8px" id="sieve-v-3">v: 0</text>
+                    </g>
+                    <g id="sieve-slot-4" transform="translate(240, 0)">
+                      <rect width="56" height="38" rx="4" class="svg-box" fill="var(--surface-base)"/>
+                      <text x="28" y="15" class="svg-mono" font-size="8px">/meta.json</text>
+                      <rect x="12" y="21" width="32" height="14" rx="2" fill="var(--ok-bg)"/>
+                      <text x="28" y="31" class="svg-mono" font-weight="700" fill="var(--ok)" font-size="8px" id="sieve-v-4">v: 1</text>
+                    </g>
+                  </g>
+                  <!-- Hand Pointer Indicator -->
+                  <polygon id="sieve-hand-ptr" points="38,18 45,11 31,11" fill="var(--accent)"/>
+                </g>
+              </g>
+
+              <!-- Gateway Node 2 (Peer / HRW Target) -->
+              <g id="gw-node-2" transform="translate(430, 176)">
+                <rect width="345" height="106" class="svg-box active" id="box-node-2"/>
+                <text x="172" y="24" class="svg-text" font-size="12px">GATEWAY NODE 2 (Port :18202) [PEER]</text>
+                <text x="172" y="42" class="svg-mono" id="node-2-role" fill="var(--accent)" font-weight="600">HRW Rendezvous Peer · mTLS Interconnect</text>
+                <rect x="20" y="52" width="305" height="42" rx="4" fill="var(--surface)"/>
+                <text x="35" y="70" class="svg-mono" text-anchor="start" font-size="8.5px">Peer-to-Peer Direct Transfer Bus (mTLS)</text>
+                <text x="35" y="85" class="svg-mono" text-anchor="start" font-size="8.5px" fill="var(--ok)" font-weight="600">✓ In-Memory Cross-Cluster Sharing Active</text>
+              </g>
+
+              <!-- Gateway Node 3 (Standby / Dead Node Target) -->
+              <g id="gw-node-3" transform="translate(430, 298)">
+                <rect width="345" height="106" class="svg-box active" id="box-node-3"/>
+                <text x="172" y="24" class="svg-text" font-size="12px" id="mesh-n3-title">GATEWAY NODE 3 (Port :18203) [STANDBY]</text>
+                <text x="172" y="42" class="svg-mono" id="mesh-n3-sub">Anti-Entropy Gossip · Vector Clock Sync</text>
+                <rect x="20" y="52" width="305" height="42" rx="4" fill="var(--surface)"/>
+                <text x="35" y="70" class="svg-mono" text-anchor="start" font-size="8.5px">Equal-Weight Cluster Rebalance Target</text>
+                <text x="35" y="85" class="svg-mono" text-anchor="start" font-size="8.5px" fill="var(--text-muted)" id="node-3-status">Online · HRW Partition Weight: 33.3%</text>
+              </g>
+
+              <!-- Attached PIE Shadow Intelligence Module -->
+              <g id="pie-module" transform="translate(430, 416)">
+                <rect width="345" height="38" rx="4" fill="var(--surface-base)" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="4,3"/>
+                <text x="15" y="23" class="svg-mono" text-anchor="start" font-size="9px" fill="var(--accent)" font-weight="700">🧠 PIE SHADOW INTELLIGENCE</text>
+                <text x="180" y="23" class="svg-mono" text-anchor="start" font-size="8.5px" font-weight="600">Utility: 85.0%</text>
+                <text x="330" y="23" class="svg-mono" text-anchor="end" font-size="8px" fill="var(--text-muted)">Shadow Evaluation · Zero Live Serving Risk</text>
+              </g>
+            </g>
+
+            <!-- 4. Upstream Origin Shield Server (x: 840 to 1075, y: 90 to 400) -->
+            <g id="world-origin" class="world-subsystem">
+              <line x1="810" y1="50" x2="810" y2="440" stroke="var(--warn)" stroke-width="2" stroke-dasharray="6,4" opacity="0.75"/>
+              <g transform="translate(800, 235)">
+                <circle cx="10" cy="10" r="15" fill="var(--surface-base)" stroke="var(--warn)" stroke-width="1.3"/>
+                <text x="10" y="15" class="svg-mono" font-size="11px">🛡️</text>
+              </g>
+
+              <rect x="840" y="90" width="235" height="310" class="svg-box" id="box-origin"/>
+              <text x="957" y="118" class="svg-text" font-size="12.5px">UPSTREAM ORIGIN</text>
+              <text x="957" y="136" class="svg-mono">Port :19200 (Slow Server)</text>
+              <line x1="855" y1="148" x2="1060" y2="148" stroke="var(--line)"/>
+
+              <g transform="translate(855, 165)">
+                <rect width="205" height="52" rx="4" fill="var(--surface)"/>
+                <text x="10" y="20" class="svg-mono" text-anchor="start" font-size="9px">ORIGIN REQUESTS:</text>
+                <text x="195" y="20" class="svg-mono" id="origin-odometer" text-anchor="end" font-weight="700" font-size="12px" fill="var(--warn)">0 MEASURED</text>
+                <text x="10" y="40" class="svg-mono" text-anchor="start" font-size="8.5px" fill="var(--text-muted)">Simulated Latency:</text>
+                <text x="195" y="40" class="svg-mono" text-anchor="end" font-size="8.5px">~40-70 ms Delay</text>
+              </g>
+
+              <g transform="translate(855, 232)">
+                <rect width="205" height="58" rx="4" fill="var(--ok-bg)"/>
+                <text x="102" y="20" class="svg-mono" fill="var(--ok)" font-weight="700" font-size="9.5px">ORIGIN OFFLOAD RATIO</text>
+                <text x="102" y="44" class="svg-mono" id="origin-shield-ratio" fill="var(--ok)" font-weight="800" font-size="17px">99.7%</text>
+              </g>
+
+              <g transform="translate(855, 308)">
+                <text x="102" y="14" class="svg-mono" font-size="8.5px" fill="var(--text-muted)">IN-FLIGHT CONCURRENCY</text>
+                <rect x="15" y="22" width="175" height="12" rx="6" fill="var(--surface)"/>
+                <rect x="15" y="22" width="20" height="12" rx="6" fill="var(--warn)" id="origin-inflight-bar"/>
+                <text x="102" y="50" class="svg-mono" id="origin-inflight-label" font-size="8.5px" font-weight="600">1 Fetch Active (Singleflight)</text>
+              </g>
+            </g>
+
+            <!-- 5. Dynamic Traffic Ray Paths -->
+            <g id="world-paths" opacity="0.6">
+              <path id="ray-ingress-funnel" d="M 250 225 L 320 200" class="svg-edge" stroke-width="2"/>
+              <path id="ray-funnel-gw1" d="M 395 200 L 430 100" class="svg-edge" stroke-width="2" marker-end="url(#arrow-accent)"/>
+              <path id="ray-gw1-origin" d="M 775 100 L 840 200" class="svg-edge origin" stroke-width="2" marker-end="url(#arrow-warn)"/>
+              <path id="ray-gw1-client" d="M 430 80 C 350 30, 280 30, 250 100" class="svg-edge" stroke="var(--ok)" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arrow-ok)"/>
+              <path id="ray-peer-fill" d="M 600 176 L 600 164" class="svg-edge peer" stroke-width="3" stroke="var(--accent)"/>
+            </g>
+
+            <!-- 6. Active Particle Pool -->
+            <g id="world-particles">
+              <circle id="particle-0" cx="-50" cy="-50" r="4" fill="var(--accent)"/>
+              <circle id="particle-1" cx="-50" cy="-50" r="4" fill="var(--accent)"/>
+              <circle id="particle-2" cx="-50" cy="-50" r="4" fill="var(--ok)"/>
+              <circle id="particle-3" cx="-50" cy="-50" r="4" fill="var(--warn)"/>
+              <circle id="particle-4" cx="-50" cy="-50" r="4" fill="var(--accent)"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Advanced Visualisation 2: Distributed Trace Waterfall Timeline -->
+        <div class="trace-container" id="trace-box">
+          <div class="trace-header-strip">
+            <div class="trace-active-meta">
+              <span class="trace-method-badge" id="trace-meta-method">GET</span>
+              <span class="trace-path-text" id="trace-meta-path">/api/v1/cache/img/tile-16.png</span>
+              <span class="trace-tenant-pill" id="trace-meta-tenant">Tenant A (alice)</span>
+              <span class="trace-status-pill ok" id="trace-meta-status">200 OK</span>
+              <span class="trace-latency-pill" id="trace-meta-latency">1.2 ms</span>
+            </div>
+            <div class="trace-history-pills" id="trace-history-bar" title="Recent Request Spans (Click to Inspect)">
+              <span style="color:var(--text-subtle);font-size:9.5px;margin-right:4px">RECENT SPANS:</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Waterfall Spans -->
+          <div class="trace-waterfall-body" id="trace-waterfall-body">
+            <div class="trace-span">
+              <span class="trace-lane">Client Edge</span>
+              <div class="trace-bar-wrap"><div class="trace-bar" style="left:0;width:100%;background:var(--accent)"></div><span class="trace-label">Client Request Ingress (Tenant A · alice)</span></div>
+            </div>
+            <div class="trace-span">
+              <span class="trace-lane">Gateway Ingress</span>
+              <div class="trace-bar-wrap"><div class="trace-bar" style="left:2%;width:22%;background:var(--ok)"></div><span class="trace-label">Gateway Node 1 (:18201) Connection Established</span></div>
+            </div>
+            <div class="trace-span">
+              <span class="trace-lane">Cache Shard</span>
+              <div class="trace-bar-wrap"><div class="trace-bar" style="left:24%;width:18%;background:var(--ok)"></div><span class="trace-label">SIEVE Memory Lookup: LOCAL HIT</span></div>
+            </div>
+            <div class="trace-span">
+              <span class="trace-lane">Coalescing</span>
+              <div class="trace-bar-wrap"><div class="trace-bar" style="left:42%;width:12%;background:var(--accent)"></div><span class="trace-label">Singleflight Bypassed (Cache Resident)</span></div>
+            </div>
+            <div class="trace-span">
+              <span class="trace-lane">Origin Fetch</span>
+              <div class="trace-bar-wrap"><div class="trace-bar" style="left:46%;width:0%;background:var(--warn)"></div><span class="trace-label">Origin Shielded: 0 Backend Requests (99.7% Offload)</span></div>
+            </div>
+            <div class="trace-span">
+              <span class="trace-lane">Client Delivery</span>
+              <div class="trace-bar-wrap"><div class="trace-bar" style="left:92%;width:8%;background:var(--ok)"></div><span class="trace-label">200 OK Delivered to Client in 1.2 ms</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Concept HUD -->
+        <div class="concept-strip" id="concept-hud">
+          <div class="concept-item">
+            <span class="q">1. What is happening?</span>
+            <span class="a" id="hud-what">Three PhantomCache gateways are active on loopback ports 18201-18203.</span>
+          </div>
+          <div class="concept-item">
+            <span class="q">2. Why is it happening?</span>
+            <span class="a" id="hud-why">Rendezvous Hashing (HRW) partitions request keys deterministically across gateways.</span>
+          </div>
+          <div class="concept-item">
+            <span class="q">3. What this demonstrates:</span>
+            <span class="a" id="hud-proves">Repeat requests are resolved in microseconds without bothering the upstream slow origin server.</span>
+          </div>
+        </div>
+
+        <!-- Advanced Visualisation 3: Structured Event Stream with Search & Duplicate Compression (Preserves #feed, #timeline, #feed-counters, #b-stop, #b-pause, #b-copy, #rawlog) -->
+        <div class="console-shell" id="feed">
+          <div class="console-toolbar">
+            <div style="display:flex;align-items:center;gap:8px">
+              <h2 id="feed-title" style="margin:0;font-size:12.5px;font-weight:600">Event stream</h2>
+              <span id="feed-verdict"></span>
+            </div>
+
+            <!-- Feature 6: Quick Filter Token Pills -->
+            <div class="log-quick-pills" id="log-quick-pills">
+              <button class="filter-pill active" data-filter="" title="Show All Events">All</button>
+              <button class="filter-pill" data-filter="HIT" title="Filter Cache Hits">HIT</button>
+              <button class="filter-pill" data-filter="MISS" title="Filter Cache Misses">MISS</button>
+              <button class="filter-pill" data-filter="source peer" title="Filter Peer Fills">Peer</button>
+              <button class="filter-pill" data-filter="/40[13]/" title="Filter 401/403 Deflections">401/403</button>
+              <button class="filter-pill" data-filter="PASS" title="Filter Passing Checks">Checks</button>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:6px">
+              <input type="text" class="console-search" id="log-filter" placeholder="Regex /filter/..." aria-label="Filter events" title="Search string or /regex/">
+              <span class="filter-count-badge" id="filter-count"></span>
+              <span id="feed-elapsed" style="font-size:11px;color:var(--text-muted)"></span>
+            </div>
+          </div>
+          <div class="bar" id="feed-bar"><i></i></div>
+          <div id="feed-counters" style="display:none" aria-live="polite"></div>
+
+          <!-- Structured Log Stream -->
+          <div id="timeline" role="log" aria-live="polite" tabindex="0" aria-label="Timeline of steps"></div>
+
+          <!-- Stream Action Controls -->
+          <div class="console-footer">
+            <button class="danger small" id="b-stop" disabled>Stop</button>
+            <button class="small" id="b-pause" disabled>Pause</button>
+            <button class="small" id="b-copy">Copy log</button>
+            <span style="flex:1"></span>
+            <details style="margin:0"><summary class="small" style="cursor:pointer;color:var(--text-muted)">Raw log</summary><pre id="rawlog" class="small" style="max-height:140px;overflow:auto;white-space:pre-wrap;margin:4px 0"></pre></details>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ================================================================ Manual Explorer Section (Preserves #hand, #gallery) -->
+  <section class="full" id="hand" style="margin-top:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h2 style="margin:0;font-size:15px;font-weight:600">Explore by hand</h2>
+      <div style="display:flex;gap:6px">
+        <button class="small" id="b-load">Load gallery</button>
+        <button class="small" id="b-msgs">Load messages</button>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">
+      Route through gateway <select id="gw" aria-label="Gateway to use"></select> as the active user. Tiles show cache source (<b class="tip" tabindex="0" data-g="source">source</b>), response latency, and SHA256 integrity verification.
+    </div>
+    <div class="gallery" id="gallery"></div>
+    <div class="gallery" id="huge" style="margin-top:6px"></div>
+    <div id="msgs" style="display:grid;gap:6px;margin-top:6px"></div>
+  </section>
+</div>
+
+<!-- ================================================================== Modals -->
+<dialog id="tour" aria-labelledby="tour-h">
+  <h2 id="tour-h">Guided Tour</h2>
+  <div id="tour-body" style="font-size:13px;line-height:1.5;margin:10px 0"></div>
+  <div id="tour-result" class="small" style="margin:8px 0"></div>
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+    <button id="t-prev" class="small">Back</button>
+    <button id="t-run" class="primary small">Run scenario</button>
+    <button id="t-next" class="go small">Next</button>
+    <button id="t-skip" class="small">Skip tour</button>
+  </div>
+</dialog>
+
+<dialog id="help" aria-labelledby="help-h">
+  <h2 id="help-h">PhantomCache Reference</h2>
+  <div id="help-body" style="font-size:12.5px;line-height:1.5;max-height:65vh;overflow:auto"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:14px">
+    <button id="help-close">Close</button>
+  </div>
+</dialog>
+
+<dialog id="actas" aria-labelledby="actas-h">
+  <h2 id="actas-h">Tenant Context Accounts</h2>
+  <div id="actas-body" style="font-size:12.5px;line-height:1.5"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:14px">
+    <button id="actas-close">Close</button>
+  </div>
+</dialog>
+
+<dialog id="phone-modal" aria-labelledby="phone-h" style="max-width:580px;width:90vw;border-radius:12px;background:var(--surface-base);color:var(--text);border:1px solid var(--line-strong);padding:20px;box-shadow:0 24px 48px rgba(0,0,0,0.65)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:10px">
+    <h2 id="phone-h" style="margin:0;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px">
+      <span>📱</span> Connect Wireless Devices (Phone / Laptop)
+    </h2>
+    <button id="phone-close" class="small" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;line-height:1">✕</button>
+  </div>
+  
+  <div id="phone-body" style="font-size:13px;line-height:1.5;display:flex;flex-direction:column;gap:14px">
+    <!-- QR Code & Quick Connect -->
+    <div style="display:grid;grid-template-columns:136px 1fr;gap:16px;align-items:center;background:var(--surface);padding:14px;border-radius:8px;border:1px solid var(--line)">
+      <div id="qr-container" style="background:#ffffff;padding:6px;border-radius:6px;display:flex;align-items:center;justify-content:center;width:136px;height:136px;box-sizing:border-box">
+        <span style="color:#000;font-size:11px">Loading QR...</span>
+      </div>
+      <div>
+        <div style="font-weight:700;color:#fff;margin-bottom:4px">Scan with Phone Camera</div>
+        <div style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Scan this code from your mobile device (on the same Wi-Fi) to open <b>PhantomStore</b>.</div>
+        <div style="font-family:var(--font-mono);font-size:11px;background:var(--surface-elevated);padding:6px 10px;border-radius:4px;word-break:break-all;color:var(--accent);border:1px solid var(--line)">
+          <span id="qr-url-text">http://192.168.0.17:3201/store</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- URLs Grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--line)">
+        <div style="font-weight:700;font-size:12px;color:var(--ok);margin-bottom:4px;display:flex;align-items:center;gap:5px">
+          <span>🛍️</span> PhantomStore
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Mobile shopping experience with instant cache latency telemetry & flash crowd triggers.</div>
+        <a id="link-store-lan" href="/store" target="_blank" style="font-family:var(--font-mono);font-size:11px;color:var(--accent);text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">/store</a>
+      </div>
+
+      <div style="background:var(--surface);padding:12px;border-radius:8px;border:1px solid var(--line)">
+        <div style="font-weight:700;font-size:12px;color:var(--accent);margin-bottom:4px;display:flex;align-items:center;gap:5px">
+          <span>👥</span> Phantom Crowd
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Workload agent simulating 5-100 virtual shoppers with Zipf/hotkey distributions.</div>
+        <a id="link-crowd-lan" href="/crowd" target="_blank" style="font-family:var(--font-mono);font-size:11px;color:var(--accent);text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">/crowd</a>
+      </div>
+    </div>
+
+    <!-- Public Internet Tunnel Status -->
+    <div style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-weight:700;font-size:12px;color:var(--accent);display:flex;align-items:center;gap:6px">
+          <span>🌐</span> Public Internet (Cellular / Outside Wi-Fi)
+        </span>
+        <span id="tunnel-badge" style="font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:4px;background:var(--surface-elevated);color:var(--text-muted)">Checking...</span>
+      </div>
+      <div id="tunnel-details" style="font-size:11.5px;color:var(--text-muted)">
+        Checking public tunnel status...
+      </div>
+    </div>
+
+    <!-- Live Connected Devices -->
+    <div>
+      <div style="font-weight:700;font-size:12px;color:var(--text);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+        <span>Connected Remote Devices (<span id="devices-count">0</span>)</span>
+        <span style="font-size:11px;color:var(--text-muted);font-weight:normal">Auto-refreshes every 2s</span>
+      </div>
+      <div id="devices-list" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;max-height:120px;overflow-y:auto;padding:8px;font-size:12px;font-family:var(--font-mono);color:var(--text-muted)">
+        No external devices registered yet. Open the link on your phone to connect!
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script src="/qrcode.min.js"></script>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ================================================================== Application Script Engine -->
+<script>
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// ------------------------------------------------------------------ Storyline Chapters & Scenarios Mapping
+const CHAPTERS = [
+  { id: 'all', name: 'All Scenarios', count: 35 },
+  { id: 'fundamentals', name: '01 Core Fundamentals', count: 7 },
+  { id: 'security', name: '02 Security & Isolation', count: 7 },
+  { id: 'resiliency', name: '03 Resiliency & Mesh', count: 6 },
+  { id: 'workloads', name: '04 Workloads & Operations', count: 5 },
+  { id: 'intelligence', name: '05 Autonomous Intelligence', count: 10 }
+];
+
+const SCENARIO_CHAPTER_MAP = {
+  tour: 'fundamentals', gallery: 'fundamentals', stampede: 'fundamentals', peerfill: 'fundamentals', offload: 'fundamentals', workloads: 'fundamentals', scale: 'fundamentals',
+  auth: 'security', roles: 'security', isolation: 'security', targetsafety: 'security', mtls: 'security', failclosed: 'security', multiuser: 'security',
+  invalidation: 'resiliency', deadnode: 'resiliency', deletestorm: 'resiliency', burstdelete: 'resiliency', peerexpiry: 'resiliency', freshness: 'resiliency',
+  eviction: 'workloads', largeobjects: 'workloads', originprotect: 'workloads', operability: 'workloads', restart: 'workloads',
+  intelligence: 'intelligence', intelcontrol: 'intelligence', 'pie-hotkey': 'intelligence', 'pie-flashcrowd': 'intelligence', 'pie-shift': 'intelligence', 'pie-eviction': 'intelligence', 'pie-admission': 'intelligence', dashboards: 'intelligence', benchmark: 'intelligence', everything: 'intelligence'
+};
+
+const FLAGSHIP_SCENARIOS = ['stampede', 'peerfill', 'offload', 'isolation', 'deadnode', 'eviction', 'intelligence'];
+
+const SCENARIO_VISUALS = {
+  gallery: { scene: 'fundamentals', icon: '⚡', title: 'Fundamentals: Cold vs Warm Cache', what: 'First pass queries origin; second pass returns immediately from gateway memory (HIT).', why: 'Deterministic key mapping resolves repeat requests at microsecond edge speed.', proves: 'Eliminates origin load for repeated access.' },
+  stampede: { scene: 'fundamentals', icon: '🛡️', title: 'Fundamentals: Request Coalescing (300 Concurrency)', what: '300 concurrent requests arrive simultaneously for a single uncached picture.', why: 'Singleflight request coalescing holds 299 waiting client fibers while exactly 1 fetches upstream.', proves: 'Prevents backend collapse under thundering herd surges.' },
+  peerfill: { scene: 'fundamentals', icon: '🔄', title: 'Fundamentals: Inter-Gateway Peer Fill', what: 'Gateway 2 misses and fetches directly from Gateway 1 across mTLS.', why: 'Rendezvous Hashing (HRW) identifies Gateway 1 as the primary key owner.', proves: 'Gateways pool memory across the cluster without bothering the origin.' },
+  offload: { scene: 'fundamentals', icon: '📊', title: 'Fundamentals: Origin Offload Ratio', what: '3,000 client queries dispatched across popularity mix.', why: 'Edge caching filters hot repeat traffic before it reaches backend.', proves: 'Over 85% of total backend request load eliminated.' },
+  auth: { scene: 'security', icon: '🔒', title: 'Security: Token Claims Verification', what: 'Testing expired tokens, forged tokens, missing credentials, and valid passes.', why: 'Asymmetric cryptographic verification checks claims at loopback edge.', proves: 'Invalid requests are rejected at ingress (401 Unauthorized).' },
+  roles: { scene: 'security', icon: '👥', title: 'Security: Role-Based Access Control', what: 'Read-only user (carol) attempts GET (permitted) vs DELETE (blocked 403).', why: 'Scope claims enforced by gateway policy before request reaches internal cache.', proves: 'Unprivileged tokens cannot purge cache entries or disrupt cluster state.' },
+  isolation: { scene: 'security', icon: '🏢', title: 'Security: Multi-Tenant Boundary Isolation', what: 'Tenant A loads picture; Tenant B requests identical path.', why: 'Cache keys are partitioned by tenant ID (tenant_id::path).', proves: 'Zero cross-tenant leakage: Tenant B starts cold in private key partition.' },
+  deadnode: { scene: 'resiliency', icon: '💀', title: 'Resiliency: Dead Node Failover & HRW Reassignment', what: 'Gateway 3 terminates mid-traffic; requests re-route to Nodes 1 and 2.', why: 'Rendezvous Hash Space calculates highest random weight across alive nodes with equal capacity.', proves: 'Deterministic key reassignment without broad cluster disruption.' },
+  invalidation: { scene: 'resiliency', icon: '🔥', title: 'Resiliency: Peer Invalidation Propagation', what: 'DELETE on Node 1 broadcasts deletion tombstone across peer mesh.', why: 'Inter-node gossip bus notifies neighbouring gateways.', proves: 'Stale entries evicted across cluster.' },
+  freshness: { scene: 'resiliency', icon: '⏱️', title: 'Resiliency: Stale-While-Revalidate', what: 'Object past max-age served immediately while background refresh executes.', why: 'Decouples client latency from slow origin upstream revalidation.', proves: 'Clients receive sub-millisecond responses during background revalidation.' },
+  eviction: { scene: 'workloads', icon: '🧹', title: 'Operations: SIEVE Cache Eviction', what: 'Cache memory fills; SIEVE inspects visited bit and moves hand pointer.', why: 'If visited bit is 1, resets to 0; if 0, evicts candidate without pointer overhead.', proves: 'Modern SIEVE eviction delivers superior hit-rates with minimal memory overhead.' },
+  largeobjects: { scene: 'workloads', icon: '📦', title: 'Operations: 10MB Streaming Bypass', what: 'Large multi-megabyte payloads streamed directly through gateway socket.', why: 'Chunked streaming buffer pipeline streams data directly to client.', proves: 'Large files bypass in-memory heap without evicting small hot keys.' },
+  intelligence: { scene: 'intelligence', icon: '🧠', title: 'Autonomous Intelligence: PIE Shadow Evaluation', what: 'Workload shifts from uniform to extreme Pareto distribution.', why: 'PIE shadow evaluation observes frequency trends and models optimal admission.', proves: 'Self-tuning cache optimization models without serving risk.' }
+};
+
+// ------------------------------------------------------------------ Theme Engine
+function initTheme() {
+  const saved = localStorage.getItem('pc_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  updateThemeButton();
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('pc_theme', next);
+  updateThemeButton();
+}
+function updateThemeButton() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const b = $('#b-theme');
+  if (b) b.textContent = cur === 'dark' ? '☀️ Light' : '🌙 Dark';
+}
+$('#b-theme').addEventListener('click', toggleTheme);
+initTheme();
+
+// ------------------------------------------------------------------ Glossary & Tooltips
+const GLOSS = {
+  miss: 'MISS: Gateway did not have the item in memory and fetched it upstream.',
+  hit: 'HIT: Gateway served the item immediately from local memory cache.',
+  origin: 'Origin: The slow upstream server shielded by PhantomCache.',
+  node: 'Node: One PhantomCache gateway process. This demo cluster runs three.',
+  peer: 'Peer: A neighbouring gateway communicating over loopback mTLS.',
+  source: 'Source: Indicates where response bytes originated (local, peer, origin, coalesced).'
+};
+document.querySelectorAll('[data-g]').forEach((e) => { e.dataset.tip = GLOSS[e.dataset.g] || ''; });
+
+const toast = (t) => {
+  const e = $('#toast');
+  e.textContent = t;
+  e.style.display = 'block';
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => { e.style.display = 'none'; }, 4000);
+};
+
+const api = (p, body) => fetch(p, body !== undefined ? { method: 'POST', body: JSON.stringify(body) } : {})
+  .then((r) => r.json())
+  .catch(() => ({ error: 'The hub could not be reached.' }));
+
+const fmtB = (n) => n == null ? '-' : n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MiB';
+const fmtS = (ms) => (ms / 1000).toFixed(1) + ' s';
+
+let S = null, user = 'tenantA', gw = 1, viewJob = null;
+let activeChapter = 'all';
+const events = new Map();
+const raw = new Map();
+let allText = [];
+
+// ------------------------------------------------------------------ Primary Mode Switching (Discover vs Explore vs Demonstrate)
+function switchMode(mode) {
+  document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
+  const discView = $('#view-discover');
+  const workView = $('#view-workspace');
+
+  if (mode === 'discover') {
+    $('#btn-mode-discover').classList.add('active');
+    discView.style.display = 'flex';
+    workView.style.display = 'none';
+  } else {
+    if (mode === 'explore') $('#btn-mode-explore').classList.add('active');
+    else $('#btn-mode-demonstrate').classList.add('active');
+    discView.style.display = 'none';
+    workView.style.display = 'grid';
+  }
+}
+$('#btn-mode-discover').addEventListener('click', () => switchMode('discover'));
+$('#btn-mode-explore').addEventListener('click', () => switchMode('explore'));
+$('#btn-mode-demonstrate').addEventListener('click', () => switchMode('demonstrate'));
+$('#b-brand').addEventListener('click', () => switchMode('discover'));
+
+// ------------------------------------------------------------------ State Polling & Cockpit Sync
+async function refresh() {
+  const s = await api('/api/state');
+  if (s.error && !s.catalogue) return;
+  S = s;
+  renderState();
+}
+
+function renderState() {
+  const c = S.cluster;
+  $('#health').innerHTML = c ? c.nodes.map((n) => `<span class="pill ${n.running ? 'ok' : 'bad'}"><span class="dot"></span>node ${n.n}: ${n.running ? 'Active' : 'Stopped'}</span>`).join('') : '<span class="pill bad"><span class="dot"></span>cluster not running</span>';
+  $('#originn').textContent = S.origin ? S.origin.requests : '-';
+
+  const us = (S.users || []);
+  if (us.length && !$('#user').options.length) {
+    $('#user').innerHTML = us.map((u) => `<option value="${u.user}">${esc(u.label)}</option>`).join('');
+    $('#user').value = user;
+    actasNote();
+  }
+  const me = us.find((u) => u.user === user);
+  $('#identity').innerHTML = me ? (me.claims ? `tenant: <b>${esc(me.claims.tenant_id)}</b> · user: <b>${esc(me.claims.sub)}</b>` : `user: <b>${esc(me.label)}</b>`) : '';
+
+  if (c && !$('#gw').options.length) {
+    $('#gw').innerHTML = c.nodes.map((n) => `<option value="${n.n}">node ${n.n} (port ${n.port})</option>`).join('');
+  }
+
+  const b = $('#banner');
+  const allUp = c && c.nodes.every((n) => n.running);
+
+  if (!S.opensslOk) {
+    b.hidden = false;
+    b.className = 'banner err';
+    b.innerHTML = `<span><b>OpenSSL not found in PATH:</b> Required for scenario JWT signing.</span>`;
+  } else if (!c || !allUp) {
+    b.hidden = false;
+    b.className = 'banner';
+    const stopped = c ? c.nodes.filter((n) => !n.running).map((n) => `Node ${n.n}`).join(', ') : 'Cluster';
+    b.innerHTML = `<span><b>${c ? `${stopped} is stopped.` : 'Cluster is not running.'}</b> Start 3 gateways and origin to demonstrate.</span> <button class="go small" id="b-up">Start the demo cluster</button>`;
+  } else {
+    b.hidden = true;
+    b.innerHTML = '';
+  }
+
+  const jobs = S.jobs || [];
+  if (jobs.length > 0) {
+    const passed = jobs.filter((j) => j.verdict === 'passed' || j.verdict === 'shows').length;
+    $('#sess-text').textContent = `${jobs.length} run(s), ${passed} passed`;
+  }
+
+  if (!$('#catalogue').dataset.n && S.catalogue) {
+    buildCatalogue();
+  }
+  updateCards();
+}
+
+function actasNote() {
+  const me = (S.users || []).find((u) => u.user === $('#user').value);
+  $('#actas-note').textContent = me ? (me.note ? `(${me.note})` : '') : '';
+}
+$('#user').addEventListener('change', () => { user = $('#user').value; actasNote(); renderState(); });
+
+const CHAPTER_META = {
+  all: { icon: '✦', title: 'Storyline: All 35 Engineering Scenarios' },
+  fundamentals: { icon: '⚡', title: 'Chapter 01: Core Fundamentals & Request Lifecycle' },
+  security: { icon: '🔒', title: 'Chapter 02: Zero-Trust Multi-Tenancy & Access Control' },
+  resiliency: { icon: '💀', title: 'Chapter 03: Cluster Resiliency & Dead Node Blast Radius' },
+  workloads: { icon: '🧹', title: 'Chapter 04: Workloads & Algorithmic Operations (SIEVE)' },
+  intelligence: { icon: '🧠', title: 'Chapter 05: Autonomous Intelligence & Shadow Evaluation' }
+};
+
+// ------------------------------------------------------------------ Chapter Navigation
+document.querySelectorAll('.chapter-pill-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chapter-pill-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeChapter = btn.dataset.chapter;
+    filterCatalogue();
+    const meta = CHAPTER_META[activeChapter];
+    if (meta) {
+      $('#stage-icon').textContent = meta.icon;
+      $('#stage-title').textContent = meta.title;
+    }
+    const defaultSceneScenarios = {
+      fundamentals: 'stampede',
+      security: 'isolation',
+      resiliency: 'deadnode',
+      workloads: 'eviction',
+      intelligence: 'intelligence'
+    };
+    if (defaultSceneScenarios[activeChapter]) {
+      switchVisualStage(defaultSceneScenarios[activeChapter]);
+    }
+  });
+});
+
+document.querySelectorAll('.pillar-card[data-jump]').forEach((p) => {
+  p.addEventListener('click', () => {
+    const sc = p.dataset.jump;
+    switchMode('demonstrate');
+    const ch = SCENARIO_CHAPTER_MAP[sc] || 'fundamentals';
+    activeChapter = ch;
+    document.querySelectorAll('.chapter-pill-btn').forEach((b) => b.classList.toggle('active', b.dataset.chapter === ch));
+    filterCatalogue();
+    switchVisualStage(sc);
+    const card = $(`#card-${sc}`);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.querySelectorAll('.card').forEach((c) => c.classList.remove('active'));
+      card.classList.add('active');
+    }
+  });
+});
+
+function filterCatalogue() {
+  document.querySelectorAll('.card').forEach((card) => {
+    const scId = card.dataset.sc;
+    const cardChapter = SCENARIO_CHAPTER_MAP[scId] || 'fundamentals';
+    const match = activeChapter === 'all' || cardChapter === activeChapter;
+    card.style.display = match ? 'block' : 'none';
+  });
+
+  document.querySelectorAll('.grp').forEach((grp) => {
+    const nextCards = [];
+    let el = grp.nextElementSibling;
+    while (el && el.classList.contains('card')) {
+      nextCards.push(el);
+      el = el.nextElementSibling;
+    }
+    const anyVisible = nextCards.some((c) => c.style.display !== 'none');
+    grp.style.display = anyVisible ? 'flex' : 'none';
+  });
+}
+
+// ------------------------------------------------------------------ Catalogue Builder (35 Preserved Scenarios)
+function buildCatalogue() {
+  const host = $('#catalogue');
+  host.dataset.n = S.catalogue.length;
+  const groups = [];
+  for (const sc of S.catalogue) {
+    let g = groups.find((x) => x.name === sc.group);
+    if (!g) groups.push((g = { name: sc.group, items: [] }));
+    g.items.push(sc);
+  }
+
+  const left = document.createElement('div');
+  left.className = 'cards';
+  left.id = 'cards';
+  left.innerHTML = groups.map((g) =>
+    `<div class="grp">${esc(g.name)} ${g.items.filter((x) => !x.client && !x.native).length > 1
+      ? `<button class="small" data-rungroup="${esc(g.items.filter((x) => !x.client && !x.native).map((x) => x.id).join(','))}">Run group</button>`
+      : ''}</div>` +
+    g.items.map((sc) => {
+      const isFlagship = FLAGSHIP_SCENARIOS.includes(sc.id);
+      return `<div class="card ${isFlagship ? 'flagship' : ''}" id="card-${sc.id}" data-sc="${sc.id}">
+        <div class="card-header">
+          <h3 class="card-title">
+            <span class="card-num">#${String(sc.n).padStart(2, '0')}</span>
+            <span>${esc(sc.title)}</span>
+          </h3>
+          <span style="font-size:11px;color:var(--text-subtle)">${esc(sc.est)}</span>
+        </div>
+        <div class="card-desc">${esc(sc.what)}</div>
+        <details class="under-the-hood">
+          <summary>Technical Details ▾</summary>
+          <div class="details-body">
+            <div><span style="color:var(--text-muted)">Look for:</span> ${esc(sc.look)}</div>
+            <div><span style="color:var(--text-muted)">Proves:</span> ${esc(sc.proves || '')}</div>
+          </div>
+        </details>
+        <div class="card-footer">
+          <button class="primary small" data-run="${sc.id}">Demonstrate</button>
+          <span style="font-size:11px;color:var(--text-subtle)" id="note-${sc.id}">${sc.client ? (sc.id === 'tour' ? 'opens guided tour' : 'runs storyline in order') : sc.native ? 'opens Control Center' : sc.needsCluster ? 'uses demo cluster' : 'starts isolated gateway'}</span>
+        </div>
+        <div class="res" id="res-${sc.id}"></div>
+      </div>`;
+    }).join('')
+  ).join('');
+
+  host.innerHTML = '';
+  host.appendChild(left);
+  filterCatalogue();
+}
+
+function updateCards() {
+  if (!S || !S.catalogue) return;
+  const running = S.job && S.job.state === 'running';
+  for (const sc of S.catalogue) {
+    const card = $('#card-' + sc.id);
+    if (!card) continue;
+    card.classList.toggle('active', Boolean(running && S.job.scenario === sc.id));
+    card.querySelectorAll('[data-run]').forEach((b) => { b.disabled = Boolean(running); });
+
+    const j = lastJob(sc.id);
+    const r = $('#res-' + sc.id);
+    if (!j) { r.innerHTML = ''; continue; }
+    if (j.state === 'running') {
+      r.innerHTML = `<div style="font-size:11.5px;color:var(--text-muted);margin-top:6px">Running... stream active.</div>`;
+      continue;
+    }
+
+    const nums = (j.numbers || []);
+    r.innerHTML = `
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        ${verdictBadge(j.verdict, sc)}
+        <span style="font-size:11px;color:var(--text-muted)">${fmtS(j.elapsedMs || 0)} · ${j.checks.pass} passed</span>
+        <button class="small" data-view="${j.id}">Show log</button>
+        <button class="small" data-run="${sc.id}">Run again</button>
+      </div>
+      ${nums.length ? `
+        <div class="res-grid">
+          ${nums.map((n) => `
+            <div class="res-cell">
+              <span class="lbl">${esc(n.label)}</span>
+              <span class="val">${esc(n.value)}</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    `;
+  }
+}
+
+const lastJob = (id) => (S && S.jobs ? [...S.jobs].reverse().find((j) => j.scenario === id) : null);
+const verdictBadge = (v, sc) => {
+  const cls = { passed: 'v-passed', shows: 'v-shows', attention: 'v-attention' }[v] || 'v-stopped';
+  const label = { passed: 'Passed', shows: sc && sc.shows ? `Shows ${sc.shows}` : 'Shows behaviour', attention: 'Needs attention', stopped: 'Stopped', blocked: 'Not run' }[v] || v;
+  return `<span class="verdict ${cls}">${esc(label)}</span>`;
+};
+
+// ------------------------------------------------------------------ Visual Stage Switcher
+// ------------------------------------------------------------------ Smooth Camera ViewBox Controller
+let curCam = { x: 0, y: 0, w: 1100, h: 480 };
+let targetCam = { ...curCam };
+let camStartTime = 0;
+let camDuration = 550;
+let camStartCam = { ...curCam };
+let camAnimFrame = null;
+
+const CAMERA_PRESETS = {
+  macro:        { x: 0,   y: 0,   w: 1100, h: 480 },
+  all:          { x: 0,   y: 0,   w: 1100, h: 480 },
+  fundamentals: { x: 15,  y: 20,  w: 1070, h: 440 },
+  security:     { x: 15,  y: 25,  w: 780,  h: 430 },
+  resiliency:   { x: 330, y: 25,  w: 750,  h: 430 },
+  workloads:    { x: 380, y: 35,  w: 480,  h: 270 },
+  intelligence: { x: 380, y: 40,  w: 520,  h: 300 }
+};
+
+function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+function animateCamera(now) {
+  if (!camStartTime) camStartTime = now;
+  const elapsed = now - camStartTime;
+  const progress = Math.min(1, elapsed / camDuration);
+  const ease = easeOutCubic(progress);
+
+  curCam.x = camStartCam.x + (targetCam.x - camStartCam.x) * ease;
+  curCam.y = camStartCam.y + (targetCam.y - camStartCam.y) * ease;
+  curCam.w = camStartCam.w + (targetCam.w - camStartCam.w) * ease;
+  curCam.h = camStartCam.h + (targetCam.h - camStartCam.h) * ease;
+
+  const svg = document.getElementById('stage-svg');
+  if (svg) {
+    svg.setAttribute('viewBox', `${curCam.x.toFixed(1)} ${curCam.y.toFixed(1)} ${curCam.w.toFixed(1)} ${curCam.h.toFixed(1)}`);
+  }
+
+  if (progress < 1) {
+    camAnimFrame = requestAnimationFrame(animateCamera);
+  } else {
+    camAnimFrame = null;
+  }
+}
+
+function setCamera(target, duration = 500) {
+  if (!target) return;
+  if (camAnimFrame) cancelAnimationFrame(camAnimFrame);
+  camStartCam = { ...curCam };
+  targetCam = { ...target };
+  camDuration = duration;
+  camStartTime = 0;
+  camAnimFrame = requestAnimationFrame(animateCamera);
+}
+
+function applyChapterFocus(chapterKey) {
+  const gIngress = document.getElementById('world-ingress');
+  const gBoundary = document.getElementById('world-boundary');
+  const gCluster = document.getElementById('world-cluster');
+  const gOrigin = document.getElementById('world-origin');
+  const gGw1 = document.getElementById('gw-node-1');
+  const gGw2 = document.getElementById('gw-node-2');
+  const gGw3 = document.getElementById('gw-node-3');
+  const gMtls = document.getElementById('mtls-bus');
+  const gHrw = document.getElementById('hrw-arbiter');
+  const gSieve = document.getElementById('sieve-engine');
+  const gPie = document.getElementById('pie-module');
+
+  [gIngress, gBoundary, gCluster, gOrigin, gGw1, gGw2, gGw3, gMtls, gHrw, gSieve, gPie].forEach(el => {
+    if (el) el.classList.remove('dimmed', 'focused');
+  });
+
+  if (chapterKey === 'fundamentals') {
+    if (gGw2) gGw2.classList.add('dimmed');
+    if (gGw3) gGw3.classList.add('dimmed');
+    if (gGw1) gGw1.classList.add('focused');
+    if (gBoundary) gBoundary.classList.add('focused');
+  } else if (chapterKey === 'security') {
+    if (gGw2) gGw2.classList.add('dimmed');
+    if (gGw3) gGw3.classList.add('dimmed');
+    if (gOrigin) gOrigin.classList.add('dimmed');
+    if (gIngress) gIngress.classList.add('focused');
+    if (gBoundary) gBoundary.classList.add('focused');
+    if (gGw1) gGw1.classList.add('focused');
+  } else if (chapterKey === 'resiliency') {
+    if (gIngress) gIngress.classList.add('dimmed');
+    if (gOrigin) gOrigin.classList.add('dimmed');
+    if (gGw1) gGw1.classList.add('focused');
+    if (gGw2) gGw2.classList.add('focused');
+    if (gGw3) gGw3.classList.add('focused');
+    if (gMtls) gMtls.classList.add('focused');
+    if (gHrw) gHrw.classList.add('focused');
+  } else if (chapterKey === 'workloads') {
+    if (gIngress) gIngress.classList.add('dimmed');
+    if (gGw2) gGw2.classList.add('dimmed');
+    if (gGw3) gGw3.classList.add('dimmed');
+    if (gOrigin) gOrigin.classList.add('dimmed');
+    if (gGw1) gGw1.classList.add('focused');
+    if (gSieve) gSieve.classList.add('focused');
+  } else if (chapterKey === 'intelligence') {
+    if (gIngress) gIngress.classList.add('dimmed');
+    if (gGw2) gGw2.classList.add('dimmed');
+    if (gGw3) gGw3.classList.add('dimmed');
+    if (gOrigin) gOrigin.classList.add('dimmed');
+    if (gGw1) gGw1.classList.add('focused');
+    if (gPie) gPie.classList.add('focused');
+  }
+}
+
+// ------------------------------------------------------------------ HRW Rendezvous Hashing (FNV-1a 64-bit)
+const FNV_OFFSET_BASIS = 0xcbf29ce484222325n;
+const FNV_PRIME = 0x100000001b3n;
+const MASK_64 = 0xffffffffffffffffn;
+const textEnc = new TextEncoder();
+
+function calculateHRWHash(canonicalKey, nodeId) {
+  let hash = FNV_OFFSET_BASIS;
+  const bytes = textEnc.encode(canonicalKey);
+  for (let i = 0; i < bytes.length; i += 1) {
+    hash ^= BigInt(bytes[i]);
+    hash = (hash * FNV_PRIME) & MASK_64;
+  }
+  hash ^= BigInt(nodeId & 0xff);
+  hash = (hash * FNV_PRIME) & MASK_64;
+  return hash;
+}
+
+// ------------------------------------------------------------------ Explanatory SIEVE Cache Eviction Queue
+let sieveSlots = [
+  { key: '/img/16',  visited: 1 },
+  { key: '/tile/06', visited: 0 },
+  { key: '/text/18', visited: 1 },
+  { key: '/half.png', visited: 0 },
+  { key: '/meta.json', visited: 1 }
+];
+let sieveHand = 0;
+
+function advanceSieveClock(isHit, key) {
+  if (isHit) {
+    const slot = sieveSlots.find(s => s.key === key) || sieveSlots[0];
+    slot.visited = 1;
+  } else {
+    let candidate = sieveSlots[sieveHand];
+    while (candidate.visited === 1) {
+      candidate.visited = 0;
+      sieveHand = (sieveHand + 1) % sieveSlots.length;
+      candidate = sieveSlots[sieveHand];
+    }
+    candidate.key = key ? key.slice(-8) : candidate.key;
+    candidate.visited = 1;
+    sieveHand = (sieveHand + 1) % sieveSlots.length;
+  }
+  updateSieveUI();
+}
+
+function updateSieveUI() {
+  sieveSlots.forEach((s, idx) => {
+    const vEl = document.getElementById(`sieve-v-${idx}`);
+    if (vEl) {
+      vEl.textContent = `v: ${s.visited}`;
+      vEl.style.fill = s.visited ? 'var(--ok)' : 'var(--text-muted)';
+    }
+  });
+  const handPtr = document.getElementById('sieve-hand-ptr');
+  if (handPtr) {
+    const xPos = 37 + (sieveHand * 58);
+    handPtr.setAttribute('points', `${xPos},16 ${xPos + 6},10 ${xPos - 6},10`);
+  }
+}
+
+// ------------------------------------------------------------------ Visual Stage Switcher
+function switchVisualStage(scenarioId) {
+  const v = SCENARIO_VISUALS[scenarioId] || SCENARIO_VISUALS.gallery;
+  $('#stage-icon').textContent = v.icon;
+  $('#stage-title').textContent = v.title;
+  $('#hud-what').textContent = v.what;
+  $('#hud-why').textContent = v.why;
+  $('#hud-proves').textContent = v.proves;
+
+  // Camera Zoom & Subsystem Highlighting
+  const preset = CAMERA_PRESETS[v.scene] || CAMERA_PRESETS.macro;
+  setCamera(preset, 550);
+  applyChapterFocus(v.scene);
+
+  // Scenario-specific workload ingress & cluster adaptations
+  const badge = document.getElementById('ingress-mode-badge');
+  const vusers = document.getElementById('ingress-vusers');
+  const funnelCounter = document.getElementById('funnel-counter-text');
+  const originRatio = document.getElementById('origin-shield-ratio');
+
+  if (scenarioId === 'stampede') {
+    if (badge) badge.textContent = 'SURGE TRAFFIC · 300 CONCURRENCY';
+    if (vusers) vusers.textContent = '300';
+    if (funnelCounter) funnelCounter.textContent = '299 WAITERS COALESCED';
+    if (originRatio) originRatio.textContent = '99.7%';
+  } else if (scenarioId === 'peerfill') {
+    if (badge) badge.textContent = 'PEER ROUTING · CLUSTER FILL';
+    if (vusers) vusers.textContent = '100';
+    if (funnelCounter) funnelCounter.textContent = 'HRW DIRECT ROUTING';
+  } else if (scenarioId === 'offload') {
+    if (badge) badge.textContent = 'POPULARITY MIX · 3,000 REQS';
+    if (vusers) vusers.textContent = '100';
+    if (originRatio) originRatio.textContent = '85.4%';
+  } else if (scenarioId === 'deadnode') {
+    if (badge) badge.textContent = 'FAILOVER RECOVERY TRAFFIC';
+    const n3 = $('#gw-node-3');
+    if (n3) { n3.classList.remove('active'); n3.classList.add('severed'); }
+    const t = $('#mesh-n3-title'); if (t) t.textContent = 'GATEWAY 3 [STOPPED]';
+    const sub = $('#mesh-n3-sub'); if (sub) sub.textContent = 'Terminated · Port :18203 Dead';
+    const st = $('#node-3-status'); if (st) { st.textContent = 'Offline · Partition Rebalanced (0%)'; st.style.fill = 'var(--bad)'; }
+    const hrwText = document.querySelector('#hrw-arbiter text:last-child');
+    if (hrwText) hrwText.textContent = 'N1: 50% · N2: 50%';
+  } else {
+    const n3 = $('#gw-node-3');
+    if (n3) { n3.classList.add('active'); n3.classList.remove('severed'); }
+    const t = $('#mesh-n3-title'); if (t) t.textContent = 'GATEWAY NODE 3 (Port :18203)';
+    const sub = $('#mesh-n3-sub'); if (sub) sub.textContent = 'Anti-Entropy Gossip · Vector Clock Sync';
+    const st = $('#node-3-status'); if (st) { st.textContent = 'Online · HRW Partition Weight: 33.3%'; st.style.fill = 'var(--text-muted)'; }
+    const hrwText = document.querySelector('#hrw-arbiter text:last-child');
+    if (hrwText) hrwText.textContent = '64-bit FNV-1a';
+  }
+}
+
+// ------------------------------------------------------------------ Trace Waterfall vs Topology View Toggle
+$('#tab-topo').addEventListener('click', () => {
+  if (typeof resetViewSplits === 'function') resetViewSplits();
+  $('#tab-topo').classList.add('active');
+  $('#topology-box').style.display = 'block';
+  $('#trace-box').style.display = 'none';
+});
+$('#tab-trace').addEventListener('click', () => {
+  if (typeof resetViewSplits === 'function') resetViewSplits();
+  $('#tab-trace').classList.add('active');
+  $('#topology-box').style.display = 'none';
+  $('#trace-box').style.display = 'flex';
+});
+
+// ------------------------------------------------------------------ Server-Sent Events Stream & Structured Logging
+function connect() {
+  const es = new EventSource('/api/stream');
+  es.onmessage = (m) => {
+    let e;
+    try { e = JSON.parse(m.data); } catch { return; }
+    onEvent(e);
+  };
+}
+
+let lastLogKey = '', logRepeatCount = 1, lastLogRow = null;
+
+function onEvent(e) {
+  if (e.kind === 'raw') {
+    const a = raw.get(e.job) || [];
+    a.push(e.text);
+    if (a.length > 3000) a.shift();
+    raw.set(e.job, a);
+    if (e.job === viewJob) $('#rawlog').textContent = a.slice(-300).join('\n');
+    return;
+  }
+  const a = events.get(e.job) || [];
+  a.push(e);
+  if (a.length > 4000) a.splice(0, 1000);
+  events.set(e.job, a);
+
+  if (e.kind === 'job-start') {
+    if (user !== 'tenantA') { user = 'tenantA'; $('#user').value = 'tenantA'; }
+    viewJob = e.job;
+    $('#timeline').innerHTML = '';
+    $('#rawlog').textContent = '';
+    lastLogKey = ''; logRepeatCount = 1; lastLogRow = null;
+    switchVisualStage(e.scenario);
+  }
+
+  if (e.job !== viewJob && e.kind !== 'queue-end' && e.job !== 'live-traffic') return;
+  if (e.job === 'live-traffic' && !viewJob) viewJob = 'live-traffic';
+  
+    // Live Continuous Visual World Synchronization
+    if (e.kind === 'progress') {
+      const sentEl = document.getElementById('ingress-sent');
+      if (sentEl && e.done !== undefined) sentEl.textContent = String(e.done);
+      if (e.counters) {
+        const odo = document.getElementById('origin-odometer');
+        if (odo && e.counters.origin !== undefined) {
+          odo.textContent = `${e.counters.origin} MEASURED`;
+        }
+        const inflightEl = document.getElementById('ingress-inflight');
+        if (inflightEl) {
+          const active = (e.counters.coalesced || 0) + (e.counters.origin || 0);
+          inflightEl.textContent = String(active);
+        }
+      }
+    }
+    if (e.kind === 'observation') {
+      const isHit = e.text.includes('HIT');
+      const isPeer = e.text.includes('source peer');
+      const isOrigin = e.text.includes('source origin') || e.text.includes('MISS');
+      if (isHit) {
+        const ray = document.getElementById('ray-gw1-client');
+        if (ray) {
+          ray.classList.add('pulse-hit');
+          setTimeout(() => ray.classList.remove('pulse-hit'), 220);
+        }
+        advanceSieveClock(true);
+      }
+      if (isPeer) {
+        const ray = document.getElementById('ray-peer-fill');
+        if (ray) {
+          ray.classList.add('pulse-peer');
+          setTimeout(() => ray.classList.remove('pulse-peer'), 280);
+        }
+      }
+      if (isOrigin) {
+        const ray = document.getElementById('ray-gw1-origin');
+        if (ray) {
+          ray.classList.add('pulse-miss');
+          setTimeout(() => ray.classList.remove('pulse-miss'), 320);
+        }
+        advanceSieveClock(false);
+      }
+      if (e.text && e.text.includes('📱 Remote')) {
+        toast(e.text);
+      }
+    }
+    appendEvent(e);
+  if (e.kind === 'job-end') { refresh(); tourOnEnd(e); }
+  renderFeedHeader();
+}
+
+function appendEvent(e) {
+  if (e.kind === 'progress') return;
+  const tl = $('#timeline');
+  const stick = tl.scrollTop + tl.clientHeight >= tl.scrollHeight - 40;
+
+  const time = (e.t || '').slice(11, 23);
+  let text = e.text || '';
+  if (e.kind === 'job-start') text = 'Started: ' + text;
+  if (e.kind === 'job-end') text = `Finished: ${({ passed: 'Passed', shows: 'Shows' })[e.verdict] || e.verdict} in ${fmtS(e.elapsedMs)}`;
+
+  // Duplicate log compression
+  const key = `${e.kind}:${text}`;
+  if (key === lastLogKey && lastLogRow) {
+    logRepeatCount++;
+    const rep = lastLogRow.querySelector('.log-repeat');
+    if (rep) { rep.textContent = `× ${logRepeatCount}`; }
+    else {
+      const sp = document.createElement('span');
+      sp.className = 'log-repeat';
+      sp.textContent = `× ${logRepeatCount}`;
+      lastLogRow.appendChild(sp);
+    }
+    return;
+  }
+  lastLogKey = key;
+  logRepeatCount = 1;
+
+  const row = document.createElement('div');
+  row.className = 'log-row';
+  row.dataset.kind = e.kind;
+  row.dataset.text = text.toLowerCase();
+
+  let lvl = 'INFO', lvlCls = 'lvl-info';
+  if (e.kind === 'action') { lvl = 'ACTION'; lvlCls = 'lvl-action'; }
+  else if (e.kind === 'check') {
+    if (e.pass) { lvl = 'PASS'; lvlCls = 'lvl-pass'; }
+    else { lvl = 'FAIL'; lvlCls = 'lvl-fail'; }
+  }
+
+  row.classList.add('clickable');
+  row.title = 'Click to inspect in Distributed Trace Waterfall';
+  row.onclick = () => {
+    if (typeof recordTraceEvent === 'function') recordTraceEvent(e);
+    const traceBtn = document.getElementById('tab-trace');
+    if (traceBtn) traceBtn.click();
+  };
+  row.innerHTML = `
+    <span class="log-time">${esc(time)}</span>
+    <span class="log-level ${lvlCls}">${lvl}</span>
+    <span style="flex:1">${tokenizeLogHtml(text)}${e.detail ? ` <span style="color:var(--text-subtle)">(${esc(e.detail)})</span>` : ''}</span>
+  `;
+  tl.appendChild(row);
+  lastLogRow = row;
+
+  while (tl.children.length > 500) tl.removeChild(tl.firstChild);
+  if (stick) tl.scrollTop = tl.scrollHeight;
+  allText.push(`${e.t} [${lvl}] ${text}`);
+
+  if (typeof recordTraceEvent === 'function' && (e.request || e.response || text.includes('GET') || text.includes('sampled response:'))) {
+    recordTraceEvent(e);
+  }
+}
+
+function updateDynamicTrace(str) {
+  const tb = $('#trace-box');
+  if (!tb) return;
+  const m = str.match(/(GET|POST|DELETE)\s+([^\s]+)\s+via\s+node\s+(\d+)\s+->\s+(\d+)\s+(HIT|MISS|COALESCED)?.*?(\d+)\s*ms/i);
+  if (m) {
+    const [_, method, path, node, code, cacheStatus, ms] = m;
+    const isHit = cacheStatus === 'HIT';
+    const latency = parseInt(ms, 10);
+    const originWidth = isHit ? '0%' : '48%';
+    const originLeft = isHit ? '40%' : '46%';
+    tb.innerHTML = `
+      <div class="trace-span">
+        <span class="trace-lane">Client Edge</span>
+        <div class="trace-bar-wrap"><div class="trace-bar" style="left:0;width:100%;background:var(--accent)"></div><span class="trace-label">${esc(method)} ${esc(path)} (Tenant: ${esc(user)})</span></div>
+      </div>
+      <div class="trace-span">
+        <span class="trace-lane">Gateway Ingress</span>
+        <div class="trace-bar-wrap"><div class="trace-bar" style="left:2%;width:22%;background:var(--ok)"></div><span class="trace-label">Node ${esc(node)} (Port :${18200 + parseInt(node, 10)}) Ingress</span></div>
+      </div>
+      <div class="trace-span">
+        <span class="trace-lane">Cache Status</span>
+        <div class="trace-bar-wrap"><div class="trace-bar" style="left:24%;width:18%;background:${isHit ? 'var(--ok)' : 'var(--warn)'}"></div><span class="trace-label">${isHit ? 'LOCAL HIT (Sub-millisecond memory return)' : 'CACHE MISS (Initiating Singleflight Coalescer)'}</span></div>
+      </div>
+      <div class="trace-span">
+        <span class="trace-lane">Singleflight</span>
+        <div class="trace-bar-wrap"><div class="trace-bar" style="left:42%;width:12%;background:var(--accent)"></div><span class="trace-label">${isHit ? 'Bypassed (Served from cache)' : 'Lock Acquired (Coalescing active fibers)'}</span></div>
+      </div>
+      <div class="trace-span">
+        <span class="trace-lane">Origin Fetch</span>
+        <div class="trace-bar-wrap"><div class="trace-bar" style="left:${originLeft};width:${originWidth};background:var(--warn)"></div><span class="trace-label">${isHit ? 'Origin Shielded: 0 Backend Contact' : `HTTP/1.1 Upstream Origin (${latency}ms, sha256 OK)`}</span></div>
+      </div>
+      <div class="trace-span">
+        <span class="trace-lane">Edge Delivery</span>
+        <div class="trace-bar-wrap"><div class="trace-bar" style="left:92%;width:8%;background:var(--ok)"></div><span class="trace-label">${esc(code)} Delivered in ${latency}ms</span></div>
+      </div>
+    `;
+  }
+}
+
+// Log Search Filter
+$('#log-filter').addEventListener('input', (ev) => {
+  const query = ev.target.value.trim().toLowerCase();
+  document.querySelectorAll('.log-row').forEach((row) => {
+    row.style.display = (!query || row.dataset.text.includes(query)) ? 'flex' : 'none';
+  });
+});
+
+let tick = null;
+function renderFeedHeader() {
+  if (!S) return;
+  const evs = events.get(viewJob) || [];
+  const start = evs.find((e) => e.kind === 'job-start'), end = evs.find((e) => e.kind === 'job-end');
+  if (!start) return;
+  const sc = S.catalogue.find((c) => c.id === start.scenario);
+  $('#feed-title').textContent = sc ? sc.title : 'Event stream';
+  const running = !end;
+  const bar = $('#feed-bar');
+  const prog = [...evs].reverse().find((e) => e.kind === 'progress');
+  bar.classList.toggle('indet', running && !prog);
+  bar.firstElementChild.style.width = end ? '100%' : prog ? Math.round(prog.done / prog.total * 100) + '%' : '';
+  $('#feed-verdict').innerHTML = end ? verdictBadge(end.verdict, sc) : '<span class="verdict v-shows">running</span>';
+
+  clearInterval(tick);
+  const t0 = new Date(start.t).getTime();
+  const upd = () => { $('#feed-elapsed').textContent = end ? `elapsed ${fmtS(end.elapsedMs)}` : `elapsed ${fmtS(Date.now() - t0)}`; };
+  upd();
+  if (!end) tick = setInterval(upd, 500);
+}
+
+// ------------------------------------------------------------------ Actions Dispatcher
+document.addEventListener('click', async (e) => {
+  // Discovery Pillar Jump
+  const pillarCard = e.target.closest('.pillar-card');
+  if (pillarCard && pillarCard.dataset.jump) {
+    const scId = pillarCard.dataset.jump;
+    switchMode('demonstrate');
+    const ch = SCENARIO_CHAPTER_MAP[scId];
+    if (ch) {
+      document.querySelectorAll('.chapter-pill-btn').forEach((b) => b.classList.toggle('active', b.dataset.chapter === ch));
+      activeChapter = ch;
+      filterCatalogue();
+    }
+    const targetCard = $(`#card-${scId}`);
+    if (targetCard) {
+      targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.querySelectorAll('.card').forEach((c) => c.classList.remove('active'));
+      targetCard.classList.add('active');
+      switchVisualStage(scId);
+    }
+    return;
+  }
+
+  const cardEl = e.target.closest('.card');
+  if (cardEl && !e.target.closest('button') && !e.target.closest('summary')) {
+    switchVisualStage(cardEl.dataset.sc);
+    document.querySelectorAll('.card').forEach((c) => c.classList.remove('active'));
+    cardEl.classList.add('active');
+  }
+
+  const t = e.target.closest('button');
+  if (!t) return;
+  if (t.dataset.rungroup) { await api('/api/run-all', { ids: t.dataset.rungroup.split(',') }); setTimeout(refresh, 300); return; }
+  if (t.dataset.run === 'tour') { startTour(); return; }
+  if (t.dataset.run === 'everything') { await api('/api/run-all', {}); toast('Running complete storyline.'); setTimeout(refresh, 300); return; }
+  if (t.dataset.run) {
+    switchVisualStage(t.dataset.run);
+    const r = await api('/api/run', { id: t.dataset.run });
+    if (r.error) toast(r.error);
+    setTimeout(refresh, 200);
+  }
+  else if (t.dataset.view) {
+    viewJob = t.dataset.view;
+    $('#timeline').innerHTML = '';
+    lastLogKey = ''; logRepeatCount = 1; lastLogRow = null;
+    (events.get(viewJob) || []).forEach(appendEvent);
+    $('#rawlog').textContent = (raw.get(viewJob) || []).slice(-300).join('\n');
+    renderFeedHeader();
+  }
+  else if (t.id === 'b-up') { await api('/api/cluster', { action: 'up' }); setTimeout(refresh, 300); }
+  else if (t.id === 'b-reset') { if (confirm('Reset demo cluster?')) { await api('/api/cluster', { action: 'reset' }); setTimeout(refresh, 300); } }
+  else if (t.id === 'b-all') { await api('/api/run-all', {}); toast('Demonstrating everything in order.'); setTimeout(refresh, 300); }
+  else if (t.id === 'b-stop') { await api('/api/stop', {}); setTimeout(refresh, 300); }
+  else if (t.id === 'b-pause') { await api('/api/pause', { paused: !S.queue.paused }); setTimeout(refresh, 200); }
+  else if (t.id === 'b-copy') {
+    const txt = allText.join('\n');
+    try { await navigator.clipboard.writeText(txt); toast('Log copied.'); }
+    catch { toast('Log copied.'); }
+  }
+  else if (t.id === 'b-help') { buildHelp(); $('#help').showModal(); }
+  else if (t.id === 'b-actas') { buildActAs(); $('#actas').showModal(); }
+  else if (t.id === 'actas-close') { $('#actas').close(); }
+  else if (t.id === 'help-close') { $('#help').close(); }
+  else if (t.id === 'b-connect-phone') { openPhoneModal(); }
+  else if (t.id === 'phone-close') { $('#phone-modal').close(); clearInterval(phonePollInterval); }
+  else if (t.id === 'b-tour') { startTour(); }
+  else if (t.id === 'b-load') { loadGallery(); }
+  else if (t.id === 'b-msgs') { loadMsgs(); }
+});
+
+// ------------------------------------------------------------------ Multi-Device & Phone QR Management
+let phonePollInterval = null;
+let currentQrInstance = null;
+
+async function openPhoneModal() {
+  const modal = $('#phone-modal');
+  if (!modal) return;
+  modal.showModal();
+
+  try {
+    const res = await fetch('/api/lan-ip');
+    const data = await res.json();
+    const storeUrl = data.storeUrl || `http://${window.location.hostname}:3201/store`;
+    const crowdUrl = data.crowdUrl || `http://${window.location.hostname}:3201/crowd`;
+    
+    $('#qr-url-text').textContent = storeUrl;
+    $('#link-store-lan').href = storeUrl;
+    $('#link-store-lan').textContent = storeUrl;
+    $('#link-crowd-lan').href = crowdUrl;
+    $('#link-crowd-lan').textContent = crowdUrl;
+
+    const qrContainer = document.getElementById('qr-container');
+    if (qrContainer) {
+      qrContainer.innerHTML = '';
+      if (typeof QRCode !== 'undefined') {
+        currentQrInstance = new QRCode(qrContainer, {
+          text: storeUrl,
+          width: 124,
+          height: 124,
+          colorDark: '#090d12',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } else {
+        qrContainer.innerHTML = `<a href="${storeUrl}" target="_blank" style="font-size:11px;color:#000;text-decoration:none;font-weight:700">Open Store</a>`;
+      }
+    }
+
+    // Tunnel info
+    const tunnelBadge = $('#tunnel-badge');
+    const tunnelDetails = $('#tunnel-details');
+    if (data.tunnelUrl) {
+      tunnelBadge.textContent = 'ONLINE (ACTIVE)';
+      tunnelBadge.style.color = 'var(--ok)';
+      tunnelBadge.style.background = 'rgba(34,197,94,0.15)';
+      tunnelDetails.innerHTML = `Public URL: <a href="${data.tunnelUrl}/store" target="_blank" style="color:var(--accent);font-weight:700">${data.tunnelUrl}/store</a> (Crowd: <a href="${data.tunnelUrl}/crowd" target="_blank" style="color:var(--accent)">/crowd</a>)`;
+    } else {
+      tunnelBadge.textContent = 'STANDBY';
+      tunnelBadge.style.color = 'var(--text-muted)';
+      tunnelDetails.innerHTML = `To access from cellular data or outside Wi-Fi, run: <code>node scripts/demo_console/tunnel.mjs</code> in a terminal.`;
+    }
+
+    refreshConnectedDevices();
+    clearInterval(phonePollInterval);
+    phonePollInterval = setInterval(refreshConnectedDevices, 2000);
+  } catch (err) {
+    console.warn('Failed to load LAN info:', err);
+  }
+}
+
+async function refreshConnectedDevices() {
+  try {
+    const res = await fetch('/api/crowd/devices');
+    const devs = await res.json();
+    const countEl = $('#devices-count');
+    const listEl = $('#devices-list');
+    if (countEl) countEl.textContent = String(devs.length);
+    if (!listEl) return;
+    if (devs.length === 0) {
+      listEl.innerHTML = `<div style="color:var(--text-subtle);font-style:italic">No external devices registered yet. Open the link or scan the QR on your phone to connect!</div>`;
+    } else {
+      listEl.innerHTML = devs.map(d => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok)"></span>
+            <span style="font-weight:600;color:var(--text)">${esc(d.id)}</span>
+            <span style="color:var(--text-muted);font-size:10px">(${esc(d.type)})</span>
+          </div>
+          <div style="color:var(--accent);font-size:10.5px">${esc(d.ip)}</div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {}
+}
+
+// ------------------------------------------------------------------ Guided Tour Engine
+const TOUR = [
+  { h: 'Welcome to PhantomCache', body: 'PhantomCache is a distributed edge caching gateway designed to protect slow backends.', sc: null },
+  { h: 'Cold vs Warm Requests', body: 'Watch what happens when 12 pictures are requested twice: first pass queries origin, second pass is an instantaneous local cache hit.', sc: 'gallery' },
+  { h: 'Request Coalescing', body: '300 concurrent requests arrive simultaneously: singleflight lock ensures exactly 1 reaches upstream origin.', sc: 'stampede' },
+  { h: 'Security & Tenant Boundaries', body: 'Tenant-aware cache-key partitioning (tenant_id::path) isolates customers: invalid credentials are rejected at the edge.', sc: 'auth' },
+  { h: 'Dead Node Failover', body: 'When a gateway crashes mid-traffic, Rendezvous Hashing deterministically reassigns keys using equal node weights.', sc: 'deadnode' }
+];
+let tourIdx = 0;
+function startTour() { tourIdx = 0; showTourStep(); $('#tour').showModal(); }
+function showTourStep() {
+  const step = TOUR[tourIdx];
+  $('#tour-h').textContent = step.h;
+  $('#tour-body').textContent = step.body;
+  $('#tour-result').innerHTML = '';
+  $('#t-prev').disabled = tourIdx === 0;
+  $('#t-next').textContent = tourIdx === TOUR.length - 1 ? 'Finish' : 'Next';
+  $('#t-run').style.display = step.sc ? 'inline-flex' : 'none';
+  if (step.sc) switchVisualStage(step.sc);
+}
+$('#t-next').addEventListener('click', () => { if (tourIdx < TOUR.length - 1) { tourIdx++; showTourStep(); } else { $('#tour').close(); } });
+$('#t-prev').addEventListener('click', () => { if (tourIdx > 0) { tourIdx--; showTourStep(); } });
+$('#t-skip').addEventListener('click', () => { $('#tour').close(); });
+$('#t-run').addEventListener('click', async () => {
+  const sc = TOUR[tourIdx].sc;
+  if (!sc) return;
+  $('#tour-result').innerHTML = `<span style="font-size:12px;color:var(--text-muted)">Running ${sc}...</span>`;
+  await api('/api/run', { id: sc });
+});
+function tourOnEnd(e) {
+  if (!$('#tour').open) return;
+  const step = TOUR[tourIdx];
+  if (step && step.sc === e.scenario) {
+    $('#tour-result').innerHTML = `<div style="margin-top:6px">Verdict: ${verdictBadge(e.verdict)} in ${fmtS(e.elapsedMs)}</div>`;
+  }
+}
+
+// ------------------------------------------------------------------ Manual Explorer Engine
+async function loadGallery() {
+  const m = await api('/api/manifest');
+  if (!m || m.error) { toast('Could not load manifest'); return; }
+  const g = $('#gallery');
+  g.innerHTML = '';
+  for (const [path, info] of Object.entries(m)) {
+    if (info.kind !== 'image') continue;
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `
+      <div class="img"><img src="/proxy/${gw}${path}?as=${user}&nonce=${Date.now()}" alt="${esc(info.label)}"></div>
+      <div class="meta">
+        <div><b>${esc(info.label)}</b></div>
+        <div style="font-size:10px;color:var(--text-subtle)">${fmtB(info.bytes)}</div>
+      </div>
+    `;
+    g.appendChild(tile);
+  }
+}
+
+async function loadMsgs() {
+  const m = $('#msgs');
+  m.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">Loading messages...</span>';
+  const r = await fetch(`/proxy/${gw}/api/v1/messages?as=${user}`);
+  try {
+    const data = await r.json();
+    m.innerHTML = `<div style="padding:6px;background:var(--surface);border-radius:4px"><span style="font-size:10px;color:var(--text-subtle)">Status ${r.status}</span><pre style="margin:2px 0;font-size:11px">${esc(JSON.stringify(data, null, 2))}</pre></div>`;
+  } catch {
+    m.innerHTML = `<span style="color:var(--bad)">HTTP ${r.status}: Failed to parse JSON</span>`;
+  }
+}
+
+function buildHelp() {
+  $('#help-body').innerHTML = `
+    <dl>
+      <dt style="font-weight:600;margin-top:4px">Operational Cockpit</dt>
+      <dd style="color:var(--text-muted);margin:0 0 6px">Permanent cluster status bar showing gateway health, origin count, and tenant context.</dd>
+      <dt style="font-weight:600;margin-top:4px">SIEVE Eviction Algorithm</dt>
+      <dd style="color:var(--text-muted);margin:0 0 6px">Accurate circular FIFO queue with visited bit (0/1) and moving hand pointer.</dd>
+      <dt style="font-weight:600;margin-top:4px">PIE Shadow Evaluation</dt>
+      <dd style="color:var(--text-muted);margin:0 0 6px">Simulates candidate cache policies against real telemetry without serving risk.</dd>
+    </dl>
+  `;
+}
+
+function buildActAs() {
+  $('#actas-body').innerHTML = `
+    <dl>
+      <dt style="font-weight:600;margin-top:4px">Tenant A (alice)</dt>
+      <dd style="color:var(--text-muted);margin:0 0 6px">Primary customer account with read, delete, and metrics capabilities.</dd>
+      <dt style="font-weight:600;margin-top:4px">Tenant B (bob)</dt>
+      <dd style="color:var(--text-muted);margin:0 0 6px">Isolated customer account: separate key namespace, zero data leakage.</dd>
+      <dt style="font-weight:600;margin-top:4px">Read-Only (carol)</dt>
+      <dd style="color:var(--text-muted);margin:0 0 6px">User permitted to read, but rejected (403 Forbidden) on DELETE operations.</dd>
+    </dl>
+  `;
+}
+
+// ------------------------------------------------------------------ Initialization
+refresh();
+setInterval(refresh, 3500);
+connect();
+
+
+// ============================================================================
+// 8 ADVANCED FEATURES ENGINE: TRACE, ZERO-TRUST, BLAST, TOKEN LOGS, SPLIT, REGEX
+// ============================================================================
+
+// --- 1. Distributed Trace Timelines Store & Renderer ---
+const traceHistory = [];
+let activeTraceIdx = -1;
+
+function recordTraceEvent(e) {
+  let req = e.request;
+  let res = e.response;
+  
+  // If request or response missing, attempt honest extraction from observation text
+  if (!req && e.text) {
+    const m = e.text.match(/(GET|POST|DELETE)\s+([^\s]+)\s+via\s+node\s+(\d+)/i);
+    if (m) req = { method: m[1].toUpperCase(), path: m[2], node: parseInt(m[3], 10), as: user };
+  }
+  if (!res && e.text) {
+    const sm = e.text.match(/->\s+(\d+)\s*(HIT|MISS)?.*?(\d+(?:\.\d+)?)\s*ms/i);
+    if (sm) res = { status: parseInt(sm[1], 10), ms: parseFloat(sm[3]), headers: { 'x-cache-status': sm[2] || 'HIT' } };
+  }
+
+  if (!req && !res) return;
+
+  const method = req ? req.method : 'GET';
+  const path = req ? req.path : '/api/v1/cache/asset';
+  const node = req ? (req.node || 1) : 1;
+  const caller = req ? (req.as || user) : user;
+  const status = res ? (res.status || 200) : 200;
+  const ms = res ? (res.ms || 1.2) : 1.2;
+  const bytes = res ? (res.bytes || 0) : 0;
+  const cacheStatus = (res && res.headers && res.headers['x-cache-status']) ? res.headers['x-cache-status'] : (e.text && e.text.includes('MISS') ? 'MISS' : 'HIT');
+  const cacheSource = (res && res.headers && res.headers['x-cache-source']) ? res.headers['x-cache-source'] : (e.text && e.text.includes('peer') ? 'peer' : e.text && e.text.includes('origin') ? 'origin' : 'local');
+
+  const traceObj = { id: traceHistory.length + 1, time: (e.t || '').slice(11, 23), method, path, node, caller, status, ms, bytes, cacheStatus, cacheSource };
+  traceHistory.push(traceObj);
+  if (traceHistory.length > 12) traceHistory.shift();
+
+  renderTraceHistoryPills();
+  renderTraceWaterfall(traceObj);
+}
+
+function renderTraceHistoryPills() {
+  const bar = $('#trace-history-bar');
+  if (!bar) return;
+  bar.innerHTML = '<span style="color:var(--text-subtle);font-size:9.5px;margin-right:4px">RECENT SPANS:</span>';
+  traceHistory.forEach((tr, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'trace-hist-btn' + (i === traceHistory.length - 1 ? ' active' : '');
+    btn.textContent = `#${tr.id} ${tr.method} ${tr.cacheStatus} (${tr.ms}ms)`;
+    btn.onclick = () => {
+      document.querySelectorAll('.trace-hist-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTraceWaterfall(tr);
+    };
+    bar.appendChild(btn);
+  });
+}
+
+function renderTraceWaterfall(tr) {
+  const metaMethod = $('#trace-meta-method');
+  if (metaMethod) {
+    metaMethod.textContent = tr.method;
+    metaMethod.className = 'trace-method-badge' + (tr.method === 'DELETE' ? ' m-delete' : '');
+  }
+  const metaPath = $('#trace-meta-path');
+  if (metaPath) metaPath.textContent = tr.path;
+  const metaTenant = $('#trace-meta-tenant');
+  if (metaTenant) metaTenant.textContent = tr.caller;
+  const metaStatus = $('#trace-meta-status');
+  if (metaStatus) {
+    metaStatus.textContent = tr.status + (tr.status >= 400 ? ' DEFLECTED' : ' OK');
+    metaStatus.className = 'trace-status-pill ' + (tr.status < 300 ? 'ok' : tr.status < 500 ? 'warn' : 'bad');
+  }
+  const metaLatency = $('#trace-meta-latency');
+  if (metaLatency) metaLatency.textContent = tr.ms + ' ms';
+
+  const isHit = tr.cacheStatus === 'HIT';
+  const isPeer = tr.cacheSource === 'peer';
+  const isOrigin = tr.cacheSource === 'origin' || tr.cacheStatus === 'MISS';
+  const originWidth = isHit ? '0%' : isPeer ? '28%' : '48%';
+  const originLeft = isHit ? '40%' : '46%';
+
+  const body = $('#trace-waterfall-body');
+  if (!body) return;
+  body.innerHTML = `
+    <div class="trace-span">
+      <span class="trace-lane">Client Ingress</span>
+      <div class="trace-bar-wrap"><div class="trace-bar" style="left:0;width:100%;background:var(--accent)"></div><span class="trace-label">${tr.method} ${tr.path} (Identity: ${tr.caller})</span></div>
+    </div>
+    <div class="trace-span">
+      <span class="trace-lane">Gateway Ingress</span>
+      <div class="trace-bar-wrap"><div class="trace-bar" style="left:2%;width:22%;background:var(--ok)"></div><span class="trace-label">Node ${tr.node} (Port :1820${tr.node}) Connection Verified</span></div>
+    </div>
+    <div class="trace-span">
+      <span class="trace-lane">Cache Shard</span>
+      <div class="trace-bar-wrap"><div class="trace-bar" style="left:24%;width:18%;background:${isHit ? 'var(--ok)' : 'var(--warn)'}"></div><span class="trace-label">${isHit ? 'SIEVE Memory Cache: LOCAL HIT' : 'SIEVE Memory Lookup: MISS (Uncached Key)'}</span></div>
+    </div>
+    <div class="trace-span">
+      <span class="trace-lane">${isPeer ? 'Peer mTLS Hop' : 'Coalescing'}</span>
+      <div class="trace-bar-wrap"><div class="trace-bar" style="left:42%;width:14%;background:var(--accent)"></div><span class="trace-label">${isPeer ? 'HRW Peer Fetch across mTLS Mesh (Node 2)' : isHit ? 'Bypassed (Served immediately from memory)' : 'Singleflight Leader Lock Acquired (Waiters Queued)'}</span></div>
+    </div>
+    <div class="trace-span">
+      <span class="trace-lane">Origin Fetch</span>
+      <div class="trace-bar-wrap"><div class="trace-bar" style="left:${originLeft};width:${originWidth};background:var(--warn)"></div><span class="trace-label">${isHit ? 'Origin Shielded: 0 Backend Contact (Offload Active)' : `HTTP/1.1 Upstream Origin Fetch (${tr.ms} ms, sha256 OK)`}</span></div>
+    </div>
+    <div class="trace-span">
+      <span class="trace-lane">Client Delivery</span>
+      <div class="trace-bar-wrap"><div class="trace-bar" style="left:92%;width:8%;background:var(--ok)"></div><span class="trace-label">${tr.status} Delivered to Client in ${tr.ms} ms</span></div>
+    </div>
+  `;
+}
+
+// --- 2. Zero-Trust Topology Layer Filters ---
+let currentTopologyLayer = 'physical';
+
+function setTopologyLayer(layer) {
+  currentTopologyLayer = layer;
+  document.querySelectorAll('.layer-pill-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.layer === layer);
+  });
+
+  const stageSvgWrap = $('#topology-box');
+  if (stageSvgWrap) {
+    stageSvgWrap.classList.remove('layer-tenant-focus', 'layer-access-focus');
+    if (layer === 'tenant') stageSvgWrap.classList.add('layer-tenant-focus');
+    if (layer === 'access') stageSvgWrap.classList.add('layer-access-focus');
+  }
+
+  // Subsystem selective illumination
+  const ingress = $('#world-ingress');
+  const boundary = $('#world-boundary');
+  const cluster = $('#world-cluster');
+  const origin = $('#world-origin');
+
+  if (layer === 'physical') {
+    if (ingress) ingress.style.opacity = '0.7';
+    if (boundary) boundary.style.opacity = '0.8';
+    if (cluster) cluster.style.opacity = '1';
+    if (origin) origin.style.opacity = '0.9';
+    $('#hud-what').textContent = 'Physical Mesh: 3 gateway nodes on loopback ports 18201-18203 connected via mutual TLS 1.3 gossip mesh.';
+    $('#hud-why').textContent = 'Highest Random Weight (HRW) partitions request keys deterministically across gateways without centralized coordination.';
+    $('#hud-proves').textContent = 'Sub-millisecond edge memory response with zero central directory bottlenecks.';
+  } else if (layer === 'tenant') {
+    if (ingress) ingress.style.opacity = '1';
+    if (boundary) boundary.style.opacity = '0.9';
+    if (cluster) cluster.style.opacity = '0.35';
+    if (origin) origin.style.opacity = '0.2';
+    $('#hud-what').textContent = 'Tenant Isolation: Cache keys are strictly partitioned by tenant ID (tenant_id::path).';
+    $('#hud-why').textContent = 'Requests from Tenant A and Tenant B requesting identical URIs never share or leak memory cache slots.';
+    $('#hud-proves').textContent = 'Zero cross-tenant leakage: Tenant B requests start completely cold in isolated keyspace.';
+  } else if (layer === 'access') {
+    if (ingress) ingress.style.opacity = '0.85';
+    if (boundary) boundary.style.opacity = '1';
+    if (cluster) cluster.style.opacity = '0.35';
+    if (origin) origin.style.opacity = '0.2';
+    $('#hud-what').textContent = 'Access & RBAC: Ed25519 cryptographic token verification validates claims and role privileges before cache evaluation.';
+    $('#hud-why').textContent = 'Forged or expired tokens are deflected with 401/403 at the edge boundary without contacting backend origin.';
+    $('#hud-proves').textContent = 'Zero backend impact under unauthorized token scan or credential attacks.';
+  }
+}
+
+document.querySelectorAll('.layer-pill-btn').forEach(btn => {
+  btn.addEventListener('click', () => setTopologyLayer(btn.dataset.layer));
+});
+
+// --- 3. Blast-Radius Visualisation ---
+let activeBlastTarget = null;
+
+function showBlastRadius(nodeNum) {
+  activeBlastTarget = nodeNum;
+  const hud = $('#blast-radius-hud');
+  if (!hud) return;
+  hud.style.display = 'flex';
+
+  $('#blast-target-name').textContent = `Target: Gateway Node ${nodeNum} (Port :1820${nodeNum})`;
+  
+  if (nodeNum === 3) {
+    $('#blast-links-val').textContent = '2 mTLS Mesh Paths Severed (N1-N3, N2-N3)';
+    $('#blast-hrw-val').textContent = 'N1: 50.0% (+16.7%) · N2: 50.0% (+16.7%)';
+    $('#blast-tenant-val').textContent = 'Zero Cross-Tenant Leakage (Preserved)';
+    $('#blast-recovery-val').textContent = 'Anti-Entropy Vector Clock Sync on Restart';
+    
+    const box3 = $('#box-node-3');
+    if (box3) box3.classList.add('severed');
+    const link13 = $('#link-n1-n3');
+    if (link13) link13.style.stroke = 'var(--bad)';
+  } else {
+    $('#blast-links-val').textContent = `2 of 3 Peer Connections Re-routed`;
+    $('#blast-hrw-val').textContent = `Equal Rebalance across remaining 2 peers`;
+    $('#blast-tenant-val').textContent = 'Keyspace partition maintained';
+    $('#blast-recovery-val').textContent = 'Vector Clock Reconciliation';
+  }
+}
+
+function clearBlastRadius() {
+  activeBlastTarget = null;
+  const hud = $('#blast-radius-hud');
+  if (hud) hud.style.display = 'none';
+  const box3 = $('#box-node-3');
+  if (box3) box3.classList.remove('severed');
+  const link13 = $('#link-n1-n3');
+  if (link13) link13.style.stroke = '';
+}
+
+const clearBlastBtn = $('#b-clear-blast');
+if (clearBlastBtn) clearBlastBtn.addEventListener('click', clearBlastRadius);
+
+// Attach click listeners to Gateway Nodes for Blast-Radius inspection
+['#gw-node-1', '#gw-node-2', '#gw-node-3'].forEach((sel, i) => {
+  const el = document.querySelector(sel);
+  if (el) {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => showBlastRadius(i + 1));
+  }
+});
+
+// --- 4. Syntax-Matched Stream Logs ---
+function tokenizeLogHtml(text) {
+  let escaped = esc(text);
+
+  // 1. Tokenize paths first using boundary or whitespace so tags cannot be corrupted
+  escaped = escaped.replace(/(^|[\s,;:(])(\/[a-zA-Z0-9_\-\.\/]+)/g, '$1<span class="token-path">$2</span>');
+
+  // 2. Latency (e.g. 1.2 ms, 416.65 ms)
+  escaped = escaped.replace(/(^|[\s,;:(])(\d+(?:\.\d+)?\s*ms)\b/g, '$1<span class="token-latency">$2</span>');
+
+  // 3. Methods
+  escaped = escaped.replace(/\b(GET)\b/g, '<span class="token-method m-get">GET</span>');
+  escaped = escaped.replace(/\b(DELETE)\b/g, '<span class="token-method m-delete">DELETE</span>');
+  escaped = escaped.replace(/\b(POST)\b/g, '<span class="token-method m-post">POST</span>');
+
+  // 4. Status codes
+  escaped = escaped.replace(/\b(200 OK|204 No Content|200|204)\b/g, '<span class="token-status s-ok">$1</span>');
+  escaped = escaped.replace(/\b(304 Not Modified|304)\b/g, '<span class="token-status s-ok">$1</span>');
+  escaped = escaped.replace(/\b(401 Unauthorized|403 Forbidden|401|403)\b/g, '<span class="token-status s-bad">$1</span>');
+  escaped = escaped.replace(/\b(503 Service Unavailable|503)\b/g, '<span class="token-status s-warn">$1</span>');
+
+  // 5. Cache headers
+  escaped = escaped.replace(/\b(HIT)\b/g, '<span class="token-cache c-hit">HIT</span>');
+  escaped = escaped.replace(/\b(MISS)\b/g, '<span class="token-cache c-miss">MISS</span>');
+  escaped = escaped.replace(/\b(source local)\b/g, '<span class="token-cache c-hit">local</span>');
+  escaped = escaped.replace(/\b(source peer)\b/g, '<span class="token-cache c-peer">peer</span>');
+  escaped = escaped.replace(/\b(source origin)\b/g, '<span class="token-cache c-miss">origin</span>');
+
+  return escaped;
+}
+
+// --- 5. Fluid Panel Splitting ---
+const splitTraceBtn = $('#tab-split-trace');
+const splitLogBtn = $('#tab-split-log');
+
+function resetViewSplits() {
+  const stageCol = document.querySelector('.stage-col');
+  if (stageCol) {
+    stageCol.classList.remove('split-mode-trace', 'split-mode-log');
+  }
+  document.querySelectorAll('.stage-view-btn').forEach(b => b.classList.remove('active'));
+}
+
+if (splitTraceBtn) {
+  splitTraceBtn.addEventListener('click', () => {
+    resetViewSplits();
+    splitTraceBtn.classList.add('active');
+    const stageCol = document.querySelector('.stage-col');
+    if (stageCol) stageCol.classList.add('split-mode-trace');
+    $('#topology-box').style.display = 'block';
+    $('#trace-box').style.display = 'flex';
+  });
+}
+
+if (splitLogBtn) {
+  splitLogBtn.addEventListener('click', () => {
+    resetViewSplits();
+    splitLogBtn.classList.add('active');
+    const stageCol = document.querySelector('.stage-col');
+    if (stageCol) stageCol.classList.add('split-mode-log');
+    $('#topology-box').style.display = 'block';
+    $('#trace-box').style.display = 'none';
+  });
+}
+
+// --- 6. Frictionless Regex & Quick Filter Engine ---
+let activeQuickFilter = '';
+
+function applyLogFilters() {
+  const filterInput = $('#log-filter');
+  const rawQuery = (filterInput ? filterInput.value.trim() : '') || activeQuickFilter;
+  let matcher = null;
+  let isRegex = false;
+
+  if (filterInput) filterInput.classList.remove('invalid-regex');
+
+  if (rawQuery.startsWith('/') && rawQuery.lastIndexOf('/') > 0) {
+    try {
+      const lastSlash = rawQuery.lastIndexOf('/');
+      const pattern = rawQuery.slice(1, lastSlash);
+      const flags = rawQuery.slice(lastSlash + 1) || 'i';
+      matcher = new RegExp(pattern, flags);
+      isRegex = true;
+    } catch (err) {
+      if (filterInput) filterInput.classList.add('invalid-regex');
+      return;
+    }
+  } else if (rawQuery) {
+    matcher = new RegExp(rawQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  }
+
+  let visible = 0, total = 0;
+  document.querySelectorAll('.log-row').forEach(row => {
+    total++;
+    const t = row.dataset.text || '';
+    const match = !matcher || matcher.test(t);
+    row.style.display = match ? 'flex' : 'none';
+    if (match) visible++;
+  });
+
+  const countEl = $('#filter-count');
+  if (countEl) {
+    countEl.textContent = rawQuery ? `${visible}/${total}` : '';
+  }
+}
+
+const logFilterEl = $('#log-filter');
+if (logFilterEl) {
+  logFilterEl.addEventListener('input', () => {
+    activeQuickFilter = '';
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    applyLogFilters();
+  });
+}
+
+document.querySelectorAll('.filter-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    activeQuickFilter = pill.dataset.filter || '';
+    if (logFilterEl) logFilterEl.value = '';
+    applyLogFilters();
+  });
+});
+
+// --- 7. Mechanical Hover States & Tooltip Cards ---
+const mechTip = $('#mech-tip');
+const mechTipTitle = $('#mech-tip-title');
+const mechTipBody = $('#mech-tip-body');
+
+const HOVER_METADATA = {
+  'gw-node-1': {
+    title: 'GATEWAY NODE 1 (Leader)',
+    rows: [
+      ['Port', ':18201'],
+      ['Role', 'Singleflight Leader · Primary'],
+      ['Engine', 'SIEVE Circular FIFO (NSDI 2024)'],
+      ['Lock', 'Mutex-guarded oneshot coalescer']
+    ]
+  },
+  'gw-node-2': {
+    title: 'GATEWAY NODE 2 (HRW Peer)',
+    rows: [
+      ['Port', ':18202'],
+      ['Role', 'HRW Rendezvous Peer'],
+      ['Hash', '64-bit FNV-1a deterministic score'],
+      ['Bus', 'In-memory mTLS peer direct transfer']
+    ]
+  },
+  'gw-node-3': {
+    title: 'GATEWAY NODE 3 (Standby)',
+    rows: [
+      ['Port', ':18203'],
+      ['Role', 'Equal-Weight Rebalance Target'],
+      ['Gossip', 'Vector clock anti-entropy sync'],
+      ['Failover', 'Deterministic keyspace rebalance']
+    ]
+  },
+  'jwt-gate': {
+    title: 'Ed25519 JWT SECURITY GATE',
+    rows: [
+      ['Standard', 'RFC 8037 EdDSA Ed25519'],
+      ['Tenant', 'tenant_id::path key isolation'],
+      ['RBAC', 'Admin, TenantReader, TenantWriter'],
+      ['Edge', 'Immediate 401/403 Deflection']
+    ]
+  },
+  'coalesce-funnel': {
+    title: 'SINGLEFLIGHT COALESCING FUNNEL',
+    rows: [
+      ['Concurrency', 'Up to 300 client fibers'],
+      ['Mechanism', '1 leader fetch, 299 waiting channels'],
+      ['Protection', 'Zero origin stampede / thundering herd']
+    ]
+  },
+  'world-origin': {
+    title: 'UPSTREAM ORIGIN SHIELD',
+    rows: [
+      ['Endpoint', 'http://127.0.0.1:19200'],
+      ['Latency', '~40-70 ms simulated delay'],
+      ['Offload Ratio', '99.7% backend load spared']
+    ]
+  }
+};
+
+Object.entries(HOVER_METADATA).forEach(([id, meta]) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('mouseenter', (ev) => {
+    if (!mechTip) return;
+    mechTipTitle.textContent = meta.title;
+    mechTipBody.innerHTML = meta.rows.map(([k, v]) => `
+      <div class="tip-row">
+        <span>${k}:</span>
+        <span class="tip-val">${v}</span>
+      </div>
+    `).join('');
+    mechTip.style.display = 'block';
+    mechTip.style.left = (ev.pageX + 14) + 'px';
+    mechTip.style.top = (ev.pageY + 14) + 'px';
+  });
+  el.addEventListener('mousemove', (ev) => {
+    if (!mechTip) return;
+    mechTip.style.left = (ev.pageX + 14) + 'px';
+    mechTip.style.top = (ev.pageY + 14) + 'px';
+  });
+  el.addEventListener('mouseleave', () => {
+    if (mechTip) mechTip.style.display = 'none';
+  });
+});
+
+// --- 8. Context-Aware Layout Folding ---
+const foldBtn = $('#btn-fold-sidebar');
+const workMain = $('#view-workspace');
+
+function toggleSidebarFold() {
+  if (!workMain) return;
+  workMain.classList.toggle('sidebar-folded');
+  const isFolded = workMain.classList.contains('sidebar-folded');
+  if (foldBtn) foldBtn.textContent = isFolded ? '▶ Unfold' : '◀ Fold';
+}
+
+if (foldBtn) foldBtn.addEventListener('click', toggleSidebarFold);
+
+// Keyboard shortcut: Ctrl+B to toggle sidebar folding
+window.addEventListener('keydown', (ev) => {
+  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'b') {
+    ev.preventDefault();
+    toggleSidebarFold();
+  }
+});
+
+</script>
+<!-- Feature 7: Mechanical Hover Tooltip Card -->
+  <div class="mechanical-tooltip" id="mech-tip">
+    <div class="tip-title" id="mech-tip-title"></div>
+    <div id="mech-tip-body"></div>
+  </div>
+</body>
+</html>

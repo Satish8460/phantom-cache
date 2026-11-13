@@ -1,0 +1,14 @@
+docs/research/m6_sealed_results.md
+docs/research/phase_5_preregistration.md
+docs/research/preregistration_m6.md
+docs/research/preregistration_m6_v2.md
+docs/research/preregistration_m6_v2_1_amendment.md
+docs/research/preregistration_m6_v2_1_freeze.json
+docs/research/preregistration_m6_v2_2_addendum_1.json
+docs/research/preregistration_m6_v2_2_addendum_1.md
+docs/research/preregistration_m6_v2_2_addendum_1.pin
+docs/research/preregistration_m6_v2_2_amendment.md
+docs/research/preregistration_m6_v2_2_freeze.json
+docs/research/preregistration_m6_v2_freeze.json
+lab-results/tuning/frozen_arm_params.json
+lab-results/tuning/tuning_trials.csv

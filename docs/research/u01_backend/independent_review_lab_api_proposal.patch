@@ -1,0 +1,42 @@
+--- a/src/api/lab_api.rs
++++ b/src/api/lab_api.rs
+@@ -1381,14 +1381,19 @@
+         }
+         "scenario_b" => {
+             if let Some(sj) = read_json_capped(&en.dir.join("summary.json")) {
+-                let verdicts: serde_json::Map<String, Value> = sj["verdicts"]
+-                    .as_object()
+-                    .map(|m| m.iter().map(|(k, v)| (k.clone(), json!({"outcome": v["outcome"], "reasons": v["reasons"]}))).collect())
+-                    .unwrap_or_default();
++                // U-01: a null/absent `verdicts` (incomplete run) must stay null, never become an empty object.
++                let verdicts: Value = match sj["verdicts"].as_object() {
++                    Some(m) => Value::Object(m.iter().map(|(k, v)| (k.clone(), json!({"outcome": v["outcome"], "reasons": v["reasons"]}))).collect()),
++                    None => Value::Null,
++                };
+                 verdict_snapshot = json!({
+                     "label": sj["label"].clone(),
++                    "label_planned": sj["label_planned"].clone(),
+                     "label_reasons": sj["label_reasons"].clone(),
+                     "status": sj["status"].clone(),
++                    "run_completeness": sj["run_completeness"].clone(),
++                    "verdicts_status": sj["verdicts_status"].clone(),
++                    "verdicts_reason": sj["verdicts_reason"].clone(),
+                     "mechanism_h_b1_all_pass": sj["mechanism_h_b1_all_pass"].clone(),
+                     "verdicts": verdicts,
+                     "recorded_exactly": "outcomes are copied from summary.json; TRADE_OFF_FAILURE is shown as recorded",
+@@ -1852,10 +1857,11 @@
+     match out {
+         Ok(o) if o.cancelled => h.finish(svc, "cancelled", Some(130), None, None, Some(svc.build_artifact_index(&h.dir, &kind))),
+         Ok(o) => {
+-            let verdicts: serde_json::Map<String, Value> = o.summary["verdicts"]
+-                .as_object()
+-                .map(|m| m.iter().map(|(k, v)| (k.clone(), json!({"outcome": v["outcome"], "reasons": v["reasons"]}))).collect())
+-                .unwrap_or_default();
++            // U-01: null verdicts (incomplete summary) must stay null, never become an empty object.
++            let verdicts: Value = match o.summary["verdicts"].as_object() {
++                Some(m) => Value::Object(m.iter().map(|(k, v)| (k.clone(), json!({"outcome": v["outcome"], "reasons": v["reasons"]}))).collect()),
++                None => Value::Null,
++            };
+             let ix = svc.build_artifact_index(&h.dir, &kind);
+             h.finish(
+                 svc,

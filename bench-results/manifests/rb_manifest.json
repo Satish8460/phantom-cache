@@ -1,0 +1,1044 @@
+{
+  "git_head": "456bb25930004f1896a84c53e776e7b3ef29ee16",
+  "dirty_flag": true,
+  "pass": "R-B",
+  "src_hash": "5aef531431bf94fbd1d8e1c9da97c435aa2cf13a66af7c9d608306b93204a498",
+  "platform_label": "windows-native",
+  "os_kernel": "Windows 11 Home / x86_64",
+  "power_state": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+  "cpu_affinity": "0x0000FFFF (P-cores 0-15)",
+  "r2_repetitions": 10,
+  "start_utc": "2026-10-29T05:39:43.159703+00:00",
+  "end_utc": "2026-10-29T05:55:09.839407+00:00",
+  "limitations_verbatim": "hybrid-core laptop; Windows scheduler noise; WSL2 virtualization (no perf HW counters expected, no governor control); loopback only; single host; closed-loop load (coordinated omission possible; open-loop deferred); in-process mock origin; no network.",
+  "rb_core_valid": true,
+  "core_results": {
+    "B1": {
+      "c1_hit_1_tenant_ns": {
+        "median": 112.167,
+        "ci_95": [
+          109.401,
+          114.031
+        ],
+        "half_width_pct": 2.063886882951318,
+        "min": 108.617,
+        "max": 118.71,
+        "class": "VALID"
+      },
+      "c1_hit_1000_tenants_ns": {
+        "median": 118.586,
+        "ci_95": [
+          117.07,
+          122.171
+        ],
+        "half_width_pct": 2.150759786146768,
+        "min": 116.384,
+        "max": 124.197,
+        "class": "VALID"
+      },
+      "c2_epochs_1_tenant_ns": {
+        "median": 9.64,
+        "ci_95": [
+          9.354,
+          9.703
+        ],
+        "half_width_pct": 1.8101659751037353,
+        "min": 9.234,
+        "max": 9.881,
+        "class": "VALID"
+      },
+      "c2_epochs_1000_tenants_ns": {
+        "median": 17.599,
+        "ci_95": [
+          17.375999999999998,
+          18.424500000000002
+        ],
+        "half_width_pct": 2.9788624353656576,
+        "min": 17.181,
+        "max": 25.294,
+        "class": "VALID"
+      },
+      "c2_shard_index_ns": {
+        "median": 22.514,
+        "ci_95": [
+          21.828,
+          22.881999999999998
+        ],
+        "half_width_pct": 2.3407657457581914,
+        "min": 21.124,
+        "max": 23.191,
+        "class": "VALID"
+      },
+      "c2_resource_clone_ns": {
+        "median": 9.926,
+        "ci_95": [
+          9.4005,
+          10.063
+        ],
+        "half_width_pct": 3.337195244811613,
+        "min": 9.279,
+        "max": 10.074,
+        "class": "VALID"
+      },
+      "c2_fill_ns": {
+        "median": 1143.88,
+        "ci_95": [
+          1121.975,
+          1186.77
+        ],
+        "half_width_pct": 2.832246389481417,
+        "min": 1093.75,
+        "max": 1226.99,
+        "class": "VALID"
+      }
+    },
+    "B2_C3": {
+      "t1_tenants1_miss0": {
+        "threads": 1,
+        "tenants": 1,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 2494974.8902490754,
+        "throughput_ci_95": [
+          2291918.225311179,
+          2606065.2170768287
+        ],
+        "throughput_half_width_pct": 6.295594256146762,
+        "latency_p50_median_ns": 200,
+        "latency_p95_median_ns": 400,
+        "latency_p99_median_ns": 500,
+        "class": "VALID"
+      },
+      "t1_tenants1000_miss0": {
+        "threads": 1,
+        "tenants": 1000,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 2373061.5513220434,
+        "throughput_ci_95": [
+          2261488.405352089,
+          2504789.174326431
+        ],
+        "throughput_half_width_pct": 5.126305485814263,
+        "latency_p50_median_ns": 200,
+        "latency_p95_median_ns": 400,
+        "latency_p99_median_ns": 600,
+        "class": "VALID"
+      },
+      "t8_tenants1_miss0": {
+        "threads": 8,
+        "tenants": 1,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 9890837.575399315,
+        "throughput_ci_95": [
+          9479843.06318273,
+          10814211.671334062
+        ],
+        "throughput_half_width_pct": 6.745478317580502,
+        "latency_p50_median_ns": 500,
+        "latency_p95_median_ns": 1000,
+        "latency_p99_median_ns": 2101,
+        "class": "VALID"
+      },
+      "t8_tenants1000_miss0": {
+        "threads": 8,
+        "tenants": 1000,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 5159570.440181058,
+        "throughput_ci_95": [
+          4884148.280237714,
+          5290782.624878053
+        ],
+        "throughput_half_width_pct": 3.9405833233092684,
+        "latency_p50_median_ns": 800,
+        "latency_p95_median_ns": 3601,
+        "latency_p99_median_ns": 5903,
+        "class": "VALID"
+      },
+      "t16_tenants1_miss0": {
+        "threads": 16,
+        "tenants": 1,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 7631043.232729613,
+        "throughput_ci_95": [
+          7122267.735209978,
+          8220310.588290249
+        ],
+        "throughput_half_width_pct": 7.194578903515808,
+        "latency_p50_median_ns": 700,
+        "latency_p95_median_ns": 4603,
+        "latency_p99_median_ns": 20815,
+        "class": "VALID"
+      },
+      "t16_tenants1000_miss0": {
+        "threads": 16,
+        "tenants": 1000,
+        "miss_pct": 0,
+        "throughput_median_ops_sec": 4552059.992684882,
+        "throughput_ci_95": [
+          4286976.546443847,
+          4788215.5205054395
+        ],
+        "throughput_half_width_pct": 5.5056279450081815,
+        "latency_p50_median_ns": 900,
+        "latency_p95_median_ns": 11407,
+        "latency_p99_median_ns": 50111,
+        "class": "VALID"
+      }
+    },
+    "B6_C4": {
+      "c4_record_8t_throughput": {
+        "median": 9128489.40838439,
+        "ci_95": [
+          8844903.710653301,
+          9297135.419395441
+        ],
+        "half_width_pct": 2.4770347453477424,
+        "class": "VALID"
+      },
+      "c4_record_8t_avg_ns": {
+        "median": 110.58870922796422,
+        "ci_95": [
+          107.59365871671932,
+          113.06461328618312
+        ],
+        "half_width_pct": 2.473559284513458,
+        "class": "VALID"
+      },
+      "c4_percentiles_10k_avg_ns": {
+        "median": 79627.0,
+        "ci_95": [
+          75860.0,
+          80763.5
+        ],
+        "half_width_pct": 3.079043540507617,
+        "class": "VALID"
+      }
+    },
+    "B8e_C5": {
+      "c5_tel_off_throughput": {
+        "median": 60930.22570091274,
+        "ci_95": [
+          57703.63374728582,
+          64688.36949235403
+        ],
+        "half_width_pct": 5.73174944349794,
+        "class": "VALID"
+      },
+      "c5_tel_on_throughput": {
+        "median": 65160.37453853762,
+        "ci_95": [
+          57452.04653421301,
+          69809.18199583088
+        ],
+        "half_width_pct": 9.48209364136598,
+        "class": "VALID"
+      },
+      "c5_tel_off_p50_us": {
+        "median": 250,
+        "ci_95": [
+          233.0,
+          260.0
+        ],
+        "half_width_pct": 5.4,
+        "class": "VALID"
+      },
+      "c5_tel_on_p50_us": {
+        "median": 240,
+        "ci_95": [
+          217.5,
+          259.5
+        ],
+        "half_width_pct": 8.75,
+        "class": "VALID"
+      }
+    }
+  },
+  "extra_results": {
+    "B8e_all": {
+      "c5_tel_off_throughput": {
+        "median": 60930.22570091274,
+        "ci_95": [
+          57703.63374728582,
+          64688.36949235403
+        ],
+        "half_width_pct": 5.73174944349794,
+        "class": "VALID"
+      },
+      "c5_tel_off_p50_us": {
+        "median": 250,
+        "ci_95": [
+          233.0,
+          260.0
+        ],
+        "half_width_pct": 5.4,
+        "class": "VALID"
+      },
+      "c5_tel_off_p95_us": {
+        "median": 425,
+        "ci_95": [
+          373.0,
+          432.0
+        ],
+        "half_width_pct": 6.9411764705882355,
+        "class": "VALID"
+      },
+      "c5_tel_on_throughput": {
+        "median": 65160.37453853762,
+        "ci_95": [
+          57452.04653421301,
+          69809.18199583088
+        ],
+        "half_width_pct": 9.48209364136598,
+        "class": "VALID"
+      },
+      "c5_tel_on_p50_us": {
+        "median": 240,
+        "ci_95": [
+          217.5,
+          259.5
+        ],
+        "half_width_pct": 8.75,
+        "class": "VALID"
+      },
+      "c5_tel_on_p95_us": {
+        "median": 396,
+        "ci_95": [
+          337.0,
+          435.5
+        ],
+        "half_width_pct": 12.436868686868687,
+        "class": "EXPLORATORY"
+      }
+    },
+    "B4": {
+      "reps": [
+        [
+          {
+            "avg_ns_per_evicting_miss": 1485.4,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 8670.6,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 9335.0,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1409.4,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 100836.8,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 101115.0,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1674.0,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7808.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 8609.6,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 2148.2,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 100667.0,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 106680.8,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1493.4,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 8048.4,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 8012.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1596.2,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 105342.2,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 99411.0,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1476.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7337.0,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7657.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1386.8,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 102123.6,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 96354.6,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1438.6,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7891.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7985.0,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1439.6,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 102611.2,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 107580.0,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1443.6,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 8355.2,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7550.2,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1354.2,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 100946.8,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 111886.8,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1617.4,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 8052.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7985.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1599.4,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 102481.2,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 102691.0,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1489.6,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7461.6,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7995.4,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1353.6,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 99994.6,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 95468.6,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1773.0,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7185.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7930.6,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1365.2,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 103917.4,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 92148.8,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ],
+        [
+          {
+            "avg_ns_per_evicting_miss": 1432.2,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7312.8,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 7553.0,
+            "capacity_per_shard": 1000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          },
+          {
+            "avg_ns_per_evicting_miss": 1276.2,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Sieve"
+          },
+          {
+            "avg_ns_per_evicting_miss": 95349.4,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "Lru"
+          },
+          {
+            "avg_ns_per_evicting_miss": 105362.6,
+            "capacity_per_shard": 10000,
+            "churn_count": 500,
+            "policy": "S3Fifo"
+          }
+        ]
+      ],
+      "class": "VALID"
+    },
+    "B7": {
+      "reps": [
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ],
+        [
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 1024,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          },
+          {
+            "allocs_per_fill": 14.0088,
+            "allocs_per_hit": 4.0,
+            "body_size_bytes": 65536,
+            "entry_count": 10000,
+            "fill_alloc_count": 140088,
+            "fill_allocated_bytes": 10869714,
+            "hit_alloc_count": 40000,
+            "hit_allocated_bytes": 598890
+          }
+        ]
+      ],
+      "exact_agreement": true,
+      "class": "VALID"
+    }
+  },
+  "comparison": {
+    "B1_vs_R0": {
+      "c1_hit_1_tenant_ns": {
+        "r0_median": 110.422,
+        "rb_median": 112.167,
+        "delta_pct": 1.5803010269692674
+      },
+      "c1_hit_1000_tenants_ns": {
+        "r0_median": 118.461,
+        "rb_median": 118.586,
+        "delta_pct": 0.10551996015566303
+      },
+      "c2_epochs_1_tenant_ns": {
+        "r0_median": 9.704,
+        "rb_median": 9.64,
+        "delta_pct": -0.6595218466611712
+      },
+      "c2_epochs_1000_tenants_ns": {
+        "r0_median": 18.227,
+        "rb_median": 17.599,
+        "delta_pct": -3.4454380863554075
+      },
+      "c2_shard_index_ns": {
+        "r0_median": 23.179,
+        "rb_median": 22.514,
+        "delta_pct": -2.868976228482675
+      },
+      "c2_resource_clone_ns": {
+        "r0_median": 10.023,
+        "rb_median": 9.926,
+        "delta_pct": -0.9677741195250876
+      },
+      "c2_fill_ns": {
+        "r0_median": 1036.58,
+        "rb_median": 1143.88,
+        "delta_pct": 10.351347701094001
+      }
+    },
+    "B8e_C5_vs_R0": {
+      "c5_tel_off_throughput": {
+        "r0_median": 75871.09201389084,
+        "rb_median": 60930.22570091274,
+        "delta_pct": -19.692436099697435
+      },
+      "c5_tel_on_throughput": {
+        "r0_median": 74170.09800091018,
+        "rb_median": 65160.37453853762,
+        "delta_pct": -12.147379746298835
+      },
+      "c5_tel_off_p50_us": {
+        "r0_median": 201,
+        "rb_median": 250,
+        "delta_pct": 24.378109452736318
+      },
+      "c5_tel_on_p50_us": {
+        "r0_median": 206,
+        "rb_median": 240,
+        "delta_pct": 16.50485436893204
+      }
+    },
+    "B1_vs_RA": {
+      "c1_hit_1_tenant_ns": {
+        "ra_median": 102.922,
+        "rb_median": 112.167,
+        "delta_pct": 8.982530459959975
+      },
+      "c1_hit_1000_tenants_ns": {
+        "ra_median": 110.183,
+        "rb_median": 118.586,
+        "delta_pct": 7.62640334715881
+      },
+      "c2_epochs_1_tenant_ns": {
+        "ra_median": 9.058,
+        "rb_median": 9.64,
+        "delta_pct": 6.425259439169803
+      },
+      "c2_epochs_1000_tenants_ns": {
+        "ra_median": 17.065,
+        "rb_median": 17.599,
+        "delta_pct": 3.1292118370934596
+      },
+      "c2_shard_index_ns": {
+        "ra_median": 21.458,
+        "rb_median": 22.514,
+        "delta_pct": 4.921241495013519
+      },
+      "c2_resource_clone_ns": {
+        "ra_median": 9.502,
+        "rb_median": 9.926,
+        "delta_pct": 4.462218480319927
+      },
+      "c2_fill_ns": {
+        "ra_median": 931.96,
+        "rb_median": 1143.88,
+        "delta_pct": 22.739173355079625
+      }
+    },
+    "B8e_C5_vs_RA": {
+      "c5_tel_off_throughput": {
+        "ra_median": 77635.27352586317,
+        "rb_median": 60930.22570091274,
+        "delta_pct": -21.51734265402615
+      },
+      "c5_tel_on_throughput": {
+        "ra_median": 76213.3859856412,
+        "rb_median": 65160.37453853762,
+        "delta_pct": -14.5027166870476
+      },
+      "c5_tel_off_p50_us": {
+        "ra_median": 199,
+        "rb_median": 250,
+        "delta_pct": 25.628140703517587
+      },
+      "c5_tel_on_p50_us": {
+        "ra_median": 201,
+        "rb_median": 240,
+        "delta_pct": 19.402985074626866
+      }
+    }
+  }
+}

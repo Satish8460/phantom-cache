@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" role="img" aria-labelledby="t d" font-family="Arial, Helvetica, sans-serif">
+<title id="t">Why a std Mutex guard must not be held across an await</title>
+<desc id="d">Two timelines on one Tokio worker thread. Top, the pattern used in PhantomCache: task A locks a shard, does a short synchronous step, drops the guard, then awaits; task B runs and can take the lock. Bottom, the forbidden pattern: task A holds the guard across an await, task B on the same thread tries to lock and blocks the thread, so A cannot resume on that thread.</desc>
+<rect width="900" height="470" fill="#ffffff"/>
+<text x="450" y="26" font-size="18" font-weight="bold" text-anchor="middle" fill="#111">One worker thread, time flows left to right</text>
+
+<!-- Top lane -->
+<text x="20" y="62" font-size="15" font-weight="bold" fill="#111">A. What the code does (allowed)</text>
+<line x1="20" y1="150" x2="880" y2="150" stroke="#333" stroke-width="2"/>
+<rect x="30" y="84" width="150" height="50" fill="#d0d0d0" stroke="#111" stroke-width="2"/>
+<text x="105" y="106" font-size="13" text-anchor="middle" fill="#111">Task A: lock shard,</text>
+<text x="105" y="124" font-size="13" text-anchor="middle" fill="#111">register, DROP guard</text>
+<rect x="190" y="84" width="180" height="50" fill="#ffffff" stroke="#333" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="280" y="106" font-size="13" text-anchor="middle" fill="#111">Task A: .await (waits</text>
+<text x="280" y="124" font-size="13" text-anchor="middle" fill="#111">for oneshot), thread free</text>
+<rect x="380" y="84" width="150" height="50" fill="#d0d0d0" stroke="#111" stroke-width="2"/>
+<text x="455" y="106" font-size="13" text-anchor="middle" fill="#111">Task B: lock same</text>
+<text x="455" y="124" font-size="13" text-anchor="middle" fill="#111">shard, works, drops</text>
+<rect x="540" y="84" width="150" height="50" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="615" y="106" font-size="13" text-anchor="middle" fill="#111">Task C: other work</text>
+<text x="615" y="124" font-size="13" text-anchor="middle" fill="#111">(no lock needed)</text>
+<rect x="700" y="84" width="170" height="50" fill="#d0d0d0" stroke="#111" stroke-width="2"/>
+<text x="785" y="106" font-size="13" text-anchor="middle" fill="#111">Task A resumes: lock,</text>
+<text x="785" y="124" font-size="13" text-anchor="middle" fill="#111">finalize, drop guard</text>
+<text x="30" y="176" font-size="13" fill="#111">Lock is held only for a short, synchronous, bounded section. Shaded = a std Mutex guard is alive.</text>
+
+<!-- Bottom lane -->
+<text x="20" y="226" font-size="15" font-weight="bold" fill="#111">B. What must not be written (hazard)</text>
+<line x1="20" y1="314" x2="880" y2="314" stroke="#333" stroke-width="2"/>
+<rect x="30" y="248" width="420" height="50" fill="#d0d0d0" stroke="#111" stroke-width="2"/>
+<text x="240" y="270" font-size="13" text-anchor="middle" fill="#111">Task A: lock shard ... guard STILL ALIVE ... .await</text>
+<text x="240" y="288" font-size="13" text-anchor="middle" fill="#111">(task is parked, but the guard is not released)</text>
+<rect x="460" y="248" width="410" height="50" fill="#333333" stroke="#000" stroke-width="2"/>
+<text x="665" y="270" font-size="13" text-anchor="middle" fill="#ffffff">Task B (same thread): lock shard -> BLOCKS the</text>
+<text x="665" y="288" font-size="13" text-anchor="middle" fill="#ffffff">OS thread; A cannot be polled here to release it</text>
+<text x="30" y="340" font-size="13" fill="#111">Result on a one-thread runtime: deadlock. On a multi-thread runtime: stalls and lost throughput while A is parked.</text>
+<text x="30" y="362" font-size="13" fill="#111">Rust help: std::sync::MutexGuard is not Send, so a spawned task or an Axum handler that holds one across an .await</text>
+<text x="30" y="380" font-size="13" fill="#111">normally fails to compile. That is a compiler rule about Send, not a proof that no such code exists in the tree.</text>
+<text x="30" y="414" font-size="13" fill="#111">PhantomCache uses std::sync::Mutex (not tokio::sync::Mutex) for shards because every critical section is short and has</text>
+<text x="30" y="432" font-size="13" fill="#111">no I/O. Cost of that choice: a slow section (a long sweep scan, G4A-03) blocks a worker thread, not just one task.</text>
+</svg>

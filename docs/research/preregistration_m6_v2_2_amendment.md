@@ -1,0 +1,148 @@
+# M6 Pre-registration: Amendment 2 (protocol v2.2)
+
+**Authored:** 2026-10-30, between 04:36 and 05:10 local (+05:30) = 2026-10-29T23:06Z..23:40Z (sections 7b, 8b, 8c added after the research lead's adaptivity decision), by the lab writer on the research lead's instructions (every timestamp below is from the system clock of this workstation, quoted when the command ran).
+**Amends:** `preregistration_m6_v2.md` (unchanged, still pinned by SHA-256) and `preregistration_m6_v2_1_amendment.md` (unchanged). **Supersedes** the validity of `preregistration_m6_v2_1_freeze.json` and `preregistration_m6_v2_freeze.json` (both preserved unchanged as historical evidence; the v2.2 record pins their SHA-256). The research lead writes the v2.2 freeze record; this document and the code do not.
+**Evidence tier of everything below:** `SIMULATED` (T1: deterministic virtual-time simulation that drives the real cache and executor code). Nothing here is a measurement of a network, host or process.
+
+## 0. Status of sealed material (L2 wording)
+
+No sealed seed has been used for any run. The leak scan derives the sealed seeds transiently in memory from `PHANTOM_SEALED_SALT_HEX` (when the lead supplies it), compares them with the text of the repository and discards them; no seed is printed, logged or written. The sealed evaluation (R-03) has NOT been run. All results quoted in this amendment come from tuning seeds T (tuning) or development seeds D (dry run). The salt and commitment are unchanged from v2.1 (`60167cd2...67cc`); the derivation domain string is unchanged (`phantomcache-m6-sealed-v2.1`); only `PROTOCOL_VERSION` changed to `2.2`.
+
+## 1. Why this amendment exists
+
+An independent read-only pre-run validity review (2026-10-30 ~04:01 +05:30, ledger entry) concluded "do not spend the sealed set yet". The research lead decided to correct the protocol before any sealed data exist, to run a full-matrix dry run on development seeds, and only then spend the sealed set once. All changes below are therefore legitimate pre-run corrections. Hypotheses H1 to H6, the two primary endpoints, the arms, the 8 scenarios, the 5 evaluation families, `SimParams::standard()`, delta_min = 0.05, the BCa/sign-flip/Holm analysis and the sealed seed commitment are unchanged. What changed:
+
+| Finding | Change | Where |
+|---|---|---|
+| C1a | `m6_full_matrix_dry_run_on_dev_seeds` (ignored test) runs the IDENTICAL pipeline as the sealed test (`lab::m6_pipeline::run_pipeline`), release only, on the 30 development seeds D (already 20001..=20030, disjoint from T), output `lab-results/m6_dryrun_<utc>/` | `src/lab/m6_pipeline.rs`, `tests/integration/m6_research_evaluation_tests.rs` |
+| C1b | `t1_sim::on_fetch_done`: the former `expect("op")` and unchecked `outstanding -= 1` now increment `invariant_violations` (new column 36 of `cells.csv`) and drop the event. `run_matrix` wraps every cell in `catch_unwind`; a panic becomes a defect cell (`invariant_violations = 1`, `bytes_audit_equal = false`). Completeness checks fail the run loudly AFTER everything has been recorded | `src/lab/t1_sim.rs`, `src/lab/eval.rs` |
+| C1c | The sealed test refuses to start if `lab-results/m6_sealed_run_started.marker` exists and creates it atomically (`create_run_once_marker`: UTC time, freeze record SHA-256, protocol version, no seed) before cell 1; it is never removed. Post-run assertions: release build, row count == 12,000, every hypothesis `n_seeds == 30`, no NaN/inf, all `bytes_audit_equal`, zero invariant violations, BL-6 tuned for all 8 scenarios, and a second leak scan over the whole registered scope | tests + `m6_pipeline::completeness_problems` |
+| H1 | Error-rate non-inferiority constraint (treatment error rate at most 0.5 pp above BL-12b, per scenario, mean of per-seed differences) is part of the SUPPORTED rule; success-only P99 (`p99_success_us`) is reported for every scenario as a SECONDARY endpoint (`analysis_secondary_p99_success_only.csv`, not in the verdict) | `eval.rs`, `m6_pipeline.rs` |
+| H2 | H2 and H4 restricted to "not testable at the registered horizon" (section 5) | pipeline output + this document |
+| H3 | Mechanical H1 verdict rule (section 3); F-a (vs BL-12b and BL-6) and F-c (vs BL-1) coded; `verdict.json` emitted; BL-6 tuned for all 8 scenarios | `m6_pipeline::compute_verdict` |
+| H4 | Wider symmetric grids, six tuned parameters for PIE-Retained, equal budgets, re-tuning into `lab-results/tuning_v2_2/`, wording change (sections 6 and 7) | `src/lab/grid_tuning.rs` |
+| M1 | Pre-registered mean relative reduction kept; added EXPLORATORY columns `EXPLORATORY_log_ratio_rel_reduction` (1 - exp(mean ln(treat/ctrl))) and `EXPLORATORY_median_rel_reduction`, and `n_ratio_abs_gt_10` (seeds with abs(r_i) > 10 are flagged, never removed) | `eval.rs` |
+| M2 | Common random numbers for brownout faults: the fate of an origin fetch under O-BRN is a pure function of (seed, key, 10 ms dispatch-time bucket) (`SimulatedOrigin::with_fault_crn`), so different arms see the same fault realisation for the same request instead of a realisation that depends on how many fetches the arm dispatched earlier. Only O-BRN cells change. Residual caveat: two requests for the same key in the same 10 ms bucket share a fate | `origin_sim.rs`, `t1_sim.rs` |
+| M3 | Leak-scan scope widened (`leak_scan_paths`): lab-results, docs (including `docs/handoff` and its transcripts), tests, src, scripts, bench-results, benches, ui, packaging and every regular file in the repository root (CLAUDE.md, CORRECTIONS.md, MILESTONE_1_DESIGN_PLAN.md, transcript_copy.jsonl, Cargo files). Files are searched as lossy UTF-8 (so invalid bytes do not hide a seed) and as UTF-16LE when a BOM is present. Run before AND after the sealed run | `eval.rs` |
+| M4 | Freeze scope: `tracked_source_files` now includes `Cargo.lock`, `Cargo.toml`, `src/lib.rs`; `verify_freeze` additionally requires the record to list those plus the re-tuned artifacts and every existing tracked file, records `rustc_version` (compared with `rustc --version` now) and `required_build_profile == "release"`. The sealed test and the dry run call `require_release_build()` | `eval.rs` |
+| M5 | Every analysis file carries `# tier=SIMULATED` and a banner "SIMULATION RESULT ... NOT A MEASUREMENT"; `verdict.json` and `frozen_arm_params.json` carry `tier` and `banner` fields | `m6_pipeline.rs`, `grid_tuning.rs` |
+| v2.2c | PIE-Retained must be a genuinely adaptive AIMD controller (max >= 4*min and max >= 8); constrained re-tuning into `lab-results/tuning_v2_2c/` is the REGISTERED artifact, `lab-results/tuning_v2_2/` (unconstrained, static optimum) is the hashed reference record (section 7b) | `grid_tuning.rs`, `eval.rs` |
+| L1 | `adverse` flag (BCa upper bound < 0) in every endpoint result and CSV | `eval.rs` |
+
+## 2. Primary P99 includes failures at their failure latency (H1 note)
+
+The primary client P99 (v2 section 3) is computed over all logical requests, with a failed request entering at the time its failure became known (client timeout 1 s; shed, rejection or origin error at the time of the decision, which can be close to 0). A policy that sheds load quickly can therefore improve this P99 without serving more users. Consequences, fixed before any sealed data: (a) the error-rate constraint above is part of the SUPPORTED rule, so a P99 gain bought with errors cannot yield SUPPORTED; (b) success-only P99 is reported beside it for every scenario; (c) no claim may be made from the primary P99 alone.
+
+## 3. The H1 verdict rule (applied mechanically by code; no judgement after seeing data)
+
+Inputs: the 16 per-scenario hypotheses (8 scenarios x {peak origin concurrency, client P99}), PIE-Retained versus BL-12b, each "supported" under the unchanged v2 rule (Holm-adjusted p < 0.05 over the 16, BCa 95% lower bound > 0, mean relative reduction >= 0.05).
+
+- **H1 SUPPORTED** iff all of: for BOTH endpoints at least 5 of the 8 scenarios are individually supported; no scenario has an adverse CI (BCa upper bound < 0) on either endpoint; in all 8 scenarios the fresh-hit constraint (mean difference >= -1.0 pp) and the error-rate constraint (mean difference <= +0.5 pp) hold; AND none of the NOT SUPPORTED triggers below fires.
+- **H1 NOT SUPPORTED** iff any of: fewer than 3 scenarios are supported on at least one primary endpoint (operationalisation chosen here: H1 needs both endpoints, so the weaker one decides); F-a; F-c; F-d; F-e. These are evaluated first and override SUPPORTED.
+- Otherwise **MIXED / INCONCLUSIVE**.
+- If any hypothesis does not pair exactly the registered number of seeds, the verdict is `INVALID_RUN_incomplete_seed_pairing`.
+
+Falsifiers of v2 section 4.6, as coded:
+- **F-a** fires if, for at least 6 of the 8 scenarios (the number in the immutable v2 text; this is 75%, not 80%), PIE-Retained's mean relative reduction is below 0.10 on BOTH primary endpoints versus BL-12b, OR the same holds versus BL-6 (per-scenario oracle static). Negative values count as below 0.10.
+- **F-b** is reported from the O-HET and O-GRD rows; it is not mechanical (`fires: null`).
+- **F-c** fires if PIE-Retained's mean (over seeds) client P99 exceeds BL-1's by more than 5% in any scenario.
+- **F-d** fires on any cap violation or stale-cap violation in any PIE-Retained cell.
+- **F-e** is operationalised as: all 16 primary hypotheses are practically null or adverse (BCa upper bound < delta_min = 0.05).
+- **F-f** (prior-art overlap) is outside this protocol.
+
+H2, H3, H4, H5, H6 never enter the H1 verdict. The decision rule is code (`lab::m6_pipeline::compute_verdict`) and is unit-tested on synthetic matrices for SUPPORTED, MIXED (error constraint, adverse CI, 4 of 8 scenarios), NOT SUPPORTED (small effect, F-c, F-d).
+
+## 4. Registered outputs
+
+`cells.csv` (36 columns, new last column `invariant_violations`), `manifest.json`, `analysis_primary.csv` (16 hypotheses, with exploratory columns and `adverse`), `analysis_secondary_p99_success_only.csv`, `analysis_vs_bl6.csv` (F-a input), `analysis_vs_bl1.csv` (F-c input), `analysis_constraints.csv`, `analysis_h2_h4.csv`, `verdict.json`. All analysis files are labelled tier=SIMULATED with the banner.
+
+## 5. Limitation: the dynamic stale window is inert at the registered horizon (H2, H4)
+
+The registered run lasts 28 s (8 s warm-up plus a 20 s measurement window) with TTL 3 s. A stale window of 60 s therefore never binds: the cache starts empty, so no entry can be older than the elapsed run time (about 28 s, plus a short drain), while `ttl + window` is 63 s; `age <= ttl + window` holds in every request. (Windows of 2 s or 10 s can bind; the tuned windows are 60 s.) The v2.1 validity review found that PIE-no-stale executes identically to PIE-Retained at the registered horizon; this amendment does not change the horizon (a longer horizon would be a new experiment). Consequences:
+
+- **H2 (attribution of the gain to the AIMD cap and dynamic stale window)** and **H4 (stale-window stability, at most 4 changes per run)** are NOT TESTABLE at the registered horizon. They may not be reported as supported or falsified from this experiment. Their wording is restricted to "not testable at the registered horizon".
+- The analysis prints this note instead of an attribution number when PIE-no-stale is cell-for-cell identical to PIE-Retained (`analysis_h2_h4.csv`, `verdict.json`). If the cells are not identical, the numbers are printed labelled EXPLORATORY (not a registered test).
+- "Zero stale-cap violations" is trivially satisfied while the window is inert and must not be cited as evidence about the staleness cap.
+- Observed (development data, sections 8a and 8b): the window in force is 60,000 ms for BL-12b and for PIE-Retained under both the unconstrained and the registered constrained tuning, and PIE-no-stale was identical to PIE-Retained in 1200 of 1200 cells in both dry runs.
+
+## 6. Baseline wording (H4)
+
+Every statement that an arm is the "best deployable static" policy, "family-tuned deployable baseline" or similar in the v1/v2 documents is superseded. The accurate wording is: **each tuned arm uses the best configuration found in the documented grid on tuning seeds T** (section 7). It is not claimed to be the best deployable static policy, nor that its grid contains the optimum. (The documents `preregistration_m6.md`, `m6_research_evaluation.md`, `phase_4_*` carry older wording; they were not edited by this change and are retracted or void as stated in the v2 and v2.1 documents.)
+
+## 7. Tuning (protocol v2.2): grids, budgets, results
+
+Section 7 documents the UNCONSTRAINED tuning (reference record, `lab-results/tuning_v2_2/`). The REGISTERED PIE-Retained configuration is the constrained one of section 7b (`lab-results/tuning_v2_2c/`); BL-12b, BL-4 and BL-6 are the same in both.
+
+Tuning seeds: the first 8 of T (10001..=10008). Families: W-Z, W-FC, W-SC. All 8 scenarios. `SimParams::standard()`. Objective and feasibility unchanged from v2 section 8 (mean over scenarios of 0.5 x relative peak + 0.5 x relative P99 versus BL-1; zero violations; fresh-hit loss <= 1 pp; error-rate increase <= 0.5 pp versus BL-1). Release profile, `rustc 1.98.0 (88d9e12ae 2026-08-18)`. Ties are broken by evaluation order (first evaluated wins).
+
+**Budget: every tuned arm evaluates the same number of distinct configurations on the same seeds and families.**
+
+| Arm | Parameters | Round 1 grid (budget 24) | Round 2 grid (budget 32) |
+|---|---|---|---|
+| BL-12b | static cap, static stale window | cap {1,2,3,4,6,8,16,32} x stale {2000,10000,60000} ms, exhaustive | same caps x stale {2000,10000,60000,300000} ms, exhaustive |
+| BL-4 | p99 ceiling, max cap, min cap | ceiling {50,100,200,400} ms x max {8,16,32} x min {1,2}, exhaustive | max {4,8,16,32} |
+| PIE-Retained | min cap, max cap, p99 ceiling, error threshold, AIMD window, base stale window (six parameters; the old grid tuned three) | min {1,2,4}, max {4,8,16,32,64}, ceiling {50,100,200,400,800} ms, error threshold {0.05,0.1,0.2,0.4}, window {8,16,32}, base stale {2000,10000,60000} ms (2700 combinations): deterministic coordinate search from the interior start (min 2, max 16, ceiling 200, err 0.2, window 16, stale 10000), pass 1 sweeps each axis in the order max, ceiling, min, err, window, stale around the incumbent, further passes probe +-1 and diagonal neighbours, exactly 24 distinct evaluations | max {2,4,8,16,32,64}, window {8,16,32,64}, base stale {2000,10000,60000,300000}; start (min 2, max 16, ceiling 200, err 0.2, window 16, stale 10000); 32 evaluations |
+| BL-6 | per-scenario oracle static (cap, stale) | best member of the BL-12b grid for EACH of the 8 scenarios (feasibility judged per scenario) | same; if no grid member is feasible in a scenario, the violation-free member closest to feasibility (smallest constraint excess) is used and recorded |
+| BL-0, BL-1, BL-5 | untuned | | |
+
+PIE-Retained has more tuned parameters than BL-12b (six versus two) with the same evaluation budget; because it is searched, not enumerated, its configuration may be further from its own optimum than the exhaustively enumerated BL-12b is from its. This asymmetry is stated, not removed.
+
+**Round 1** (run 2026-10-29T22:45:53Z to ~22:48Z, log `D:\Temp\v22_tuning_release.log`, artifact kept in `lab-results/tuning_v2_2_round1/`): BL-12b cap 2, stale 60000 ms (score 0.1536); BL-4 ceiling 200, max 8, min 1 (0.2222); PIE-Retained min 2, max 4, ceiling 100, err 0.2, window 32, stale 60000 (0.1724). The BL-12b winner (cap 2) is interior to its cap grid (cap 1 was tried and is infeasible, fresh-hit loss 10.8 pp). Winners at grid boundaries: BL-12b stale window (maximum), BL-4 max cap (minimum), PIE-Retained max cap (minimum), AIMD window (maximum), base stale window (maximum). Per the instruction, the grids were extended once (round 2).
+
+**Round 2** (run 2026-10-29T22:53:54Z to ~22:56:40Z, 162 s, log `D:\Temp\v22_tuning_release_round2.log`, artifact `lab-results/tuning_v2_2/`, this is the registered artifact): BL-12b cap 2, stale 60000 ms (score 0.1536; stale 300000 ties exactly because the window never binds); BL-4 ceiling 200, max 8, min 1 (0.2222); **PIE-Retained min 2, max 2, ceiling 100, err 0.2, window 64, stale 60000 (score 0.1536)**. BL-6 per scenario (cap, stale ms): O-BRN (32, 2000), O-CO (8, 2000), O-DEG (1, 60000), O-FL (32, 2000), O-GRD (2, 60000), O-HET (2, 60000), O-RT (6, 10000), O-SLW (3, 10000); O-BRN and O-FL had no feasible grid member and use the closest-to-feasible fallback (excess 0.0237 and 0.0270).
+
+**Boundary status after round 2 (no further extension: the protocol permits one repeat).** BL-12b: no winner at a boundary. BL-4: min cap 1 is the natural floor (a cap of 0 is meaningless). PIE-Retained: max cap 2 is at the lower end of its list and equals min cap 2, so the AIMD controller cannot move (min == max); the AIMD window (64, list maximum) is therefore irrelevant. This is a finding about the tuned configuration, not a grid artefact: **the best PIE-Retained configuration found on T is a static cap of 2**, with the same score as BL-12b (0.1536). The combination min 1 / max 2 was reachable in round 2 but was not selected by the search.
+
+### 7b. Adaptivity requirement and the REGISTERED constrained tuning (v2.2c)
+
+**Added after seeing development-seed (D) and tuning-seed (T) results, but before any sealed data exist.** The unconstrained tuning above (section 7) found that the best PIE-Retained configuration on T is `min = max = 2`: a static cap of 2. On the 30 development seeds that configuration was cell-for-cell identical to BL-12b in 1200 of 1200 cells (section 8a). The hypothesis under test concerns an ADAPTIVE controller, and a controller with `min == max` is a static policy already covered by BL-12b and BL-4. The research lead therefore pre-registers an **adaptivity requirement for the PIE-Retained arm: its AIMD range must satisfy `max >= 4 * min` AND `max >= 8`.** Points of the search space that violate it are not evaluated and do not count against the budget.
+
+Consequences, stated before any further run:
+1. **Headline negative finding on T and D (unconstrained):** the best "adaptive" configuration found on T was static; PIE-Retained did not outperform the best static configuration found on T, and on D it was indistinguishable from it. This is reported as a finding, not repaired.
+2. **The sealed comparison therefore tests "a forced-adaptive AIMD controller versus the best static configuration found on T".** It cannot support the broader claim that adaptive control is useful, and a SUPPORTED verdict would not establish it either.
+3. The requirement was chosen after looking at T and D results, which is a researcher degree of freedom; it is disclosed here and was fixed before the dry run with the constrained arm and before any sealed data.
+4. `lab-results/tuning_v2_2/` stays as the unconstrained reference record. The REGISTERED artifact is `lab-results/tuning_v2_2c/` (`load_frozen_arm_params` reads it; `MANDATORY_FROZEN_FILES` requires both artifacts to be hashed in the freeze record). BL-12b, BL-4 and BL-6 values are identical in both artifacts (same grids, same seeds).
+
+Procedure: identical to section 7 (same seeds T, same families, same objective, same coordinate search from the interior start, equal budget) with the validity filter above. Round 1 (`TuningGrid::v2_2c`, budget 24, run 2026-10-29T23:19:25Z, 122 s, log `D:\Temp\v22c_tuning_r1.log`, kept as `lab-results/tuning_v2_2c_round1/`): PIE-Retained min 2, max 8, ceiling 100 ms, err 0.2, window 32, base stale 60000 (score 0.2052). Winners at grid maxima (AIMD window, base stale window) triggered the single permitted extension. Round 2 (`TuningGrid::v2_2c_extended`, budget 32 for every tuned arm: stale lists gain 300000 ms, BL-4 max list gains 4, PIE window list gains 64, PIE max list {4,8,16,32,64,128}; run 2026-10-29T23:23:19Z, 162 s, log `D:\Temp\v22c_tuning_r2.log`) gives the **registered PIE-Retained: min 1, max 8, p99 ceiling 100 ms, error threshold 0.2, AIMD window 64, base stale window 60000 ms (score 0.1979)**, versus BL-12b cap 2 / 60000 ms (score 0.1536; lower is better). Boundary status after round 2: min 1 is the natural floor; the AIMD window 64 sits at the maximum of its list (no further extension: one round is permitted); the max cap 8 is the smallest value the requirement allows with min 1. The constrained optimum is worse on T than the best static (0.1979 versus 0.1536).
+
+## 8. Dry runs on development seeds D (development data: design validation, not evidence about H1)
+
+### 8a. Reference dry run with the UNCONSTRAINED tuned PIE-Retained (min = max = 2)
+
+Command: `cargo test --release --test m6_research_evaluation_tests -j 1 -- --ignored m6_full_matrix_dry_run --nocapture`, 30 seeds (20001..=20030, disjoint from T), 8 scenarios x 5 families (W-DI, W-SH, W-MX, W-HK, W-SF) x 10 arms = **12,000 cells**, release profile, `SimParams::standard()`, arm parameters from `lab-results/tuning_v2_2/`.
+
+- Runs (all produced byte-identical `cells.csv`, SHA-256 prefix `bb7ea7e936a4c1b4`): first run started 2026-10-29T22:57:01Z, ended 22:58:38Z (97.7 s), directory `lab-results/m6_dryrun_2026-10-29T225701Z/`; second run 2026-10-29T23:08:26Z to 23:10:03Z (97.3 s), `lab-results/m6_dryrun_2026-10-29T230826Z/`; third and final run, on the final code (after the last code edit, 2026-10-29T23:13:01Z to 23:14:38Z, 97.3 s, log `D:\Temp\v22_dryrun_release_final3.log`), `lab-results/m6_dryrun_2026-10-29T231301Z/` (verdict identical). An earlier attempt (2026-10-29T23:05Z) was killed by a tool timeout after 9000 cells and is kept as `..._ABORTED_INCOMPLETE_by_my_own_timeout`.
+- No panic; `completeness_problems = []`: 12,000 rows, unique cell ids, all `bytes_audit_equal`, zero invariant violations, zero cap and stale-cap violations in any arm, no NaN, every hypothesis paired 30 seeds, BL-6 tuned for all 8 scenarios.
+- **Mechanical verdict on development data: H1 NOT_SUPPORTED** (0 of 8 scenarios supported on either endpoint; F-a fires: 8 of 8 scenarios below 0.10 versus BL-12b, 3 of 8 versus BL-6; F-e fires; F-c, F-d do not).
+- Cause, verified in the raw cells: **PIE-Retained is cell-for-cell identical to BL-12b in 1200 of 1200 cells** (requests, hits, failures, dispatches, peak concurrency, all percentiles, error rates). With the tuned parameters (static cap 2, 60 s window) the adaptive machinery (AIMD between 2 and 2, a dynamic stale window that never binds, TinyLFU admission) has no observable effect in any of these cells (admission does change results in other configurations, e.g. CAND-ADM versus CAND-NOADM differed in 18 of 18 cells of a separate check; the reason it is silent at cap 2 was not investigated), so all 16 relative reductions are exactly 0 and every BCa interval is [0, 0]. PIE-no-stale equals PIE-Retained in 1200 of 1200 cells. BL-6 equals BL-12b in 300 of 1200 cells (O-GRD, O-HET). BL-1 differs from BL-12b in every cell.
+- Versus BL-1, PIE-Retained reduces peak concurrency by 95% to 99% and P99 by 77% to 94% (these are comparisons with an unprotected baseline; they are not H1). Versus BL-6, PIE-Retained is worse in O-DEG (BL-6 chose cap 1, peak 1; P99 +44%) and better in O-BRN and O-FL (BL-6 fell back to cap 32) and O-CO, O-RT, O-SLW on peak concurrency.
+- Nothing surprising in the harness (no errored cell, no NaN, no constraint failure). The surprising result is the degeneracy of the tuned PIE-Retained described above, which makes H1 on this horizon a comparison of two identical configurations.
+
+Because the dry run was executed after the grids and rules were fixed, and no rule was changed after viewing it (only report wording and lint), its verdict is design validation of the pipeline, not a result. Development seeds D were also used for earlier smoke and candidate runs; they are not sealed data and carry no confirmatory weight.
+
+
+### 8b. Dry run with the REGISTERED constrained PIE-Retained (development data)
+
+Run 2026-10-29T23:26:20Z to 23:27:57Z (97.7 s), 12,000 cells, release, command as above, directory `lab-results/m6_dryrun_2026-10-29T232620Z/`, log `D:\Temp\v22c_dryrun.log`; no code was changed afterwards (a temporary admission probe was added and reverted byte-for-byte). `completeness_problems = []`; zero cap and stale-cap violations in every arm; no invariant violation; all `bytes_audit_equal`.
+- **Mechanical verdict on development data: H1 NOT_SUPPORTED.** Supported scenarios: peak concurrency 0 of 8, client P99 2 of 8 (O-HET, O-GRD). F-a fires (7 of 8 scenarios below 0.10 versus BL-12b, 4 of 8 versus BL-6); F-c, F-d, F-e do not fire; an adverse CI exists on peak concurrency; the fresh-hit and error-rate constraints fail.
+- PIE-no-stale is again cell-for-cell identical to PIE-Retained (1200 of 1200 cells): the stale window is still inert, H2 and H4 print NOT_TESTABLE_AT_REGISTERED_HORIZON. PIE-Retained is no longer identical to BL-12b (0 of 1200 cells identical).
+- Peak origin concurrency, PIE-Retained versus BL-12b (mean relative reduction, BCa 95%): O-DEG -3.00 [-3.00,-3.00], O-BRN -2.65 [-2.70,-2.60], O-SLW -2.77 [-2.83,-2.71], O-CO -3.00, O-RT -3.00 [-3.00,-2.99], O-FL -1.64 [-1.78,-1.51], O-GRD -3.00, O-HET 0.00. PIE uses up to 8 concurrent origin fetches against BL-12b's static 2, so it is credibly WORSE on this endpoint by construction (`adverse` in 7 scenarios).
+- Client P99 (includes failures): O-HET +0.285 [0.274,0.296] (supported), O-GRD +0.054 [0.046,0.061] (supported), O-RT +0.033 [0.021,0.044] (not supported, below 0.05), all other scenarios 0.000 (P99 saturated at the same value). Success-only P99: O-HET +0.201 [0.190,0.209], O-GRD +0.083 [0.074,0.091], O-RT +0.032, others 0.
+- Constraints versus BL-12b (mean per-seed difference, fresh-hit / error rate): O-BRN -3.3 pp / +1.7 pp, O-FL -4.9 pp / +3.2 pp, O-HET -9.3 pp / +3.9 pp violate both; O-DEG +1.5/-1.5, O-SLW +0.8/-2.5, O-CO +11.4/-21.1, O-RT -0.4/-0.1, O-GRD +4.0/-5.2 hold.
+- Versus BL-1: PIE reduces peak by 83-98% and P99 by 77-94% (an unprotected baseline; not H1).
+- Interpretation (development data, not a result): a forced-adaptive controller trades higher origin concurrency and, in three degradation scenarios, higher error rate and lower hit ratio for lower tail latency in two scenarios. Whether that reproduces on the sealed seeds is untested.
+
+### 8c. Why TinyLFU admission was silent at cap 2 (investigated, brief)
+A temporary counter (added and removed; not part of the frozen code) on single cells (O-DEG, seed 20001, standard horizon, unconstrained tuned parameters, cap 2) showed the cache never reached the admission threshold: maximum resident entries 141-142 versus the 90% threshold of 144 entries (capacity 160) in W-DI, W-SF and W-Z, so the "cache is full" branch of the filter was never taken and no object was rejected. With the same filter and no cap (CAND-ADM) residents reach 160 and 92-544 objects per cell are rejected. Cause: at cap 2 origin throughput (at most about 33 fetches/s) is too low to fill the cache within the 28 s run. This explains the cell identity with BL-12b; admission is inert for any very low cap at this horizon.
+
+## 9. Freeze record format for v2.2 (written by the research lead)
+
+`docs/research/preregistration_m6_v2_2_freeze.json` must contain: `protocol_version` "2.2"; `required_build_profile` "release"; `rustc_version` (the output of `rustc --version`, currently `rustc 1.98.0 (88d9e12ae 2026-08-18)`); `prereg_sha256` (v2 document); `amendment_v2_1_sha256`; `amendment_sha256` (this document); `supersedes_freeze_sha256` (v2.1 freeze record); `supersedes_original_freeze_sha256` (v2 freeze record); `sealed_salt_commitment_sha256`; `frozen_at_utc`; `evaluation_runs_before_freeze` (string); and `files_sha256` listing every path in `MANDATORY_FROZEN_FILES` (Cargo.lock, Cargo.toml, src/lib.rs, `lab-results/tuning_v2_2/frozen_arm_params.json`, `lab-results/tuning_v2_2/tuning_trials.csv`, `lab-results/tuning_v2_2c/frozen_arm_params.json`, `lab-results/tuning_v2_2c/tuning_trials.csv`) AND every existing file returned by `tracked_source_files` (all `src/lab`, `tests/support/lab`, `src/core`, `src/intelligence` `.rs` files, `tests/support/mod.rs`, `tests/integration/m6_research_evaluation_tests.rs`, `docs/research/preregistration_m6_v2.md`, Cargo.lock, Cargo.toml, src/lib.rs). `verify_freeze` fails closed on any omission.
+
+## 10. Procedure of the sealed run (unchanged except as listed)
+
+`m6_full_sealed_evaluation` (ignored): release build required; marker must not exist; `verify_freeze`; sealed seeds from the environment; leak scan; BL-6 completeness; marker created; pipeline; second leak scan; completeness assertions. Negative and inconclusive outcomes are reported identically. No result becomes a claim until `claims_ledger.md` is updated from the retained artifacts by the research lead.
+
+## 11. Not claimed
+
+This amendment does not claim that the adaptive controller works or fails in any real deployment, that adaptive control is useful in general (the sealed comparison tests a forced-adaptive controller against the best static configuration found on T; on T and D the unconstrained optimum was static), that T1 results transfer to a gateway, that the tuned baselines are optimal, that H2 or H4 hold or fail, that the dry-run verdict predicts the sealed verdict, or that the sealed salt is a strong secret. Overhead (H3), shadow-evaluator fidelity (H5) and canary protocol error rates (H6) remain unverified. The run-once marker and the post-run leak scan paths of the sealed test have been compiled and linted but could not be executed without the sealed salt and the freeze record; the marker function itself is unit-tested.

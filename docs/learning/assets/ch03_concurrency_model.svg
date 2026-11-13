@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" role="img" aria-labelledby="t d" font-family="Arial, Helvetica, sans-serif">
+<title id="t">Concurrency model of the PhantomCache cache engine</title>
+<desc id="d">Tokio worker threads run request tasks. Each task hashes the cache key and masks it to pick one of 8 shards, each protected by its own std Mutex. Tenant epochs are read through an RwLock that holds an Arc snapshot of a map; the writer path takes the tenant_epochs Mutex first and then the snapshot write lock. Global epoch and counters are atomics. A spawned origin fetch task runs with no std lock held and returns results to waiters through oneshot channels. Lock order is shard Mutex, then the epoch structures.</desc>
+<rect width="900" height="560" fill="#ffffff"/>
+<text x="450" y="26" font-size="18" font-weight="bold" text-anchor="middle" fill="#111">Concurrency model: who locks what, and what is lock-free</text>
+
+<!-- Tokio threads -->
+<rect x="20" y="44" width="250" height="300" fill="#f2f2f2" stroke="#333" stroke-width="2"/>
+<text x="145" y="66" font-size="15" font-weight="bold" text-anchor="middle" fill="#111">Tokio worker threads</text>
+<text x="145" y="84" font-size="13" text-anchor="middle" fill="#111">(multi-thread runtime, default size)</text>
+<rect x="36" y="98" width="218" height="52" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="145" y="118" font-size="13" text-anchor="middle" fill="#111">Task: request handler A</text>
+<text x="145" y="136" font-size="13" text-anchor="middle" fill="#111">sync section, then .await</text>
+<rect x="36" y="160" width="218" height="52" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="145" y="180" font-size="13" text-anchor="middle" fill="#111">Task: request handler B</text>
+<text x="145" y="198" font-size="13" text-anchor="middle" fill="#111">sync section, then .await</text>
+<rect x="36" y="222" width="218" height="52" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="145" y="242" font-size="13" text-anchor="middle" fill="#111">Task: spawned origin fetch</text>
+<text x="145" y="260" font-size="13" text-anchor="middle" fill="#111">awaits I/O, NO std lock held</text>
+<rect x="36" y="284" width="218" height="48" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="145" y="304" font-size="13" text-anchor="middle" fill="#111">Task: sweeper (100 ms tick)</text>
+<text x="145" y="322" font-size="13" text-anchor="middle" fill="#111">locks one shard at a time</text>
+
+<!-- arrows to shards -->
+<line x1="254" y1="124" x2="330" y2="124" stroke="#333" stroke-width="3"/>
+<polygon points="328,116 344,124 328,132" fill="#333"/>
+<text x="262" y="110" font-size="13" fill="#111" stroke="#fff" stroke-width="4" paint-order="stroke">hash &amp; 7</text>
+
+<!-- shards -->
+<rect x="346" y="44" width="300" height="300" fill="#d0d0d0" stroke="#111" stroke-width="2"/>
+<text x="496" y="66" font-size="15" font-weight="bold" text-anchor="middle" fill="#111">PartitionedCache.shards (8)</text>
+<text x="496" y="84" font-size="13" text-anchor="middle" fill="#111">Vec of Mutex of CacheShard</text>
+<g stroke="#111" stroke-width="2" fill="#ffffff">
+<rect x="362" y="98" width="62" height="40"/><rect x="430" y="98" width="62" height="40"/><rect x="498" y="98" width="62" height="40"/><rect x="566" y="98" width="62" height="40"/>
+<rect x="362" y="146" width="62" height="40"/><rect x="430" y="146" width="62" height="40"/><rect x="498" y="146" width="62" height="40"/><rect x="566" y="146" width="62" height="40"/>
+</g>
+<g font-size="13" text-anchor="middle" fill="#111">
+<text x="393" y="123">S0</text><text x="461" y="123">S1</text><text x="529" y="123">S2</text><text x="597" y="123">S3</text>
+<text x="393" y="171">S4</text><text x="461" y="171">S5</text><text x="529" y="171">S6</text><text x="597" y="171">S7</text>
+</g>
+<text x="496" y="214" font-size="13" text-anchor="middle" fill="#111">Each shard (one lock) holds:</text>
+<text x="496" y="232" font-size="13" text-anchor="middle" fill="#111">map: HashMap of CacheKey to KeyState</text>
+<text x="496" y="250" font-size="13" text-anchor="middle" fill="#111">in_flight: HashMap of key to SharedOp</text>
+<text x="496" y="268" font-size="13" text-anchor="middle" fill="#111">bytes, byte_budget, eviction policy</text>
+<text x="496" y="296" font-size="13" text-anchor="middle" fill="#111">Two keys in different shards never</text>
+<text x="496" y="314" font-size="13" text-anchor="middle" fill="#111">wait for each other's shard lock.</text>
+<text x="496" y="332" font-size="13" text-anchor="middle" fill="#111">Same shard: they take turns.</text>
+
+<!-- epoch + atomics -->
+<rect x="666" y="44" width="214" height="300" fill="#f2f2f2" stroke="#333" stroke-width="2"/>
+<text x="773" y="66" font-size="15" font-weight="bold" text-anchor="middle" fill="#111">Epoch state and counters</text>
+<rect x="678" y="80" width="190" height="64" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="773" y="100" font-size="13" text-anchor="middle" fill="#111">epoch_snapshot: RwLock</text>
+<text x="773" y="118" font-size="13" text-anchor="middle" fill="#111">of Arc of HashMap</text>
+<text x="773" y="136" font-size="13" text-anchor="middle" fill="#111">many readers (every request)</text>
+<rect x="678" y="154" width="190" height="52" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="773" y="174" font-size="13" text-anchor="middle" fill="#111">tenant_epochs: Mutex</text>
+<text x="773" y="192" font-size="13" text-anchor="middle" fill="#111">writers only (invalidate)</text>
+<rect x="678" y="216" width="190" height="52" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="773" y="236" font-size="13" text-anchor="middle" fill="#111">global_epoch: AtomicU64</text>
+<text x="773" y="254" font-size="13" text-anchor="middle" fill="#111">no lock</text>
+<rect x="678" y="278" width="190" height="56" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="773" y="298" font-size="13" text-anchor="middle" fill="#111">counters, caps, histogram</text>
+<text x="773" y="316" font-size="13" text-anchor="middle" fill="#111">AtomicU64 / AtomicUsize</text>
+<line x1="646" y1="112" x2="676" y2="112" stroke="#333" stroke-width="2"/>
+<polygon points="670,106 680,112 670,118" fill="#333"/>
+
+<!-- lock order -->
+<rect x="20" y="364" width="860" height="176" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<text x="34" y="388" font-size="15" font-weight="bold" fill="#111">Rules the code follows (CLAUDE.md section 5; read in cache.rs, executor.rs)</text>
+<text x="34" y="414" font-size="13" fill="#111">1. Lock order: shard Mutex first; then only the epoch structures (RwLock read). The invalidate path takes tenant_epochs, then the</text>
+<text x="52" y="432" font-size="13" fill="#111">snapshot write lock, and never a shard lock. So no cycle between these locks.</text>
+<text x="34" y="454" font-size="13" fill="#111">2. No std Mutex guard is held across .await. The waiter push is a short inner block; the origin I/O is in a separate spawned task.</text>
+<text x="34" y="476" font-size="13" fill="#111">3. Read path: epochs come from the RwLock snapshot plus an atomic, not from the tenant_epochs Mutex.</text>
+<text x="34" y="498" font-size="13" fill="#111">4. Known gaps: snapshot is rebuilt by cloning up to 10,000 entries inside the write lock (G4A-12); epoch pair is not read</text>
+<text x="52" y="516" font-size="13" fill="#111">atomically (G4A-17); some Mutex uses still panic on poison (G4A-21, G4B-28).</text>
+</svg>

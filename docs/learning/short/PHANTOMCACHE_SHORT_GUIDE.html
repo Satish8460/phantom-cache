@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>PhantomCache: Short Guide</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">
+@page { size: A4; margin: 20mm 17mm 20mm 17mm;
+@bottom-center { content: counter(page); font: 9pt "Segoe UI", Arial, sans-serif; color: #666; }
+@top-right { content: "PhantomCache Engineering Handbook"; font: 8pt "Segoe UI", Arial, sans-serif; color: #888; } }
+@page :first { @top-right { content: none; } @bottom-center { content: none; } }
+:root { --ink:#1b1f24; --muted:#5b6470; --rule:#d5d9df; --blue:#1d5fbf; --amber:#b7791f; --red:#b3261e; --green:#2f7d4f; --paper:#fbfaf7; }
+html { font-size: 10pt; }
+body { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: var(--ink); line-height: 1.5; max-width: none; margin: 0; background: #fff; }
+@media screen { body { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; } }
+h1, h2, h3, h4 { font-family: "Segoe UI Semibold", "Segoe UI", Arial, sans-serif; line-height: 1.25; color: #10151c; break-after: avoid; }
+h1 { font-size: 22pt; margin: 0 0 0.6em; padding-top: 0.2em; border-bottom: 2px solid var(--ink); padding-bottom: .2em; break-before: page; }
+h1.title, header#title-block-header h1 { break-before: auto; border: none; font-size: 30pt; }
+h2 { font-size: 15pt; margin: 1.6em 0 .5em; border-bottom: 1px solid var(--rule); padding-bottom: .15em; }
+h3 { font-size: 12pt; margin: 1.3em 0 .4em; }
+h4 { font-size: 10.5pt; margin: 1em 0 .3em; color: var(--muted); }
+p, li { orphans: 3; widows: 3; }
+p { margin: .5em 0; }
+a { color: var(--blue); text-decoration: none; }
+code { font-family: Consolas, "Cascadia Mono", monospace; font-size: .88em; background: #f1f2f4; padding: 0 .25em; border-radius: 3px; overflow-wrap: anywhere; }
+pre { background: #f6f7f9; border: 1px solid var(--rule); border-radius: 4px; padding: .6em .8em; overflow-x: auto; font-size: 8.6pt; line-height: 1.4; break-inside: avoid; white-space: pre-wrap; word-break: break-word; }
+pre code { background: none; padding: 0; font-size: inherit; }
+table { border-collapse: collapse; width: 100%; max-width: 100%; margin: .8em 0; font-size: 8.5pt; break-inside: auto; }
+th, td { border: 1px solid var(--rule); padding: .3em .5em; vertical-align: top; text-align: left; }
+th { background: #eef0f3; font-weight: 600; }
+tr { break-inside: avoid; }
+blockquote { margin: .8em 0; padding: .1em 1em; border-left: 3px solid var(--rule); color: var(--muted); }
+figure { margin: 1em 0; break-inside: avoid; text-align: center; }
+figure img { max-width: 100%; height: auto; }
+figcaption { font-size: 9pt; color: var(--muted); margin-top: .3em; }
+img { max-width: 100%; }
+.judge, .concept, .example, .caution, .answers { margin: 1em 0; padding: .6em .9em; border-radius: 4px; border: 1px solid var(--rule); break-inside: avoid; }
+.judge { border-left: 5px solid var(--amber); background: #fff8ea; }
+.judge > p:first-child { margin-top: 0; }
+.concept { border-left: 5px solid var(--blue); background: #eef4fd; }
+.example { border-left: 5px solid var(--green); background: #f0f8f3; }
+.caution { border-left: 5px solid var(--red); background: #fdf0ef; }
+.answers { background: #f6f7f9; font-size: 9pt; }
+.judge, .concept, .example, .caution { font-size: 10pt; }
+#TOC, nav#TOC { break-after: page; font-size: 10pt; }
+#TOC ul { list-style: none; padding-left: 1.1em; }
+#TOC > ul { padding-left: 0; }
+#TOC a { color: var(--ink); }
+header#title-block-header { margin-bottom: 2em; }
+.subtitle { color: var(--muted); font-size: 13pt; }
+hr { border: none; border-top: 1px solid var(--rule); margin: 1.2em 0; }
+
+table, th, td, p, li, pre, blockquote, .judge, .concept, .example, .caution, .answers { overflow-wrap: anywhere; }
+thead { display: table-header-group; }
+pre { font-size: 8pt; }
+</style>
+  <style type="text/css">
+@page { @top-right { content: "PhantomCache Short Guide"; font: 8pt "Segoe UI", Arial, sans-serif; color: #888; } }
+@page :first { @top-right { content: none; } @bottom-center { content: none; } }
+h1 { break-before: auto; font-size: 15pt; border-bottom: 1px solid var(--ink); margin: 1.1em 0 .4em; padding-top: 0; }
+h1.title, header#title-block-header h1 { font-size: 26pt; border: none; margin: 0 0 .1em; }
+header#title-block-header { margin-bottom: .8em; }
+.subtitle { font-size: 12pt; }
+figure { margin: .5em 0; }
+.concept, .example, .caution { margin: .6em 0; padding: .4em .8em; }
+p { margin: .4em 0; }
+table { margin: .5em 0; }
+h3 { font-size: 11pt; margin: .9em 0 .3em; }
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">PhantomCache: Short Guide</h1>
+</header>
+<p><strong>Contents.</strong> 1 The problem and the three pillars. 2
+Architecture and a request&#39;s life. 3 The cache engine. 4 Distributed
+behaviour. 5 Workload intelligence. 6 Security and reliability. 7
+Phantom Lab, evidence and the innovation argument. 8 Implemented versus
+roadmap, and claims not to make. 9 Ten judge questions and a
+self-test.</p>
+<h1 id="what-phantomcache-is-and-the-problem">1. What PhantomCache is,
+and the problem</h1>
+<p>PhantomCache is an in-memory HTTP caching gateway written in Rust. It
+is a research prototype, not a production system. It sits between
+clients and one origin (the operator&#39;s own data service, named by
+<code>ORIGIN_URL</code>). Clients call
+<code>GET /api/v1/cache/&lt;path&gt;</code> and
+<code>DELETE /api/v1/cache/&lt;path&gt;</code>. There is no write route:
+to change data you change the origin and then <code>DELETE</code> the
+key, or wait for the entry to expire. Several gateways can run as an
+experimental cluster.</p>
+<p><strong>Why a cache exists.</strong> An origin is slow or fragile.
+Keeping a copy in memory turns many requests into few origin requests.
+Four things go wrong, and every part of the project answers one of
+them.</p>
+<ol type="1">
+<li><strong>Stampede.</strong> A popular item expires and many clients
+miss at once. All of them hit the origin together, which can then
+collapse. The answer is <em>single-flight coalescing</em>: the first
+miss fetches, the rest wait and share the result.</li>
+<li><strong>Stale data.</strong> A copy can be older than the truth. The
+answer is a <em>freshness lifetime</em> (taken from the origin&#39;s
+headers) and a <em>hard cap</em> on how long expired data may still be
+served.</li>
+<li><strong>Invalidation.</strong> A deleted item must not come back,
+even if a slow fetch that started before the delete finishes after it.
+The answer is <em>fencing</em> with generation and epoch numbers.</li>
+<li><strong>Origin overload.</strong> Retries and misses can crush a
+struggling origin. The answer is an optional <em>concurrency gate</em>
+on origin fetches.</li>
+</ol>
+<div class="concept">
+<p><strong>The three pillars and their honest status.</strong> (1)
+Distributed systems engineering: the single-node engine is IMPLEMENTED
+and TESTED, with epoch fencing PARTIAL (the G4A-01 race is open); the
+cluster layer is IMPLEMENTED and TESTED on loopback only, labelled
+EXPERIMENTAL, with effectiveness UNVERIFIED. (2) Workload intelligence:
+a static or AIMD origin cap is IMPLEMENTED and TESTED but on the serving
+path only when configured; the rest is PROTOTYPE ONLY. (3) Product,
+observability and demonstrability: health and metrics routes, Phantom
+Lab and a React dashboard are IMPLEMENTED and TESTED by automated checks
+only; visual acceptance is UNVERIFIED.</p>
+</div>
+<div class="caution">
+<p><strong>What it is not.</strong> It is not a distributed cache (each
+gateway has its own cache; <code>GET</code> is local), not linearizable,
+not AI, not independently verified, and it makes no speed or superiority
+claim against any other product. The setting
+<code>PHANTOM_DEFAULT_TTL_MS</code> is NOT WIRED: the default lifetime
+is a literal 60 s.</p>
+</div>
+<div class="example">
+<p><strong>A 60-second opening you can say.</strong> &quot;PhantomCache is a
+Rust HTTP caching gateway, a research prototype. On one node it
+coalesces concurrent misses, fences stores with generation and epoch
+numbers so a delete cannot be undone by a slow fetch, serves stale data
+only under a hard cap, and can limit origin concurrency. A small cluster
+layer propagates deletes over mutual TLS, but reads are local, and the
+evidence is loopback only. Our own sealed experiment found that an
+adaptive controller did not beat a tuned static cap, and we report that.
+Open findings are listed, and no human has reviewed it yet.&quot;</p>
+</div>
+<p><em>Handbook: Ch 1, 1.3 to 1.5; Appendix A.</em></p>
+<h1 id="architecture-and-a-requests-life">2. Architecture and a
+request&#39;s life</h1>
+<figure>
+<img role="img" aria-label="Architecture overview: one gateway process, the origin outside it, peers reached only by invalidation frames, Lab and UI off the request path." src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MDAgNzQwIiB3aWR0aD0iOTAwIiBoZWlnaHQ9Ijc0MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUiPgogIDx0aXRsZT5QaGFudG9tQ2FjaGUgYXJjaGl0ZWN0dXJlIG92ZXJ2aWV3OiBjbGllbnQgdG8gb3JpZ2luIGFuZCBhY3Jvc3Mgbm9kZXM8L3RpdGxlPgogIDxkZXNjPk9uZSBnYXRld2F5IHByb2Nlc3MgY29udGFpbnMgYW4gaW5ncmVzcywgaGFuZGxlcnMsIGEgY2FjaGUgb2YgOCBzaGFyZHMsIGFuIG9yaWdpbiBwYXRoIHdpdGggYW4gb3B0aW9uYWwgY29uY3VycmVuY3kgZ2F0ZSwgYSBjbHVzdGVyIHJvdXRlciB1c2VkIG9ubHkgZm9yIERFTEVURSwgYW5kIHRlbGVtZXRyeS4gVGhlIG9yaWdpbiBzaXRzIG91dHNpZGUgdGhlIHByb2Nlc3MuIFBlZXIgZ2F0ZXdheXMgYXJlIHJlYWNoZWQgb25seSBieSBpbnZhbGlkYXRpb24gZnJhbWVzIG92ZXIgbXV0dWFsIFRMUywgbmV2ZXIgZm9yIHJlYWRzLiBUaGUgTGFiIGFuZCBVSSBzaXQgb2ZmIHRoZSByZXF1ZXN0IHBhdGguPC9kZXNjPgogIDxkZWZzPgogICAgPG1hcmtlciBpZD0iYXIiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iOSIgcmVmWT0iNSIgbWFya2VyV2lkdGg9IjgiIG1hcmtlckhlaWdodD0iOCIgb3JpZW50PSJhdXRvLXN0YXJ0LXJldmVyc2UiPgogICAgICA8cGF0aCBkPSJNMCwwIEwxMCw1IEwwLDEwIHoiIGZpbGw9IiMxMTEiLz4KICAgIDwvbWFya2VyPgogIDwvZGVmcz4KICA8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iOTAwIiBoZWlnaHQ9Ijc0MCIgZmlsbD0iI2ZmZmZmZiIvPgogIDx0ZXh0IHg9IjE1IiB5PSIyOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiMxMTEiPlBoYW50b21DYWNoZTogY2xpZW50IHRvIG9yaWdpbiBhbmQgYWNyb3NzIG5vZGVzPC90ZXh0PgogIDxyZWN0IHg9IjEyNSIgeT0iNTAiIHdpZHRoPSI2NTAiIGhlaWdodD0iNDM4IiByeD0iNiIgZmlsbD0iI2Y2ZjZmNiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8dGV4dCB4PSIxNDAiIHk9Ijc0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSI+T25lIGdhdGV3YXkgcHJvY2VzcyAocGhhbnRvbS1jYWNoZS1kZW1vKTwvdGV4dD4KICA8cmVjdCB4PSI0IiB5PSIxMzIiIHdpZHRoPSIxMTIiIGhlaWdodD0iNjIiIHJ4PSI0IiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMyIvPjx0ZXh0IHg9IjYwIiB5PSIxNTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIj5DbGllbnRzPC90ZXh0Pjx0ZXh0IHg9IjYwIiB5PSIxODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPkdFVCwgREVMRVRFPC90ZXh0PgogIDxsaW5lIHgxPSIxMTYiIHkxPSIxNjMiIHgyPSIxMzUiIHkyPSIxNjMiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyIiBtYXJrZXItZW5kPSJ1cmwoI2FyKSIvPgogIDxyZWN0IHg9IjEzNSIgeT0iODUiIHdpZHRoPSIxNTAiIGhlaWdodD0iMTY1IiByeD0iNCIgZmlsbD0iI2UyZTJlMiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIyMTAiIHk9IjEwOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTEiPkluZ3Jlc3MgKEF4dW0pPC90ZXh0Pjx0ZXh0IHg9IjIxMCIgeT0iMTM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj41MTIgS2lCIGJvZHkgY2FwPC90ZXh0Pjx0ZXh0IHg9IjIxMCIgeT0iMTU2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5KV1Qgcm9sZSArIHRlbmFudDwvdGV4dD48dGV4dCB4PSIyMTAiIHk9IjE3NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+aWYgYSBzZWNyZXQgaXMgc2V0PC90ZXh0Pjx0ZXh0IHg9IjIxMCIgeT0iMjA0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5DT1JTIGxheWVyPC90ZXh0PgogIDxsaW5lIHgxPSIyODUiIHkxPSIxNjMiIHgyPSIzMDUiIHkyPSIxNjMiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyIiBtYXJrZXItZW5kPSJ1cmwoI2FyKSIvPgogIDxyZWN0IHg9IjMwNSIgeT0iODUiIHdpZHRoPSIxNDUiIGhlaWdodD0iMTY1IiByeD0iNCIgZmlsbD0iI2UyZTJlMiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIzNzciIHk9IjEwOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTEiPkhhbmRsZXJzPC90ZXh0Pjx0ZXh0IHg9IjM3NyIgeT0iMTM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5HRVQgaGFuZGxlcjwvdGV4dD48dGV4dCB4PSIzNzciIHk9IjE1NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+REVMRVRFIGhhbmRsZXI8L3RleHQ+PHRleHQgeD0iMzc3IiB5PSIxODQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPmhpdCAvIG1pc3MgLyBzdGFsZTwvdGV4dD48dGV4dCB4PSIzNzciIHk9IjIwNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+YnlwYXNzPC90ZXh0PgogIDxsaW5lIHgxPSI0NTAiIHkxPSIxNjMiIHgyPSI0NzAiIHkyPSIxNjMiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyIiBtYXJrZXItZW5kPSJ1cmwoI2FyKSIvPgogIDxyZWN0IHg9IjQ3MCIgeT0iODUiIHdpZHRoPSIyOTUiIGhlaWdodD0iMTY1IiByeD0iNCIgZmlsbD0iI2UyZTJlMiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSI2MTciIHk9IjEwOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTEiPlBhcnRpdGlvbmVkQ2FjaGU8L3RleHQ+CiAgPGcgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjEuNSI+PHJlY3QgeD0iNDg1IiB5PSIxMjAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIyNiIvPjxyZWN0IHg9IjU1MyIgeT0iMTIwIiB3aWR0aD0iNjAiIGhlaWdodD0iMjYiLz48cmVjdCB4PSI2MjEiIHk9IjEyMCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjI2Ii8+PHJlY3QgeD0iNjg5IiB5PSIxMjAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIyNiIvPjxyZWN0IHg9IjQ4NSIgeT0iMTUyIiB3aWR0aD0iNjAiIGhlaWdodD0iMjYiLz48cmVjdCB4PSI1NTMiIHk9IjE1MiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjI2Ii8+PHJlY3QgeD0iNjIxIiB5PSIxNTIiIHdpZHRoPSI2MCIgaGVpZ2h0PSIyNiIvPjxyZWN0IHg9IjY4OSIgeT0iMTUyIiB3aWR0aD0iNjAiIGhlaWdodD0iMjYiLz48L2c+CiAgPHRleHQgeD0iNTE1IiB5PSIxMzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPlMwPC90ZXh0Pjx0ZXh0IHg9IjU4MyIgeT0iMTM4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5TMTwvdGV4dD48dGV4dCB4PSI2NTEiIHk9IjEzOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+UzI8L3RleHQ+PHRleHQgeD0iNzE5IiB5PSIxMzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPlMzPC90ZXh0Pjx0ZXh0IHg9IjUxNSIgeT0iMTcwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5TNDwvdGV4dD48dGV4dCB4PSI1ODMiIHk9IjE3MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+UzU8L3RleHQ+PHRleHQgeD0iNjUxIiB5PSIxNzAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPlM2PC90ZXh0Pjx0ZXh0IHg9IjcxOSIgeT0iMTcwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5TNzwvdGV4dD4KICA8dGV4dCB4PSI2MTciIHk9IjIwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+b25lIG11dGV4IHBlciBzaGFyZCAoOCk8L3RleHQ+PHRleHQgeD0iNjE3IiB5PSIyMTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPnNpbmdsZS1mbGlnaHQsIGZlbmNpbmcsIGVwb2NoczwvdGV4dD48dGV4dCB4PSI2MTciIHk9IjIzOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+Ynl0ZSBidWRnZXQsIFNJRVZFIGRlZmF1bHQ8L3RleHQ+CiAgPGxpbmUgeDE9IjM3NyIgeTE9IjI1MCIgeDI9IjM3NyIgeTI9IjI4NCIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiIG1hcmtlci1lbmQ9InVybCgjYXIpIi8+PHRleHQgeD0iMzg3IiB5PSIyNzIiIGZpbGw9IiMxMTEiPkRFTEVURTwvdGV4dD4KICA8bGluZSB4MT0iNjE3IiB5MT0iMjUwIiB4Mj0iNjE3IiB5Mj0iMjg0IiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMiIgbWFya2VyLWVuZD0idXJsKCNhcikiLz48dGV4dCB4PSI2MjciIHk9IjI3MiIgZmlsbD0iIzExMSI+bWlzczwvdGV4dD4KICA8cmVjdCB4PSIxMzUiIHk9IjI4NCIgd2lkdGg9IjMxMCIgaGVpZ2h0PSI5OCIgcng9IjQiIGZpbGw9IiNjNGM0YzQiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMjkwIiB5PSIzMDYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIj5DbHVzdGVyIHJvdXRlciAoREVMRVRFIG9ubHkpPC90ZXh0Pjx0ZXh0IHg9IjI5MCIgeT0iMzI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5yZW5kZXp2b3VzIGhhc2gsIGNvbnN0YW50IHdlaWdodDwvdGV4dD48dGV4dCB4PSIyOTAiIHk9IjM0NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+cmVwYWlyIGxlZGdlcjogbWVtb3J5IG9ubHk8L3RleHQ+PHRleHQgeD0iMjkwIiB5PSIzNjMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPmFudGktZW50cm9weSBldmVyeSAyNTAgbXM8L3RleHQ+CiAgPHJlY3QgeD0iNDcwIiB5PSIyODQiIHdpZHRoPSIyOTUiIGhlaWdodD0iOTgiIHJ4PSI0IiBmaWxsPSIjZTJlMmUyIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjYxNy41IiB5PSIzMDYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIj5PcmlnaW4gcGF0aCAobGVhZGVyIG9ubHkpPC90ZXh0Pjx0ZXh0IHg9IjYxNy41IiB5PSIzMjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPmdhdGU6IGNhcCBvbmx5IGluIGNhbmFyeS9hY3RpdmU8L3RleHQ+PHRleHQgeD0iNjE3LjUiIHk9IjM0NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+YW5kIG9ubHkgaWYgYSBjYXAgaXMgc2V0PC90ZXh0Pjx0ZXh0IHg9IjYxNy41IiB5PSIzNjMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPlNTUkYgY2hlY2ssIDUgcywgMiBNaUIgY2FwPC90ZXh0PgogIDxyZWN0IHg9IjQ3MCIgeT0iNDAwIiB3aWR0aD0iMjk1IiBoZWlnaHQ9IjcyIiByeD0iNCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjcgNCIvPjx0ZXh0IHg9IjYxNyIgeT0iNDIyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSI+VGVsZW1ldHJ5IGFuZCBpbnRlbGxpZ2VuY2U8L3RleHQ+PHRleHQgeD0iNjE3IiB5PSI0NDEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPmNvdW50ZXJzLCBsYXRlbmN5OiBvYnNlcnZlZDwvdGV4dD48dGV4dCB4PSI2MTciIHk9IjQ2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+ZGV0ZWN0b3JzLCBkZWNpc2lvbiBlbmdpbmU6IGxpYnJhcnk8L3RleHQ+CiAgPGxpbmUgeDE9Ijc2NSIgeTE9IjMzMyIgeDI9Ijc4NiIgeTI9IjMzMyIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiIG1hcmtlci1lbmQ9InVybCgjYXIpIi8+CiAgPHJlY3QgeD0iNzg2IiB5PSIzMDMiIHdpZHRoPSIxMTAiIGhlaWdodD0iNjAiIHJ4PSI0IiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMyIvPjx0ZXh0IHg9Ijg0MCIgeT0iMzI5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSI+T3JpZ2luPC90ZXh0Pjx0ZXh0IHg9Ijg0MCIgeT0iMzUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5PUklHSU5fVVJMPC90ZXh0PgogIDxyZWN0IHg9IjEzNSIgeT0iNTMwIiB3aWR0aD0iMzEwIiBoZWlnaHQ9Ijg0IiByeD0iNCIgZmlsbD0iI2M0YzRjNCIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIyOTAiIHk9IjU1MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTEiPlBlZXIgZ2F0ZXdheXM8L3RleHQ+PHRleHQgeD0iMjkwIiB5PSI1NzEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPmVhY2ggaGFzIGl0cyBvd24gY2FjaGU8L3RleHQ+PHRleHQgeD0iMjkwIiB5PSI1OTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPnJlYWRzIG5ldmVyIGdvIGhlcmU8L3RleHQ+CiAgPGxpbmUgeDE9IjI5MCIgeTE9IjM4MiIgeDI9IjI5MCIgeTI9IjUzMCIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiIG1hcmtlci1zdGFydD0idXJsKCNhcikiIG1hcmtlci1lbmQ9InVybCgjYXIpIi8+CiAgPHRleHQgeD0iMzAyIiB5PSI0MjAiIGZpbGw9IiMxMTEiPm1UTFMgMS4zIGZyYW1lczo8L3RleHQ+PHRleHQgeD0iMzAyIiB5PSI0NDAiIGZpbGw9IiMxMTEiPmludmFsaWRhdGUsIGFjayw8L3RleHQ+PHRleHQgeD0iMzAyIiB5PSI0NjAiIGZpbGw9IiMxMTEiPnN5bmM8L3RleHQ+CiAgPHRleHQgeD0iNDc1IiB5PSI1NDgiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIj5MZWdlbmQ8L3RleHQ+CiAgPHJlY3QgeD0iNDc1IiB5PSI1NjAiIHdpZHRoPSIzMCIgaGVpZ2h0PSIxNiIgcng9IjAiIGZpbGw9IiNlMmUyZTIiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iNTE1IiB5PSI1NzQiIGZpbGw9IiMxMTEiPm9uIHRoZSByZXF1ZXN0IHBhdGg8L3RleHQ+CiAgPHJlY3QgeD0iNDc1IiB5PSI1ODYiIHdpZHRoPSIzMCIgaGVpZ2h0PSIxNiIgcng9IjAiIGZpbGw9IiNjNGM0YzQiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iNTE1IiB5PSI2MDAiIGZpbGw9IiMxMTEiPmNsdXN0ZXIgKGV4cGVyaW1lbnRhbCk8L3RleHQ+CiAgPHJlY3QgeD0iNjkwIiB5PSI1NjAiIHdpZHRoPSIzMCIgaGVpZ2h0PSIxNiIgcng9IjAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtZGFzaGFycmF5PSI1IDMiLz48dGV4dCB4PSI3MzAiIHk9IjU3NCIgZmlsbD0iIzExMSI+b3B0aW9uYWwgb3IgbGlicmFyeTwvdGV4dD4KICA8cmVjdCB4PSI2OTAiIHk9IjU4NiIgd2lkdGg9IjMwIiBoZWlnaHQ9IjE2IiByeD0iMCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjMiLz48dGV4dCB4PSI3MzAiIHk9IjYwMCIgZmlsbD0iIzExMSI+b3V0c2lkZSB0aGUgcHJvY2VzczwvdGV4dD4KICA8cmVjdCB4PSIxNSIgeT0iNjQwIiB3aWR0aD0iODcwIiBoZWlnaHQ9Ijg0IiByeD0iNCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjcgNCIvPgogIDx0ZXh0IHg9IjQ1MCIgeT0iNjY0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSI+UGhhbnRvbSBMYWIgKFQxIHNpbXVsYXRlZCwgVDIgcmVhbCBnYXRld2F5IG9uIGxvb3BiYWNrKSBhbmQgUmVhY3QgVUk8L3RleHQ+CiAgPHRleHQgeD0iNDUwIiB5PSI2ODgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPk9mZiB0aGUgcmVxdWVzdCBwYXRoLiBSZXN1bHRzIGFyZSBsYWJlbGxlZCBTSU1VTEFURUQgb3IgTUVBU1VSRURfTE9PUEJBQ0suPC90ZXh0PgogIDx0ZXh0IHg9IjQ1MCIgeT0iNzA5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5MYWIgQVBJIGV4aXN0cyBvbmx5IGlmIFBIQU5UT01fTEFCX0VOQUJMRUQ9dHJ1ZS48L3RleHQ+Cjwvc3ZnPgo=" style="width:92.0%" alt="Architecture overview: one gateway process, the origin outside it, peers reached only by invalidation frames, Lab and UI off the request path." />
+<figcaption aria-hidden="true">Architecture overview: one gateway
+process, the origin outside it, peers reached only by invalidation
+frames, Lab and UI off the request path.</figcaption>
+</figure>
+<p>One OS process runs a Tokio runtime and an Axum router. Inside it
+live the ingress (CORS, a 512 KiB body limit, JWT checks), the handlers,
+one <code>PartitionedCache</code> of 8 shards, an optional cluster
+router, and background tasks (a sweeper every 100 ms, a metrics
+sampler). The React UI is a separate dev server; the gateway does not
+serve it.</p>
+<p><strong>Front door.</strong> If <code>PHANTOM_JWT_SECRET</code> is
+set, callers need an HS256 token with a role (<code>cache:read</code> or
+<code>cache:invalidate</code>) and a non-empty <code>tenant_id</code>;
+in secure mode the tenant comes only from the token. The cache key is
+tenant plus path plus raw query, so <code>?a=1&amp;b=2</code> and
+<code>?b=2&amp;a=1</code> are two keys.</p>
+<p><strong>A hit.</strong> If the entry exists, is within its lifetime
+and carries the current epochs, the gateway returns it with
+<code>X-Cache-Status: HIT</code> and an <code>Age</code> header. Nothing
+leaves the process. Other status values are MISS, COALESCED, STALE,
+BYPASS and BYPASS-AUTH.</p>
+<p><strong>A miss.</strong> Under the shard lock,
+<code>begin_fetch_atomic</code> has three outcomes: join an in-flight
+fetch as a waiter (at most 1,000 per key, else 503), make room by
+evicting (at most 32 victims, else a capacity error), or register a new
+fetch. The registering request is the <em>leader</em>. It runs the
+origin call in its own spawned task, so a client that disconnects does
+not cancel the fetch for the others. Only the leader takes an origin
+permit; waiters never do.</p>
+<p><strong>The origin fetch.</strong> The origin is checked against an
+upstream policy, its name is resolved, every returned address is
+filtered (no loopback, private or metadata ranges), the validated
+address is pinned and the connection made. Timeouts are 5 s per phase,
+the body cap is 2 MiB, redirects are not followed, and each fetch opens
+a new connection. Errors are not stored, so recovery is immediate when
+the origin returns.</p>
+<p><strong>Store, then answer.</strong> <code>finalize_fetch</code>
+stores the body only if the key&#39;s generation and epochs are unchanged
+since the fetch began (section 3). Otherwise the waiters still get the
+body, but the cache does not keep it.</p>
+<p><strong>Origin protection.</strong> The optional gate limits distinct
+origin fetches. It is enforced only when
+<code>PHANTOM_INTELLIGENCE</code> is <code>canary</code> or
+<code>active</code> and <code>PHANTOM_ORIGIN_CAP_MAX</code> is set; the
+default mode <code>off</code> is uncapped. When it refuses, the caller
+gets an eligible stale copy, else 503 with
+<code>Retry-After: 1</code>.</p>
+<p><strong>Numbers worth knowing</strong> (all verified in the code or
+its configuration; defaults, not measurements).</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shards</td>
+<td>8, fixed</td>
+<td>Waiters per key</td>
+<td>1,000</td>
+</tr>
+<tr>
+<td>Eviction victims per miss</td>
+<td>at most 32</td>
+<td>Default total budget</td>
+<td>256 MiB</td>
+</tr>
+<tr>
+<td>Default lifetime (not wired)</td>
+<td>60 s literal</td>
+<td>Stale-serving cap</td>
+<td>24 h</td>
+</tr>
+<tr>
+<td>Request body limit</td>
+<td>512 KiB</td>
+<td>Origin body cap</td>
+<td>2 MiB</td>
+</tr>
+<tr>
+<td>Origin timeout</td>
+<td>5 s per phase</td>
+<td><code>DELETE</code> primary wait</td>
+<td>150 ms</td>
+</tr>
+<tr>
+<td>Sweeper tick</td>
+<td>100 ms</td>
+<td>Anti-entropy tick</td>
+<td>250 ms</td>
+</tr>
+<tr>
+<td>AIMD decrease factor</td>
+<td>x 0.70, else +1</td>
+<td>Tenant epoch map</td>
+<td>10,000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A caution about the word &quot;node&quot;.</strong> In the standalone
+gateway there is one real cache plus three placeholder
+<code>VirtualNode</code> objects used for dashboard demos; they are
+synthetic and PROTOTYPE ONLY. In the mTLS cluster configuration the
+local member shares the gateway&#39;s serving cache, and remote members are
+address-only descriptors with no cache in this process.</p>
+<p><em>Handbook: Ch 2, 2.3 to 2.6; Appendix B.</em></p>
+<h1 id="the-cache-engine">3. The cache engine</h1>
+<p><strong>Eight shards.</strong> Production code builds
+<code>PartitionedCache::new(8)</code> and no setting changes it. Each
+shard is one <code>std::sync::Mutex</code> around a key map, an
+in-flight map, byte counters and an eviction policy. The shard of a key
+is its hash masked by 7. Keys on different shards never wait for each
+other. One hot key always lands on one shard, so sharding cannot spread
+it. A hit locks its shard twice, and the response body is copied. The
+rule that holds the design together: never hold a
+<code>std::sync::Mutex</code> across <code>.await</code>. No model
+checker has been run, so &quot;no deadlock&quot; is argued from reading. No reason
+for the number 8 is recorded, and contention is unmeasured on a release
+build.</p>
+<p><strong>Single-flight (TESTED).</strong>
+<code>test_m1_t13_barrier_stampede_100_clients</code> asserts one MISS,
+99 COALESCED and one origin call, on loopback in a debug build. It
+proves the mechanism for one scenario, not behaviour under all
+cancellations. Coalescing is per gateway: N gateways can send N fetches
+for one key.</p>
+<p><strong>Freshness (PARTIAL).</strong> An entry&#39;s lifetime comes from
+<code>s-maxage</code>, <code>max-age</code>, or <code>Expires</code>
+minus <code>Date</code>. If the origin says nothing, the gateway uses
+60,000 ms, a literal in <code>src/api/server.rs</code> at two call
+sites. Expired data may be served stale only if the origin allowed it
+(<code>stale-while-revalidate</code> or <code>stale-if-error</code>) and
+always inside <code>PHANTOM_MAX_STALE_MS</code> (24 h by default).
+<code>must-revalidate</code> forbids stale serving. This is an RFC 9111
+subset with open conformance findings.</p>
+<div class="caution">
+<p><strong>The 24-hour cap is not a staleness bound.</strong> It limits
+only the stale-serving window after expiry. A fresh entry can live as
+long as the origin says, and the gateway sets no ceiling on an
+origin-set lifetime. Never say &quot;staleness is at most 24 hours&quot;.</p>
+</div>
+<p><strong>Eviction.</strong> The default policy is SIEVE. Think of
+entries in a queue with a pointer called the hand. A hit sets a visited
+flag. When room is needed, the hand moves from the oldest end: a visited
+entry is cleared and spared, the first unvisited entry is evicted. LRU
+and S3-FIFO are selectable. All skip keys with active operations. They
+are not worst-case O(1) when keys are pinned, S3-FIFO carries an open
+defect (G4A-02, tombstones; not selected by default), and no hit-ratio
+or release-profile comparison exists. SIEVE and LRU are TESTED only
+weakly.</p>
+<p><strong>Byte accounting (TESTED).</strong> Each shard counts logical
+bytes (key, body, headers and a fixed overhead).
+<code>audit_bytes()</code> recomputes the total so tests can compare.
+This shows consistent bookkeeping, not the operating system&#39;s memory
+figure. The default budget is 256 MiB split across shards.</p>
+<p><strong>Fencing, with a worked example.</strong> A fetch takes time,
+and meanwhile the key can be deleted. So a fetch records the key&#39;s
+<em>generation</em> (a counter) when it starts. <code>delete</code>
+bumps the generation. <code>finalize_fetch</code> stores only if the
+generation and the tenant and global <em>epochs</em> still match. A
+tenant invalidation raises that tenant&#39;s epoch, so older entries count
+as absent.</p>
+<div class="example">
+<p><strong>Delete during a fetch.</strong> Key K is at generation 4. A
+client misses and the leader starts a fetch, recording
+<code>op_gen = 4</code>. An operator sends <code>DELETE K</code>: the
+local entry goes and the generation becomes 5. The origin then returns
+the old body. <code>finalize_fetch</code> compares 5 with 4, so it does
+not store the body. The waiters still receive it,
+<code>stale_writes_prevented</code> increases, and the next request
+misses cleanly. <code>test_delete_fences_in_flight_fill_race</code>
+checks this one interleaving.</p>
+</div>
+<p><strong>The known race (G4A-01, UNDER-INVESTIGATION).</strong>
+<code>finalize_fetch</code> reads the tenant and global epochs twice. If
+a tenant invalidation lands between the two reads, an old body could be
+stored with the new epoch stamp. It was reproduced only in a sandbox
+with an injected yield point; a 20-second unhooked stress run (about 3.2
+million fills) found nothing, which does not bound the probability. A
+small fix exists as a patch in
+<code>docs/research/g4a01_race/proposal.patch</code> and is NOT
+integrated. A related open finding (G4A-08): a request that joins an
+older in-flight fetch after an epoch change can receive the older body
+once. The generation fence catches <code>DELETE</code>; only epoch
+equality catches tenant or global invalidation, which is why epoch
+fencing is PARTIAL.</p>
+<p><strong>Other limits.</strong> The tenant epoch map is capped at
+10,000; a new tenant arriving when it is full raises the global epoch,
+invalidating everything on that node, and a peer can trigger this
+(G4A-12). The sweeper scans each shard in full under its lock
+(G4A-03).</p>
+<p><em>Handbook: Ch 4, 4.2 to 4.9 (4.7 for the race); Appendix H.3 to
+H.5.</em></p>
+<h1 id="distributed-behaviour">4. Distributed behaviour</h1>
+<figure>
+<img role="img" aria-label="DELETE fan-out: local purge, acknowledgement from the routed primary within 150 ms, asynchronous notice to the others, repair ledger." src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MDAgNzIyIiB3aWR0aD0iOTAwIiBoZWlnaHQ9IjcyMiIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiPgogIDx0aXRsZT5ERUxFVEUgaW52YWxpZGF0aW9uIGZhbi1vdXQgd2l0aCBhY2tub3dsZWRnZW1lbnQgYW5kIHJlcGFpciBsZWRnZXI8L3RpdGxlPgogIDxkZXNjPkEgREVMRVRFIG9uIHRoZSBpc3N1aW5nIGdhdGV3YXkgcHVyZ2VzIHRoZSBsb2NhbCBjYWNoZSwgd2FpdHMgZm9yIHRoZSBwcmltYXJ5J3MgYWNrbm93bGVkZ2VtZW50LCBhbnN3ZXJzIDIwNCwgdGhlbiBmYW5zIG91dCBhc3luY2hyb25vdXNseSB0byBhbGwgb3RoZXIgbWVtYmVycyB0aHJvdWdoIHBlci1wZWVyIHF1ZXVlcy4gRmFpbGVkIGRlbGl2ZXJpZXMgYXJlIHJlY29yZGVkIGluIHRoZSByZXBhaXIgbGVkZ2VyLCB3aGljaCBhIHdvcmtlciByZXRyaWVzIGV2ZXJ5IDI1MCBtcy4gVGhlIGxlZGdlciBhbmQgcXVldWVzIGxpdmUgaW4gdGhlIGlzc3VlcidzIG1lbW9yeSBvbmx5LjwvZGVzYz4KICA8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iOTAwIiBoZWlnaHQ9IjcyMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gY2xpZW50IC0tPgogIDxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjE5MCIgaGVpZ2h0PSI0NiIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8dGV4dCB4PSIxMTUiIHk9IjQwIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5DbGllbnQ8L3RleHQ+CiAgPHRleHQgeD0iMTE1IiB5PSI1NyIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+REVMRVRFIC9hcGkvdjEvY2FjaGUvazwvdGV4dD4KICA8IS0tIGlzc3VlciBib3ggLS0+CiAgPHJlY3QgeD0iMjAiIHk9IjkwIiB3aWR0aD0iNTIwIiBoZWlnaHQ9IjU5MCIgZmlsbD0iI2Y0ZjRmNCIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWRhc2hhcnJheT0iOSA0Ii8+CiAgPHRleHQgeD0iMjgwIiB5PSIxMTIiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSJib2xkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5Jc3N1aW5nIGdhdGV3YXkgRyAoZGFzaGVkID0gcHJvY2VzcyBtZW1vcnk7IGxvc3QgaWYgRyBkaWVzKTwvdGV4dD4KICA8IS0tIHN0ZXBzIC0tPgogIDxjaXJjbGUgY3g9IjQ1IiBjeT0iMTUwIiByPSIxMyIgZmlsbD0iIzExMSIvPjx0ZXh0IHg9IjQ1IiB5PSIxNTUiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmYiPjE8L3RleHQ+CiAgPHJlY3QgeD0iNjgiIHk9IjEzMCIgd2lkdGg9IjQ0MCIgaGVpZ2h0PSI0MCIgZmlsbD0iI2NmY2ZjZiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDx0ZXh0IHg9IjI4OCIgeT0iMTQ3IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5jYWNoZS5kZWxldGUoa2V5KTogbG9jYWwgcHVyZ2UgRklSU1QgKGdlbmVyYXRpb24gYnVtcCw8L3RleHQ+CiAgPHRleHQgeD0iMjg4IiB5PSIxNjMiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPmluLWZsaWdodCBmZXRjaCBkZXRhY2hlZCk8L3RleHQ+CiAgPGNpcmNsZSBjeD0iNDUiIGN5PSIyMTAiIHI9IjEzIiBmaWxsPSIjMTExIi8+PHRleHQgeD0iNDUiIHk9IjIxNSIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2ZmZiI+MjwvdGV4dD4KICA8cmVjdCB4PSI2OCIgeT0iMTkwIiB3aWR0aD0iNDQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHRleHQgeD0iMjg4IiB5PSIyMDciIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPnJvdXRlX2tleShrZXkpID0gcHJpbWFyeSBQIChtYXkgYmUgRyBpdHNlbGYpLjwvdGV4dD4KICA8dGV4dCB4PSIyODgiIHk9IjIyMyIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+U3luY2hyb25vdXMgSW52YWxpZGF0ZVJlcXVlc3QgdG8gUCwgMTUwIG1zOyBlbHNlIDEgYWN0aW5nIHByaW1hcnk8L3RleHQ+CiAgPGNpcmNsZSBjeD0iNDUiIGN5PSIyNzAiIHI9IjEzIiBmaWxsPSIjMTExIi8+PHRleHQgeD0iNDUiIHk9IjI3NSIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2ZmZiI+MzwvdGV4dD4KICA8cmVjdCB4PSI2OCIgeT0iMjUwIiB3aWR0aD0iNDQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHRleHQgeD0iMjg4IiB5PSIyNjciIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPlAgYWNrcyAoc3RhdHVzIHN1Y2Nlc3MpIC0+IEhUVFAgMjA0IHRvIHRoZSBjbGllbnQuPC90ZXh0PgogIDx0ZXh0IHg9IjI4OCIgeT0iMjgzIiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5PbiBmYWlsdXJlOiA1eHggYW5kIEVWRVJZIG90aGVyIG1lbWJlciByZWNvcmRlZCBhcyBvd2VkICg3KTwvdGV4dD4KICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjMzMCIgcj0iMTMiIGZpbGw9IiMxMTEiLz48dGV4dCB4PSI0NSIgeT0iMzM1IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIj40PC90ZXh0PgogIDxyZWN0IHg9IjY4IiB5PSIzMTAiIHdpZHRoPSI0NDAiIGhlaWdodD0iNTIiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8dGV4dCB4PSIyODgiIHk9IjMyNyIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+ZmFub3V0X3RhcmdldHM6IGFsbCBtZW1iZXJzIGV4Y2VwdCBQIGFuZCBHLjwvdGV4dD4KICA8dGV4dCB4PSIyODgiIHk9IjM0MyIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+bGl2ZSBwZWVycyAtPiBicm9hZGNhc3RlciBxdWV1ZSAoMTAyNCB0YXNrcyk7IFN1c3BlY3QsIFJlY292ZXJpbmcsPC90ZXh0PgogIDx0ZXh0IHg9IjI4OCIgeT0iMzU5IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5GYWlsZWQsIE9mZmxpbmUgcGVlcnMgLT4gc3RyYWlnaHQgdG8gdGhlIGxlZGdlcjwvdGV4dD4KICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjQxMCIgcj0iMTMiIGZpbGw9IiMxMTEiLz48dGV4dCB4PSI0NSIgeT0iNDE1IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIj41PC90ZXh0PgogIDxyZWN0IHg9IjY4IiB5PSIzODYiIHdpZHRoPSI0NDAiIGhlaWdodD0iNjAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8dGV4dCB4PSIyODgiIHk9IjQwNCIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+b25lIHdvcmtlciBwZXIgcGVlciwgcXVldWUgMjU2LCAxNiBnbG9iYWwgc2VuZCBwZXJtaXRzLjwvdGV4dD4KICA8dGV4dCB4PSIyODgiIHk9IjQyMCIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+VXAgdG8gNCBhdHRlbXB0cywgMTUwIG1zIGVhY2gsIGJhY2tvZmYgMjUsIDUwLCAxMDAgbXMuPC90ZXh0PgogIDx0ZXh0IHg9IjI4OCIgeT0iNDM2IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5TZXF1ZW5jZSBudW1iZXIgcGVyIGRlc3RpbmF0aW9uLCByZXVzZWQgb24gcmV0cnk8L3RleHQ+CiAgPGNpcmNsZSBjeD0iNDUiIGN5PSI0OTAiIHI9IjEzIiBmaWxsPSIjMTExIi8+PHRleHQgeD0iNDUiIHk9IjQ5NSIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2ZmZiI+NjwvdGV4dD4KICA8cmVjdCB4PSI2OCIgeT0iNDY2IiB3aWR0aD0iNDQwIiBoZWlnaHQ9IjUyIiBmaWxsPSIjOWE5YTlhIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMiIvPgogIDx0ZXh0IHg9IjI4OCIgeT0iNDg0IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMDAwIj5SZXBhaXJMZWRnZXIgKHBlciBwZWVyOiAxMDI0IGVudHJpZXMsIDI1NiBLaUIgb2Yga2V5cyk8L3RleHQ+CiAgPHRleHQgeD0iMjg4IiB5PSI1MDAiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMwMDAiPm92ZXJmbG93OiBjb2xsYXBzZSB0byB0ZW5hbnQgZmx1c2ggKG1heCAxNiksIHRoZW4gRnVsbENhY2hlIGZsdXNoLjwvdGV4dD4KICA8dGV4dCB4PSIyODgiIHk9IjUxNCIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzAwMCI+RHVwbGljYXRlcyBtZXJnZS4gRW50cnkgcmVtb3ZlZCBvbmx5IG9uIGFjay48L3RleHQ+CiAgPGNpcmNsZSBjeD0iNDUiIGN5PSI1NjAiIHI9IjEzIiBmaWxsPSIjMTExIi8+PHRleHQgeD0iNDUiIHk9IjU2NSIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2ZmZiI+NzwvdGV4dD4KICA8cmVjdCB4PSI2OCIgeT0iNTM4IiB3aWR0aD0iNDQwIiBoZWlnaHQ9IjUyIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHRleHQgeD0iMjg4IiB5PSI1NTYiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPnJlcGFpciBsb29wIGV2ZXJ5IDI1MCBtczogNjQgZW50cmllcyBwZXIgcGVlciBwZXIgdGljayw8L3RleHQ+CiAgPHRleHQgeD0iMjg4IiB5PSI1NzIiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPnJlLXNlbmQgd2l0aCB0aGUgU0FNRSBzZXF1ZW5jZS4gRHJhaW5lZCBTdXNwZWN0PC90ZXh0PgogIDx0ZXh0IHg9IjI4OCIgeT0iNTg2IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5wZWVyIC0mZ3Q7IFJlY292ZXJpbmcgcHVsbCBsb29wIChkaWdlc3QgKyByZXBsYXkpIC0mZ3Q7IEFjdGl2ZTwvdGV4dD4KICA8Y2lyY2xlIGN4PSI0NSIgY3k9IjYzNCIgcj0iMTMiIGZpbGw9IiMxMTEiLz48dGV4dCB4PSI0NSIgeT0iNjM5IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIj44PC90ZXh0PgogIDxyZWN0IHg9IjY4IiB5PSI2MTIiIHdpZHRoPSI0NDAiIGhlaWdodD0iNTIiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8dGV4dCB4PSIyODgiIHk9IjYzMCIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+cmluZyBidWZmZXIgKDQwOTYgcmVjb3JkcywgNCBNaUIpIGxvZ3MgZWFjaCBpbnZhbGlkYXRpb24gc2VudDs8L3RleHQ+CiAgPHRleHQgeD0iMjg4IiB5PSI2NDYiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPnBlZXJzIHB1bGwgZnJvbSBpdCBhZnRlciBhIGdhcC4gSGlzdG9yeSBvdmVyd3JpdHRlbiAtPiAgcGVlcjwvdGV4dD4KICA8dGV4dCB4PSIyODgiIHk9IjY2MCIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+Zmx1c2hlcyBpdHMgd2hvbGUgY2FjaGU8L3RleHQ+CgogIDwhLS0gcGVlcnMgLS0+CiAgPHJlY3QgeD0iNjIwIiB5PSIxMTAiIHdpZHRoPSIyNjAiIGhlaWdodD0iNzYiIGZpbGw9IiM0NDQiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHRleHQgeD0iNzUwIiB5PSIxMzIiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSJib2xkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIj5QcmltYXJ5IFAgKHN5bmMgbGVnKTwvdGV4dD4KICA8dGV4dCB4PSI3NTAiIHk9IjE1MCIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2ZmZiI+dHJ5X2RlbGV0ZV9jYW5vbmljYWwgb24gaXRzIGNhY2hlLDwvdGV4dD4KICA8dGV4dCB4PSI3NTAiIHk9IjE2NiIgZm9udC1zaXplPSIxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2ZmZiI+SW52YWxpZGF0ZUFjayBlY2hvZXMgdGhlIGVwb2NoPC90ZXh0PgogIDxyZWN0IHg9IjYyMCIgeT0iMzMwIiB3aWR0aD0iMjYwIiBoZWlnaHQ9Ijc2IiBmaWxsPSIjNDQ0IiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMiIvPgogIDx0ZXh0IHg9Ijc1MCIgeT0iMzUyIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI2ZmZiI+T3RoZXIgbWVtYmVyIFE8L3RleHQ+CiAgPHRleHQgeD0iNzUwIiB5PSIzNzAiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmYiPmFwcGxpZXMgdGhlIGRlbGV0ZSwgcmVjb3JkcyBpbmJvdW5kPC90ZXh0PgogIDx0ZXh0IHg9Ijc1MCIgeT0iMzg2IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIj5zZXF1ZW5jZSwgYWNrcy4gTm8gYWNrID0gc3RpbGwgb3dlZDwvdGV4dD4KICA8cmVjdCB4PSI2MjAiIHk9IjUwMCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSI3NiIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjYgNCIvPgogIDx0ZXh0IHg9Ijc1MCIgeT0iNTIyIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzExMSI+VW5yZWFjaGFibGUgbWVtYmVyIFI8L3RleHQ+CiAgPHRleHQgeD0iNzUwIiB5PSI1NDAiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPmtlZXBzIHNlcnZpbmcgaXRzIGNhY2hlZCBjb3B5IHVudGlsPC90ZXh0PgogIDx0ZXh0IHg9Ijc1MCIgeT0iNTU2IiBmb250LXNpemU9IjE0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTExIj5yZXBhaXJlZCBvciB1bnRpbCB0aGUgZW50cnkgZXhwaXJlczwvdGV4dD4KCiAgPGxpbmUgeDE9IjUwOCIgeTE9IjIxMCIgeDI9IjYxNSIgeTI9IjE2MCIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIuNSIvPjxwb2x5Z29uIHBvaW50cz0iNjE1LDE2MCA2MDMsMTYwIDYwOCwxNzEiIGZpbGw9IiMxMTEiLz4KICA8bGluZSB4MT0iNjE1IiB5MT0iMTc2IiB4Mj0iNTA4IiB5Mj0iMjI2IiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtZGFzaGFycmF5PSI2IDMiLz4KICA8dGV4dCB4PSI1NjAiIHk9IjE0MCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzExMSI+c3luYzwvdGV4dD4KICA8bGluZSB4MT0iNTA4IiB5MT0iNDE2IiB4Mj0iNjE1IiB5Mj0iMzgwIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMi41Ii8+PHBvbHlnb24gcG9pbnRzPSI2MTUsMzgwIDYwMywzODAgNjA4LDM5MSIgZmlsbD0iIzExMSIvPgogIDxsaW5lIHgxPSI1MDgiIHkxPSI1NjAiIHgyPSI2MTUiIHkyPSI1NDAiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1kYXNoYXJyYXk9IjMgNSIvPgogIDx0ZXh0IHg9IjU1MiIgeT0iNTgwIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMTExIj5ibG9ja2VkPC90ZXh0PgogIDxsaW5lIHgxPSIyMTAiIHkxPSI0MyIgeDI9IjI4OCIgeTI9IjQzIiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxsaW5lIHgxPSIyODgiIHkxPSI0MyIgeDI9IjI4OCIgeTI9Ijg2IiBzdHJva2U9IiMxMTEiIHN0cm9rZS13aWR0aD0iMiIvPjxwb2x5Z29uIHBvaW50cz0iMjg4LDkwIDI4Miw3OCAyOTQsNzgiIGZpbGw9IiMxMTEiLz4KICA8dGV4dCB4PSI1NTAiIHk9IjMwIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMTExIj5zb2xpZCBhcnJvdyA9IHJlcXVlc3QsIGRhc2hlZCA9IGFjayBvciBibG9ja2VkIHBhdGg8L3RleHQ+CiAgPHRleHQgeD0iNDUwIiB5PSI3MTIiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxMTEiPlNvdXJjZTogcm91dGVyLnJzIChpbnZhbGlkYXRlX2tleV9hY3Jvc3NfY2x1c3RlciwgUmVwbGljYUJyb2FkY2FzdGVyLCBSZXBhaXJMZWRnZXIsIHJlcGFpcl9wZWVyKTsgc2VydmVyLnJzOjpkZWxldGVfY2FjaGVfaGFuZGxlcjwvdGV4dD4KPC9zdmc+Cg==" style="width:94.0%" alt="DELETE fan-out: local purge, acknowledgement from the routed primary within 150 ms, asynchronous notice to the others, repair ledger." />
+<figcaption aria-hidden="true">DELETE fan-out: local purge,
+acknowledgement from the routed primary within 150 ms, asynchronous
+notice to the others, repair ledger.</figcaption>
+</figure>
+<p><strong>GET is local only.</strong> <code>get_cache_handler</code>
+never touches the router. The function that would forward a read to a
+key&#39;s owner, <code>forward_key_over_tcp</code>, has no production caller
+(only tests call it). The peer-side <code>GetRequest</code> handler in
+<code>src/dist/node.rs</code> is a stub that fabricates
+<code>val_node_&lt;id&gt;</code>, a recorded defect (DR-029). So N
+gateways are N independent read caches kept coherent by invalidation,
+not a partitioned cache. Coordinated reads are DESIGNED BUT NOT
+IMPLEMENTED.</p>
+<p><strong>Rendezvous hashing.</strong> Each node gets a score from the
+key and the node id; the highest score wins, so every gateway computes
+the same winner without talking. In this code the hash is
+<code>DefaultHasher</code> and the weight factor is the constant 1.0, so
+it is plain rendezvous hashing, not weighted, and the hash is not stable
+across builds (G4B-27). It is used only to choose which node must
+acknowledge a <code>DELETE</code>. It does not decide where data lives.
+For about one key in N the primary is the issuing gateway itself, and
+then the 204 says nothing about any other node.</p>
+<p><strong>DELETE, step by step.</strong> (1) The gateway purges its own
+cache. (2) With a router, it sends one invalidate request to the primary
+over mutual TLS and waits at most 150 ms
+(<code>PHANTOM_CLUSTER_TIMEOUT_MS</code>). (3) If the primary is silent
+it is marked Suspect and the first healthy replica acts as primary
+(<code>X-Cache-Warning: PrimaryFailover</code>); if that also fails the
+client gets 504. (4) After the acknowledgement every other member is
+told in the background: a per-peer queue of 256 with up to four
+attempts, then a bounded in-memory repair ledger, re-sent in bounded
+batches by the same background worker that runs every 250 ms
+(<code>start_anti_entropy_worker</code>; each tick calls
+<code>repair_all_peers</code> and the pull-based anti-entropy reconcile,
+which repairs sequence gaps from a ring of 4,096 sent records or flushes
+the receiver&#39;s cache).</p>
+<div class="caution">
+<p><strong>What 204 means.</strong> The local purge happened, and the
+routed primary acknowledged within 150 ms. It does not mean the object
+is gone everywhere.</p>
+</div>
+<p><strong>Failure model and what is NOT guaranteed.</strong> A
+guarantee needs a stated failure model, a bound and a test that could
+prove it wrong.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Situation</th>
+<th>What the evidence says</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One gateway, read after a completed <code>DELETE</code></td>
+<td>Deleted entry not returned, subject to G4A-01 and G4A-08</td>
+<td>TESTED, with open races</td>
+</tr>
+<tr>
+<td>Message loss, receiver crash, brief partition (issuer alive)</td>
+<td>Retry, ledger and pull repair converged within milliseconds on
+loopback</td>
+<td>TESTED, debug build, one host</td>
+</tr>
+<tr>
+<td>Issuer crashes with owed invalidations</td>
+<td>Owed entries live only in the issuer&#39;s memory and are lost; only the
+entry&#39;s own lifetime bounds staleness</td>
+<td>NOT covered; durable log is PROTOTYPE ONLY</td>
+</tr>
+<tr>
+<td>Permanent partition, malicious member, multi-host</td>
+<td>No bound; any pinned member can flush any tenant (G4B-05); no
+physical multi-host run</td>
+<td>UNVERIFIED / BLOCKED</td>
+</tr>
+</tbody>
+</table>
+<p>Membership is a static file read at startup. Transport is TLS 1.3
+with a cluster CA as the only trust root and a pinned per-node identity;
+an invalidate frame whose originator differs from the TLS identity
+closes the connection. Heartbeats are keepalive: no code lets a
+heartbeat change a node&#39;s state (G4B-12). The honest consistency
+statement: per-node ordering, best-effort eventual convergence under the
+tested failure model, no linearizability, and no cross-node staleness
+bound.</p>
+<p><em>Handbook: Ch 5, 5.2 to 5.9; Ch 8, 8.11; Appendix H.6 to
+H.8.</em></p>
+<h1 id="workload-intelligence-honestly">5. Workload intelligence,
+honestly</h1>
+<p>&quot;Intelligence&quot; here means small, readable control rules. It is
+<strong>not AI and not machine learning</strong>; no ML ships.</p>
+<p><strong>On the serving path.</strong> Only the origin concurrency
+gate. It can be a fixed cap, or the cap can move by AIMD (additive
+increase, multiplicative decrease): multiply by 0.70 when the window&#39;s
+p99 or error rate is bad, otherwise add 1. It is off by default and
+enforced only with a configured cap in <code>canary</code> or
+<code>active</code> mode. The arithmetic and permit accounting are
+TESTED. Its benefit is NOT established (below). <code>canary</code> mode
+applies the cap to all fetches; there is no canary bucket or rollback in
+serving.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Component</th>
+<th>On the serving path?</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Origin concurrency gate (static cap, AIMD)</td>
+<td>Only with a configured cap in <code>canary</code> or
+<code>active</code> mode; default off</td>
+<td>TESTED; benefit NOT SUPPORTED</td>
+</tr>
+<tr>
+<td>Hard caps (stale cap, byte budget, fencing)</td>
+<td>Yes, always</td>
+<td>TESTED</td>
+</tr>
+<tr>
+<td>Latency histogram</td>
+<td>Written on every <code>GET</code>; no production reader</td>
+<td>TESTED (arithmetic only)</td>
+</tr>
+<tr>
+<td>Signals, shadow evaluator, decision engine, canary, watchdog</td>
+<td>No caller</td>
+<td>PROTOTYPE ONLY</td>
+</tr>
+<tr>
+<td>Legacy PIE (<code>src/control/pie.rs</code>)</td>
+<td>No (<code>pie: None</code>)</td>
+<td>PROTOTYPE ONLY</td>
+</tr>
+<tr>
+<td>Hot-key detection, pre-warming, forecasting, ML selector</td>
+<td>No</td>
+<td>PROTOTYPE ONLY / DESIGNED BUT NOT IMPLEMENTED / DEFERRED</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Not on the serving path (PROTOTYPE ONLY).</strong> The signal
+pipeline (Count-Min plus Space-Saving heavy hitters, EWMA, CUSUM), the
+shadow evaluator, the decision engine with its confidence interval,
+canary routing and the watchdog are library code that no request calls;
+the statistics in the evaluator and engine have recorded flaws (F12,
+F13). The older <code>CountMinSketch</code> is used only by a unit test.
+The legacy <code>src/control/pie.rs</code> is a threshold stub
+(<code>pie: None</code> in <code>main.rs</code>) with a hard-coded
+utility; never present it as a working controller. The hot-keys field of
+<code>/api/v1/metrics</code> reports &quot;unavailable&quot;; in practice hot keys
+are protected by coalescing. Event tap, pre-warming and forecasting are
+DESIGNED BUT NOT IMPLEMENTED; an ML selector is DEFERRED behind an unmet
+gate.</p>
+<p><strong>Telemetry.</strong> A latency histogram
+(<code>AtomicLogLinearHistogram</code>, 2,688 buckets, designed error at
+most 0.39 percent) is written on every <code>GET</code>, but no
+production endpoint reads it; percentiles on
+<code>/api/v1/metrics</code> come from a sorted 10,000-sample window.
+Hard caps (stale cap, origin cap, byte budget, fencing) are enforced by
+the execution layer regardless of any intelligence decision.</p>
+<p><strong>What the evidence says.</strong> The sealed M6 evaluation
+(simulated, preregistered) gave hypothesis H1 the verdict NOT_SUPPORTED:
+a forced-adaptive controller did not beat the best tuned static cap, and
+the best tuned adaptive setting was itself a static cap. On a real
+gateway (Scenario B, loopback) the adaptive arm fell from 32 to about 12
+and stayed there, acting as a static cap. The defensible feature is a
+configurable static origin cap.</p>
+<p><em>Handbook: Ch 5, 5.10 to 5.14.</em></p>
+<h1 id="security-and-reliability">6. Security and reliability</h1>
+<p><strong>Five trust zones:</strong> clients, the gateway process, the
+operator-fixed origin, cluster peers, and the local host. At each
+boundary there is a named check: JWT roles and tenant claims at ingress;
+the upstream policy, DNS pinning and address filter at the origin;
+certificate pinning and originator matching on the cluster link; a
+loopback-only rule with Host and Origin checks on the Lab API. A
+host-level attacker who can read the environment (it holds the JWT
+secret) is out of scope. There has been no penetration test, no fuzzing,
+no dependency advisory scan; the system is not security-certified.</p>
+<p><strong>The G4 review.</strong> Three AI reviews, read-only with no
+tests run, produced 99 findings: 75 OPEN (6 owner-named), 20
+RECORDED-LIMITATION, 2 IN-SANDBOX-REMEDIATION, 1 UNDER-INVESTIGATION
+(G4A-01), 1 REFUTED. There is no Critical finding; 4 are High.
+&quot;Confirmed&quot; there means confirmed by reading code.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Area</th>
+<th>Protection that exists</th>
+<th>Open finding or gap</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authentication</td>
+<td>HS256 JWT: signature, expiry, issuer, audience, role, tenant
+claim</td>
+<td>No <code>nbf</code> check, no revocation, no rate limit (G4B-13,
+SEC-M7-11)</td>
+<td>TESTED, gaps open</td>
+</tr>
+<tr>
+<td>Ingress</td>
+<td>512 KiB body limit, CORS</td>
+<td><strong>G4B-01 (High, owner-named):</strong> request body read
+before authentication; no body timeout or connection cap</td>
+<td>PARTIAL, OPEN</td>
+</tr>
+<tr>
+<td>Origin access (SSRF)</td>
+<td>Fixed origin, DNS pinning, address filter, 5 s timeouts, 2 MiB
+cap</td>
+<td>Range gaps (G4B-15)</td>
+<td>TESTED, gaps open</td>
+</tr>
+<tr>
+<td>Cluster identity</td>
+<td>mTLS 1.3, pinned identity, originator match</td>
+<td>Any active member can send tenant-wide or full flush (G4B-05); no
+membership-epoch check on frames (G4B-06); static membership</td>
+<td>TESTED on loopback</td>
+</tr>
+<tr>
+<td>Control endpoint</td>
+<td>Loopback rule for Lab API</td>
+<td><code>/api/control</code> mutates the live router; a missing event
+sets every node Active (G4B-03, owner-named)</td>
+<td>OPEN</td>
+</tr>
+<tr>
+<td>Fencing</td>
+<td>Generation and epoch checks</td>
+<td><strong>G4A-01 (High):</strong> stale-body race,
+UNDER-INVESTIGATION; G4A-08, G4A-12</td>
+<td>PARTIAL</td>
+</tr>
+<tr>
+<td>Eviction</td>
+<td>SIEVE default; pinned-key skip</td>
+<td><strong>G4A-02 (High, conditional):</strong> S3-FIFO tombstone
+growth, not selected by default; G4A-03 sweeper scan</td>
+<td>OPEN</td>
+</tr>
+<tr>
+<td>Lab verdict</td>
+<td>Preregistered mechanical verdict</td>
+<td><strong>F01 / U-01 (High):</strong> a verdict labelling defect;
+backend fix integration in progress, not accepted</td>
+<td>IN-SANDBOX</td>
+</tr>
+<tr>
+<td>Tenancy</td>
+<td>Tenant-keyed entries and epochs</td>
+<td>No quotas, no fair eviction</td>
+<td>DESIGNED BUT NOT IMPLEMENTED</td>
+</tr>
+<tr>
+<td>Invalidation durability</td>
+<td>In-memory ledger and repair</td>
+<td>Owed invalidations lost if the issuer dies</td>
+<td>PROTOTYPE ONLY (fix)</td>
+</tr>
+<tr>
+<td>Dependencies</td>
+<td>Locked versions</td>
+<td>288 locked packages, two TLS stacks, no advisory scan</td>
+<td>DEFERRED</td>
+</tr>
+<tr>
+<td>Telemetry honesty</td>
+<td>Provenance labels in API and UI</td>
+<td>Hit-rate function returns 1.0 with no data (G4A-11)</td>
+<td>PARTIAL</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reliability.</strong> Resource bounds exist for bytes,
+waiters per key (1,000), the epoch map (10,000), response size, frame
+size (1 MiB payload, 4,096-byte keys), per-peer queues (256) and the
+ledger. Bounds that do not exist: inbound connection count,
+<code>/api/events</code> streams, origin concurrency by default,
+per-tenant rates. The suite passed as 851 recorded debug tests on a
+Windows host; several tests assert stub behaviour, and passing is not
+correctness. No release-profile suite and no Linux or container run
+exist (UNVERIFIED).</p>
+<p><em>Handbook: Ch 6, 6.1 to 6.11; Ch 8, 8.4.</em></p>
+<h1 id="phantom-lab-evidence-and-the-innovation-argument">7. Phantom
+Lab, evidence and the innovation argument</h1>
+<p><strong>Two tiers, kept apart.</strong> T1 is a deterministic
+discrete-event simulation with a virtual clock and seeded random
+streams. It drives the real cache, coalescing, fencing and origin-gate
+code but simulates clients and the origin, and runs no HTTP, TLS or
+cluster. Its results are labelled SIMULATED. T2 starts the real gateway
+binary on loopback against a scripted raw-TCP origin, with an open-loop
+load generator; results are labelled MEASURED_LOOPBACK, from one host,
+and are not multi-host or production figures. No T1 versus T2 agreement
+study has been run (UNVERIFIED).</p>
+<p><strong>Method.</strong> Experiments compare arms paired by seed,
+with a BCa bootstrap interval, a sign-flip permutation test and Holm
+correction. The verdict rule was preregistered and applied by code, and
+the sealed seed set was committed by hash before the run. M6 used 30
+sealed seeds and 8 scenarios and ran once. It has not been reviewed by a
+human.</p>
+<h3 id="what-the-evidence-supports-and-what-it-does-not">What the
+evidence supports, and what it does not</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Evidence</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1 replay is deterministic</td>
+<td>Same-input runs give identical bytes; one machine</td>
+<td>TESTED</td>
+</tr>
+<tr>
+<td>A static cap lowers peak origin concurrency against no cap</td>
+<td>Exploratory simulation; Scenario B static arm peaked at exactly 24
+in all 10 runs (loopback, one host; the handbook records a release
+build)</td>
+<td>TESTED; MEASURED_LOOPBACK; cost is refused requests</td>
+</tr>
+<tr>
+<td>A forced-adaptive AIMD controller beats a tuned static cap</td>
+<td>Sealed M6: NOT_SUPPORTED</td>
+<td>REFUTED in this simulation, for this controller</td>
+</tr>
+<tr>
+<td>Controller overhead; T1 predicts T2</td>
+<td>No release benchmark; no agreement study</td>
+<td>UNVERIFIED</td>
+</tr>
+<tr>
+<td>Hit-rate or latency against Redis, Varnish, nginx; multi-host
+behaviour; novelty</td>
+<td>None run; the prior-art check is OPEN</td>
+<td>NOT CLAIMED, NOT EVIDENCED</td>
+</tr>
+</tbody>
+</table>
+<div class="concept">
+<p><strong>The innovation argument, stated narrowly.</strong> A working,
+tested HTTP caching gateway core that combines single-flight coalescing,
+generation-fenced fills, epoch invalidation, stale serving under a hard
+cap and a bounded origin gate, plus a deterministic, preregistered
+experiment harness that drove the real cache code through eight
+degradation scenarios and reported, mechanically, that a forced-adaptive
+controller did not beat a tuned static cap. The project makes no
+&quot;first&quot;, &quot;novel&quot; or &quot;better than&quot; claim: the prior-art check (RT-0) is
+OPEN.</p>
+</div>
+<p><strong>Weaknesses a judge will find, which you should name
+first.</strong> Each mechanism has precedent elsewhere, and whether the
+combination beats assembling established tools with a limiter is not
+demonstrated. The simulator&#39;s predictive power is UNVERIFIED.
+Established products are more mature in operability, cross-node
+duplicate suppression, durable purge networks, relative-signal adaptive
+controllers and published eviction evaluations. The honest value is the
+method and the negative result, and a static cap that works.</p>
+<p><strong>The UI.</strong> The React dashboard shows telemetry and the
+Lab, with every value labelled measured, simulated, inferred or
+unavailable; its Cluster and Intelligence screens are placeholders.
+Automated checks only: visual and usability acceptance is UNVERIFIED,
+with no human review.</p>
+<p><em>Handbook: Ch 7, 7.1 to 7.8; Appendix H.9 and H.10.</em></p>
+<h1 id="implemented-versus-roadmap-and-the-claims-not-to-make">8.
+Implemented versus roadmap, and the claims not to make</h1>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Status</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coalescing, generation fencing, byte accounting (I1 to I8), stale
+serving under the hard cap</td>
+<td>TESTED</td>
+<td>One interleaving for fencing; G4A-13 byte drift on a rare path;
+stale-cap gate is weak (G4A-18)</td>
+</tr>
+<tr>
+<td>Tenant and global epoch fencing</td>
+<td>PARTIAL</td>
+<td>G4A-01 race; fix not integrated</td>
+</tr>
+<tr>
+<td>Freshness (RFC 9111 subset) and default TTL setting</td>
+<td>PARTIAL</td>
+<td>G4A-04 to -06 gaps; TTL setting validated but NOT WIRED (60 s
+literal)</td>
+</tr>
+<tr>
+<td>SIEVE and LRU eviction</td>
+<td>TESTED</td>
+<td>Weakly; no release benchmark</td>
+</tr>
+<tr>
+<td>S3-FIFO eviction</td>
+<td>PARTIAL</td>
+<td>Defect G4A-02; not default</td>
+</tr>
+<tr>
+<td>JWT roles, mTLS identity, SSRF filter</td>
+<td>TESTED</td>
+<td>Lifecycle and range gaps open</td>
+</tr>
+<tr>
+<td>HTTP ingress hardening</td>
+<td>PARTIAL</td>
+<td>G4B-01, -02, -04, -11 open</td>
+</tr>
+<tr>
+<td>Rate limiting, graceful drain, metrics export</td>
+<td>DEFERRED</td>
+<td>Queued</td>
+</tr>
+<tr>
+<td>Tenant quotas, fair eviction</td>
+<td>DESIGNED BUT NOT IMPLEMENTED</td>
+<td>Frozen core</td>
+</tr>
+<tr>
+<td>Cluster fan-out, repair, anti-entropy</td>
+<td>TESTED</td>
+<td>Loopback, debug, at most four nodes; EXPERIMENTAL; effectiveness
+UNVERIFIED</td>
+</tr>
+<tr>
+<td>Durable invalidation</td>
+<td>PROTOTYPE ONLY</td>
+<td>Sandbox patch</td>
+</tr>
+<tr>
+<td>Rendezvous routing for DELETE primary</td>
+<td>IMPLEMENTED</td>
+<td>Unweighted, unstable hash</td>
+</tr>
+<tr>
+<td>Peer-fill, coordinated reads, weighted placement</td>
+<td>DESIGNED BUT NOT IMPLEMENTED</td>
+<td>Stub handler is a defect</td>
+</tr>
+<tr>
+<td>Static and AIMD origin cap</td>
+<td>TESTED</td>
+<td>Serving path only when configured; benefit NOT SUPPORTED</td>
+</tr>
+<tr>
+<td>Signals, shadow evaluator, decision engine, PIE</td>
+<td>PROTOTYPE ONLY</td>
+<td>Not wired</td>
+</tr>
+<tr>
+<td>ML selector; pre-warming, forecasting</td>
+<td>DEFERRED / DESIGNED BUT NOT IMPLEMENTED</td>
+<td>Gate unmet</td>
+</tr>
+<tr>
+<td>Lab, Scenario B, sealed M6</td>
+<td>TESTED</td>
+<td>Simulated or loopback; no human review</td>
+</tr>
+<tr>
+<td>T1 to T2 agreement; Linux and container run</td>
+<td>UNVERIFIED</td>
+<td>Never run</td>
+</tr>
+<tr>
+<td>Release-profile performance numbers</td>
+<td>DEFERRED</td>
+<td>Needs a quiet machine</td>
+</tr>
+<tr>
+<td>Multi-host operation; human and external review</td>
+<td>BLOCKED</td>
+<td>No devices, no reviewer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="claims-you-must-not-make">Claims you must NOT make</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tempting overclaim</th>
+<th>Accurate statement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;Production-ready&quot;</td>
+<td>A research prototype with an experimental cluster; no
+release-profile suite, open High findings, Windows only</td>
+</tr>
+<tr>
+<td>&quot;A distributed cache&quot;</td>
+<td>N local caches plus an authenticated invalidation bus;
+<code>GET</code> is local</td>
+</tr>
+<tr>
+<td>&quot;204 means gone everywhere&quot;</td>
+<td>The routed primary acknowledged within 150 ms; owed invalidations
+are lost if the issuer dies</td>
+</tr>
+<tr>
+<td>&quot;Bounded staleness&quot; or &quot;zero stale after 50 ms&quot;</td>
+<td>Not supported; the only bound is the origin lifetime or 60 s; the
+stale cap bounds stale serving only</td>
+</tr>
+<tr>
+<td>&quot;Linearizable&quot; or &quot;strongly consistent&quot;</td>
+<td>No: per-node ordering and eventual convergence under the tested
+loopback failure model</td>
+</tr>
+<tr>
+<td>&quot;Adaptive or intelligent caching improves performance&quot;; &quot;uses
+ML&quot;</td>
+<td>Not established (H1 NOT_SUPPORTED); no ML ships; the PIE is a
+stub</td>
+</tr>
+<tr>
+<td>&quot;Fast&quot; or &quot;faster than Redis, Nginx, Varnish&quot;</td>
+<td>No release-profile or comparative measurement exists</td>
+</tr>
+<tr>
+<td>&quot;Independently audited&quot; or &quot;secure by design&quot;</td>
+<td>AI second looks only; open pre-auth body read, member flush, no rate
+limit, no scan</td>
+</tr>
+</tbody>
+</table>
+<p><em>Handbook: Ch 8, 8.11 and 8.12; Appendix G.</em></p>
+<h1 id="the-ten-judge-questions-and-a-self-test">9. The ten judge
+questions, and a self-test</h1>
+<p>Practise each answer aloud in under a minute.</p>
+<ol type="1">
+<li><strong>How fast is it, and what hit rate do you get?</strong> There
+is no release-profile, head-to-head or multi-host measurement. The few
+micro-benchmark and loopback numbers come with strict limits and I do
+not quote them as product figures. I can show the mechanism and the
+tests, not a performance claim.</li>
+<li><strong>Does coalescing work across gateways, and what if the origin
+fails?</strong> Coalescing is per gateway, so N gateways can send N
+concurrent fetches for one key. When the leader fails, all its waiters
+fail together. Errors are not cached, so the next request tries
+again.</li>
+<li><strong>Why 8 shards, and what about one hot key?</strong> I found
+no recorded reason for 8. A hot key always lands on one shard, so
+sharding cannot help it. Contention has not been measured on a release
+build and no model checker has been run on the locking.</li>
+<li><strong>Is staleness at most 24 hours?</strong> No. The 24-hour cap
+bounds only the stale-serving window after expiry. A fresh entry lasts
+as long as the origin says, with no gateway ceiling, and the 60 s
+default is a literal because <code>PHANTOM_DEFAULT_TTL_MS</code> is not
+wired.</li>
+<li><strong>Is there a race in the fence?</strong> Yes: G4A-01, a gap
+between two epoch reads in <code>finalize_fetch</code>, is
+UNDER-INVESTIGATION. It was reproduced only in a sandbox with an
+injected yield point, and the small fix is not integrated. The
+generation fence for <code>DELETE</code> is separate and tested for one
+interleaving.</li>
+<li><strong>Does a 204 mean the object is gone everywhere?</strong> No.
+It means the local purge happened and the routed primary acknowledged
+within 150 ms. Other members are told asynchronously with retry and
+repair, and owed invalidations are lost if the issuer crashes.</li>
+<li><strong>Is this a distributed cache?</strong> It is N independent
+caches joined by an authenticated invalidation bus. <code>GET</code> is
+local; rendezvous hashing only picks the <code>DELETE</code>
+acknowledger; coordinated reads and weighted placement are DESIGNED BUT
+NOT IMPLEMENTED.</li>
+<li><strong>Is it linearizable, with bounded staleness?</strong> No to
+both. Reads are local, and after an issuer crash or permanent partition
+the only bound is the entry&#39;s own lifetime. All cluster evidence is
+single-host loopback in a debug build; multi-host behaviour is
+UNVERIFIED.</li>
+<li><strong>Does adaptive control improve anything?</strong> Not on
+current evidence. Sealed M6 found H1 NOT_SUPPORTED in simulation, and on
+a real gateway the adaptive arm acted as a static cap near 12. A static
+cap is the defensible feature, and it is not AI.</li>
+<li><strong>Who has verified this, and what is still open?</strong> No
+human has; every review is an AI second look. G4 found 99 findings (75
+open, no Critical); the High ones are G4A-01, G4A-02, G4B-01 (body read
+before auth) and F01 (U-01). A human review, external security review
+and physical multi-host run are blocked.</li>
+</ol>
+<h3 id="self-test-answer-aloud-then-check-the-section">Self-test: answer
+aloud, then check the section</h3>
+<ol type="1">
+<li>Name the six <code>X-Cache-Status</code> values and what a miss
+triggers. (2)</li>
+<li>A hundred clients ask for one missing key: what does the origin see,
+and what does that not prove? (2, 3)</li>
+<li>What does one hot key do to the 8 shards, and how often does a hit
+lock its shard? (3)</li>
+<li>Which setting is NOT WIRED, and what does
+<code>PHANTOM_MAX_STALE_MS</code> bound? (3)</li>
+<li>Walk through a <code>DELETE</code> arriving during a fetch: which
+numbers are compared, and where is the open race? (3)</li>
+<li>What exactly does a 204 tell the client in cluster mode? (4)</li>
+<li>Why is <code>GET</code> local-only, and what does the hash decide?
+(4)</li>
+<li>State the failure model, the honest consistency statement and one
+test that would falsify a staleness bound. (4)</li>
+<li>When is the origin gate enforced, what does AIMD do, and what did
+Scenario B show? (2, 5)</li>
+<li>What is the difference between T1 and T2, what did M6 conclude, and
+what may the project not claim from it? (7)</li>
+</ol>
+<h3 id="more-questions-to-rehearse-short-answers">More questions to
+rehearse (short answers)</h3>
+<ul>
+<li><em>How do you know the simulator reflects reality, and why report a
+failure?</em> I do not claim it does: it tests policy logic and cache
+semantics against a modelled origin, and its predictive power is
+UNVERIFIED. I report the negative result because the rule was fixed
+before the data.</li>
+<li><em>What does TESTED mean here?</em> A named test exercises the
+feature. Passing shows an author&#39;s expectation held in one build on one
+host; several tests assert stub behaviour.</li>
+<li><em>Was the cluster run on real machines?</em> No: loopback, one
+host, a debug build, at most four nodes. Multi-host operation is BLOCKED
+for lack of devices.</li>
+<li><em>What happens if the origin is down?</em> Errors are not cached.
+An eligible stale copy is served under <code>stale-if-error</code>
+inside the cap; otherwise the client gets an error. There is no circuit
+breaker, no negative caching and no retry loop.</li>
+<li><em>Can one tenant read another&#39;s data?</em> Keys include the
+tenant, and in secure mode the tenant comes only from the verified
+token. Isolation is by key only: there are no quotas, and any pinned
+cluster member can flush any tenant.</li>
+<li><em>What would you do next?</em> In order of cost: a relative-signal
+controller as a newly registered arm; a load-dependent scripted origin;
+a T1 versus T2 agreement study; a release-profile overhead benchmark; an
+independent human review; a multi-host run with baselines.</li>
+</ul>
+<h3 id="defending-under-pressure-six-habits">Defending under pressure:
+six habits</h3>
+<ol type="1">
+<li>Say the limit before the judge does. &quot;Reads are local, and the
+evidence is loopback&quot; costs you nothing when you volunteer it.</li>
+<li>Separate the status words. &quot;IMPLEMENTED&quot; means code exists; &quot;TESTED&quot;
+means a named test ran; neither means correct.</li>
+<li>Never use a number without its conditions (build profile, host,
+workload, seed, repetitions). If you cannot give them, do not quote
+it.</li>
+<li>When you do not know, say &quot;UNVERIFIED, and here is what would check
+it&quot;. Do not guess.</li>
+<li>Point to a mechanism and a file, not to a claim. Every section above
+names the function or test that holds the fact.</li>
+<li>Treat the negative result (H1 NOT_SUPPORTED) as your strongest
+honesty evidence, and do not soften it.</li>
+</ol>
+<p><strong>Key terms in one line each.</strong> <em>Single-flight</em>:
+one fetch per missing key, others wait. <em>Generation</em>: a per-key
+counter bumped by <code>DELETE</code>. <em>Epoch</em>: a per-tenant or
+global counter bumped by bulk invalidation. <em>Stale cap</em>: the
+longest expired data may still be served. <em>Rendezvous hashing</em>:
+highest score of (key, node) wins. <em>AIMD</em>: add a little when
+healthy, cut sharply when not. <em>Loopback</em>: all processes on one
+machine, so no real network. <em>Preregistration</em>: the verdict rule
+is fixed before the data is seen. <em>Provenance label</em>: measured,
+simulated, inferred or unavailable.</p>
+<p><em>Handbook: Appendix E (full judge bank), Appendix D (glossary) and
+Appendix H.</em></p>
+</body>
+</html>

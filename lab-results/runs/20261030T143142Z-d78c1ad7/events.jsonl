@@ -1,0 +1,5 @@
+{"data":{"state":"queued","tier":"MEASURED_LOOPBACK"},"event":"state","id":1,"ts":"2026-10-30T14:31:42Z"}
+{"data":{"state":"running"},"event":"state","id":2,"ts":"2026-10-30T14:31:42Z"}
+{"data":{"arm":"BASE","done":0,"gateway_pid":0,"phase":"starting","rep":1,"tier":"MEASURED_LOOPBACK","total":1},"event":"progress","id":3,"ts":"2026-10-30T14:31:43Z"}
+{"data":{"source":"server_recovery_on_startup","state":"interrupted"},"event":"state","id":4,"ts":"2026-10-30T14:32:24Z"}
+{"data":{"source":"server_recovery_on_startup","state":"interrupted"},"event":"done","id":5,"ts":"2026-10-30T14:32:24Z"}

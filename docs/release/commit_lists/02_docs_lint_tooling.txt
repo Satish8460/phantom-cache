@@ -1,0 +1,2 @@
+docs/.doclint.json
+scripts/docs-lint.mjs

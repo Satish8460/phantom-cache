@@ -1,0 +1,13 @@
+--- a/tests/integration/m7_config_tests.rs
++++ b/tests/integration/m7_config_tests.rs
+@@ -101,6 +101,10 @@
+         ("PHANTOM_LAB_ENABLED", vec![("PHANTOM_LAB_ENABLED", "true")], vec![("PHANTOM_LAB_ENABLED", "maybe")]),
+         ("PHANTOM_LAB_DIR", vec![("PHANTOM_LAB_DIR", "lab-out")], vec![("PHANTOM_LAB_DIR", "  ")]),
+         ("PHANTOM_LAB_GATEWAY_EXE", vec![("PHANTOM_LAB_GATEWAY_EXE", "gw.exe")], vec![("PHANTOM_LAB_GATEWAY_EXE", "  ")]),
++        ("PHANTOM_INVALIDATION_LOG_PATH", vec![("PHANTOM_INVALIDATION_LOG_PATH", "inval.log")], vec![("PHANTOM_INVALIDATION_LOG_PATH", "  ")]),
++        ("PHANTOM_INVALIDATION_LOG_FSYNC", vec![("PHANTOM_INVALIDATION_LOG_FSYNC", "interval")], vec![("PHANTOM_INVALIDATION_LOG_FSYNC", "sometimes")]),
++        ("PHANTOM_INVALIDATION_LOG_WAIT_MS", vec![("PHANTOM_INVALIDATION_LOG_WAIT_MS", "50")], vec![("PHANTOM_INVALIDATION_LOG_WAIT_MS", "49")]),
++        ("PHANTOM_SHUTDOWN_DRAIN_MS", vec![("PHANTOM_SHUTDOWN_DRAIN_MS", "0")], vec![("PHANTOM_SHUTDOWN_DRAIN_MS", "60001")]),
+         ("PHANTOM_CONFIG", vec![("PHANTOM_CONFIG", "x.conf")], vec![("PHANTOM_CONFIG", "  ")]),
+     ]
+ }

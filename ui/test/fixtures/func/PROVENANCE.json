@@ -1,0 +1,26 @@
+{
+  "purpose": "F0 fixtures for the functional-UX pure logic (agent FLIB, 2026-10-30). Files are byte copies; nothing was edited by hand.",
+  "legacy": {
+    "label": "LEGACY SHAPE: genuine output of the main-tree (unpatched) debug gateway, Scenario B, before the U-01 backend patch.",
+    "origin": "Scratch lab dir D:/Temp/usab_lab/runs/<run id> written by the usability agent (outside the repo). These are DISK files, not API-served bytes: the served summary.json has server paths redacted and a different hash (see artifact_index.sha256 inside each run.json). The cancelled summary still contains 3 local path strings in provenance.command_line style fields.",
+    "build_profile": "debug",
+    "files": {
+      "legacy/cancelled.run.json": { "source": "D:/Temp/usab_lab/runs/20261030T085920Z-9c26980f/run.json", "sha256": "444e33d116dc22b9a2ec58c1bbcb912ea058004ac62263f7b82ead287036ad93", "note": "state=cancelled, exit_code=130, progress done=0 total=2, arms BASE+STATIC-CAP, repetitions=1" },
+      "legacy/cancelled.summary.json": { "source": "D:/Temp/usab_lab/runs/20261030T085920Z-9c26980f/out/summary.json", "sha256": "f4b296ea8bf4afd1d8380f8604130db080e96b2ad871d8ccdb24ce9b7ab6cea3", "note": "status=CANCELLED but verdicts.STATIC-CAP.outcome=MECHANISM_FAILED (zero runs recorded). This is the U-01 defect data." },
+      "legacy/cancelled.events.jsonl": { "source": "D:/Temp/usab_lab/runs/20261030T085920Z-9c26980f/events.jsonl", "sha256": "5520ead6f90f5d5a728390d4ddaf9d32af16e3fba9054b2acf95b777e852797e" },
+      "legacy/completed.run.json": { "source": "D:/Temp/usab_lab/runs/20261030T085851Z-5ce0cf9f/run.json", "sha256": "ded1e7169a1025f8ee6c9bd1649050f11c6f338f35ddfe6ba11238cee8bb982a", "note": "state=completed, exit_code=0, done=2 total=2" },
+      "legacy/completed.summary.json": { "source": "D:/Temp/usab_lab/runs/20261030T085851Z-5ce0cf9f/out/summary.json", "sha256": "36df7296886c2336c6a36293ae1fb26cff059d751164c5362558b60df0d29c02", "note": "status=COMPLETE, label=EXPLORATORY (debug), verdict INCONCLUSIVE (1 valid pair)" },
+      "legacy/completed.events.jsonl": { "source": "D:/Temp/usab_lab/runs/20261030T085851Z-5ce0cf9f/events.jsonl", "sha256": "8d6ee2345efae913775b55bf4b7deff042907fee10b56c249ad47c020a84c4ff" }
+    },
+    "also_in_repo_evidence_not_copied": "lab-results/scenario_b/20261030T003932Z/summary.json is a genuine COMPLETE release-profile VALID summary (10 reps); not copied because it is large."
+  },
+  "sandbox_u01": {
+    "label": "SANDBOX-PATCHED BACKEND OUTPUT, not integrated. Real serde_json output of summarize() from the U-01 sandbox patch (D:/Temp/sbx_u01, docs/research/u01_backend/), produced by a sandbox-only dump test (flib_dump_shapes, not in the main tree) run with cargo -j 1 via with_cargo_lock.ps1, CARGO_TARGET_DIR=D:/Personal/_sbx_u01_target, debug profile, 2026-10-30. The inputs are the sandbox tests' synthetic RunMetrics (compute_run_metrics on hand-built records), so per-run metric VALUES are test inputs, not measurements; the SHAPE (verdicts null, verdicts_status, run_completeness, label) is real summarize() output. T-01 (integrated backend) is still pending.",
+    "files": {
+      "sandbox_u01/cancelled_zero_runs.summary.json": { "sha256": "79f8c8a0d91601cf5e06863603a6e72a0691b45bdde1c687861e4e8df92f839b", "note": "cancelled, 0 of 30 planned runs, 3 arms" },
+      "sandbox_u01/cancelled_partial.summary.json": { "sha256": "9e4ed51196363961addf30b25fb06ee3b544353fa303e5769b65d4595ba5fea4", "note": "cancelled, 2 of 20 planned runs; planned label VALID demoted to EXPLORATORY" },
+      "sandbox_u01/completed.summary.json": { "sha256": "ddc0892bf0659b54a037e55f2cf07a7103696de7503ce0b3bd0ece2019dc12da", "note": "complete, verdicts_status=computed, label VALID (test meta), 1 valid pair so outcome INCONCLUSIVE" }
+    }
+  },
+  "not_covered": ["A real failed or interrupted run (no summary.json exists for a failed run; see test names containing 'synthetic')", "Served (API) bytes: the disk copies differ from served bytes by path redaction"]
+}

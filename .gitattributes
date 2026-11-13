@@ -4,3 +4,17 @@
 /src/lib.rs -text
 /src/lab/eval.rs -text
 /tests/integration/m6_research_evaluation_tests.rs -text
+
+# Hash-sensitive evidence files: committed bytes must equal the recorded working bytes (D-062, owner-approved 2026-11-01).
+# Exactly these six files; the rule above about the four frozen files is unchanged.
+/bench-results/manifests/r0_baseline_manifest.json -text
+/bench-results/manifests/ra_manifest.json -text
+/bench-results/manifests/rb_manifest.json -text
+/bench-results/manifests/rc_manifest.json -text
+/bench-results/r0_summary.json -text
+/lab-results/e2e_acceptance_evidence.json -text
+
+# SHA-256-pinned preregistration freeze records: their raw hashes are recorded in the v2.2 record, the addenda,
+# lab-results/m6_sealed_run_started.marker and checked by verify_freeze (D-064, owner-approved 2026-11-02).
+/docs/research/preregistration_m6_v2_1_freeze.json -text
+/docs/research/preregistration_m6_v2_2_freeze.json -text

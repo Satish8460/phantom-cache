@@ -63,7 +63,8 @@ At startup (and with `--check-config`) the process prints every key with its res
 | `PHANTOM_ALLOW_INSECURE_CLUSTER` | bool | `false` | env (exported) | high: plaintext cluster, loopback development only |
 | `PHANTOM_STRICT_CLUSTER` | bool | `false` | env (exported) | medium: on loopback require full mTLS material |
 | `PHANTOM_CLUSTER_TIMEOUT_MS` | ms, 1..600000 | `150` | env (exported) | low |
-| `PHANTOM_INTELLIGENCE` | enum `off`, `observe`, `advisory`, `canary`, `active` | `off` | applied by main | medium: `canary` and `active` may change policy; benefit is not established |
+| `PHANTOM_INTELLIGENCE` | enum `off`, `observe`, `advisory`, `canary`, `active` | `off` | applied by main | medium: `canary` and `active` are REJECTED at startup (exit 2) unless `PHANTOM_ALLOW_EXPERIMENTAL_INTELLIGENCE=true`; benefit is not established |
+| `PHANTOM_ALLOW_EXPERIMENTAL_INTELLIGENCE` | bool | `false` | applied by main | high: explicit opt-in for `canary`/`active`; used only by the research lab |
 | `PHANTOM_SIMULATION` | bool | `false` | env (exported) | medium: enables SYNTHETIC dashboard values |
 | `PHANTOM_ORIGIN_CAP_MAX` | concurrent origin fetches, 1.. | unset | applied by main | medium: unset means the cap is not configured |
 | `PHANTOM_ORIGIN_CAP_MIN` | concurrent origin fetches, 1.. | `1` | applied by main | low: must be at most `PHANTOM_ORIGIN_CAP_MAX` |
@@ -77,7 +78,9 @@ At startup (and with `--check-config`) the process prints every key with its res
 
 ## Origin concurrency cap
 
-Setting `PHANTOM_ORIGIN_CAP_MAX` calls `DefaultPolicyExecutor::configure_origin_cap(min, max, p99_ceiling_ms, window)` at startup. Without it the origin path is uncapped (the default). **The cap is enforced only when `PHANTOM_INTELLIGENCE` is `canary` or `active`**; in `off`, `observe` and `advisory` it is inert and startup prints a warning saying so. A benefit of the adaptive controller has not been established; treat the cap as an experimental safety limit.
+`PHANTOM_ORIGIN_CAP_MAX` is a **static cap on concurrent origin fetches, enforced in every intelligence mode** (`off`, `observe`, `advisory` and the experimental modes). It is a plain counter compared with a fixed limit in the server layer (`src/api/server.rs`): not adaptive, not a policy, not part of the Phantom Intelligence engine. Only the single-flight leader, a bypass request or a background revalidation takes a permit; coalesced waiters never do. A request that finds the cap full is rejected at once with HTTP 503 and is not counted as an origin dispatch. Without `PHANTOM_ORIGIN_CAP_MAX` the origin path is uncapped (the default). Read the live state in `metrics.origin_static_cap` (`limit`, `in_flight`, `rejections`, all measured).
+
+Additionally, `PHANTOM_ORIGIN_CAP_MAX` is the upper bound of the experimental AIMD controller (`PHANTOM_ORIGIN_CAP_MIN`, `_P99_CEILING_MS`, `_WINDOW`), which is enforced only in `canary` or `active`; that part is inert otherwise and startup says so. A benefit of the adaptive controller has not been established (M6 H1 is NOT_SUPPORTED).
 
 A request rejected by the cap returns HTTP 503 with the same body and header as a shard-capacity rejection (`CapacityExceeded`). To tell them apart, read `metrics.origin_cap.origin_cap_rejections` in `GET /api/v1/metrics`: if it increments, the cap rejected the request.
 

@@ -1,0 +1,12 @@
+# tier=SIMULATED
+# banner=SIMULATION RESULT (T1 deterministic virtual-time simulation driving the real cache/executor code). NOT A MEASUREMENT of any network, host or process.
+# role=SECONDARY (not in the verdict): success-only P99, PIE-Retained vs BL-12b
+scenario,endpoint,treat,ctrl,n_seeds,mean_ctrl,mean_treat,mean_rel_reduction,ci_lo,ci_hi,p,p_holm,supported,practically_null,adverse,EXPLORATORY_log_ratio_rel_reduction,EXPLORATORY_median_rel_reduction,n_ratio_abs_gt_10
+O-DEG,client_p99_success_only_us,PIE-Retained,BL-12b,30,180300.0000,180300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-BRN,client_p99_success_only_us,PIE-Retained,BL-12b,30,60300.0000,60300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-SLW,client_p99_success_only_us,PIE-Retained,BL-12b,30,60300.0000,60300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-CO,client_p99_success_only_us,PIE-Retained,BL-12b,30,60300.0000,60300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-RT,client_p99_success_only_us,PIE-Retained,BL-12b,30,433819.2667,419536.9933,0.032127,0.018602,0.045558,0.000200,0.001200,false,true,false,0.032880,0.029387,0
+O-FL,client_p99_success_only_us,PIE-Retained,BL-12b,30,60300.0000,60300.0000,0.000000,0.000000,0.000000,1.000000,1.000000,false,true,false,0.000000,0.000000,0
+O-HET,client_p99_success_only_us,PIE-Retained,BL-12b,30,155984.2933,124679.9000,0.200636,0.189949,0.209156,0.000050,0.000400,true,false,false,0.201077,0.207312,0
+O-GRD,client_p99_success_only_us,PIE-Retained,BL-12b,30,168940.0733,154908.4533,0.082583,0.074238,0.090817,0.000050,0.000400,true,false,false,0.082885,0.087926,0

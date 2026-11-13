@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" width="900" height="720" role="img" aria-labelledby="t3 d3" font-family="Arial, Helvetica, sans-serif">
+  <title id="t3">Failure-scenario flow for a lost or delayed invalidation</title>
+  <desc id="d3">A DELETE arrives at the issuing gateway. It purges locally, waits for the primary acknowledgement, then fans out to other members. If a peer cannot be reached the invalidation is owed in an in-memory repair ledger and re-sent. If the issuer process dies before the peer is repaired, the owed invalidation is lost and the peer can serve the old entry until it expires.</desc>
+  <defs>
+    <marker id="ar3" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#222"/></marker>
+  </defs>
+  <rect width="900" height="720" fill="#ffffff"/>
+  <text x="450" y="24" font-size="17" font-weight="bold" text-anchor="middle" fill="#111">Figure 6.3 What happens to one DELETE when a peer is unreachable</text>
+
+  <rect x="290" y="40" width="320" height="44" fill="#dddddd" stroke="#111"/>
+  <circle cx="290" cy="40" r="13" fill="#111"/><text x="290" y="45" font-size="12" font-weight="bold" text-anchor="middle" fill="#fff">1</text>
+  <text x="450" y="59" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">DELETE /api/v1/cache/x at gateway A (issuer)</text>
+  <text x="450" y="75" font-size="12" text-anchor="middle" fill="#111">auth cache:invalidate, tenant from token</text>
+
+  <rect x="290" y="104" width="320" height="44" fill="#dddddd" stroke="#111"/>
+  <circle cx="290" cy="104" r="13" fill="#111"/><text x="290" y="109" font-size="12" font-weight="bold" text-anchor="middle" fill="#fff">2</text>
+  <text x="450" y="123" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">cache.delete(key) on A: generation bump</text>
+  <text x="450" y="139" font-size="12" text-anchor="middle" fill="#111">reads on A miss from this moment (per-node only)</text>
+
+  <rect x="290" y="168" width="320" height="58" fill="#dddddd" stroke="#111"/>
+  <circle cx="290" cy="168" r="13" fill="#111"/><text x="290" y="173" font-size="12" font-weight="bold" text-anchor="middle" fill="#fff">3</text>
+  <text x="450" y="187" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">invalidate_key_across_cluster: primary leg</text>
+  <text x="450" y="203" font-size="12" text-anchor="middle" fill="#111">rendezvous primary, 150 ms per attempt (default)</text>
+  <text x="450" y="219" font-size="12" text-anchor="middle" fill="#111">acting-primary failover if the primary times out</text>
+
+  <rect x="30" y="256" width="250" height="58" fill="#ffffff" stroke="#111"/>
+  <text x="155" y="276" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">Primary acknowledges</text>
+  <text x="155" y="293" font-size="12" text-anchor="middle" fill="#111">HTTP 204 returned. Meaning:</text>
+  <text x="155" y="308" font-size="12" text-anchor="middle" fill="#111">local purge + primary ack only</text>
+
+  <rect x="620" y="256" width="250" height="58" fill="#ffffff" stroke="#111"/>
+  <text x="745" y="276" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">No ack in time</text>
+  <text x="745" y="293" font-size="12" text-anchor="middle" fill="#111">504 or 5xx to the caller; every</text>
+  <text x="745" y="308" font-size="12" text-anchor="middle" fill="#111">other member recorded as owed</text>
+
+  <line x1="450" y1="226" x2="155" y2="256" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+  <line x1="450" y1="226" x2="745" y2="256" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+  <line x1="450" y1="84" x2="450" y2="104" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+  <line x1="450" y1="148" x2="450" y2="168" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+
+  <rect x="190" y="344" width="520" height="64" fill="#dddddd" stroke="#111"/>
+  <circle cx="190" cy="344" r="13" fill="#111"/><text x="190" y="349" font-size="12" font-weight="bold" text-anchor="middle" fill="#fff">4</text>
+  <text x="450" y="364" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">Fan-out to every other active member (asynchronous, per-peer queue of 256)</text>
+  <text x="450" y="381" font-size="12" text-anchor="middle" fill="#111">one delivery task per peer; a full queue, an error or a stop diverts the job to the repair ledger</text>
+  <text x="450" y="397" font-size="12" text-anchor="middle" fill="#111">the caller does NOT wait for these peers</text>
+  <line x1="155" y1="314" x2="300" y2="344" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+  <line x1="745" y1="314" x2="600" y2="344" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+
+  <rect x="30" y="440" width="260" height="70" fill="#ffffff" stroke="#111"/>
+  <text x="160" y="460" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">Peer B reachable</text>
+  <text x="160" y="477" font-size="12" text-anchor="middle" fill="#111">frame applied, ack returned.</text>
+  <text x="160" y="493" font-size="12" text-anchor="middle" fill="#111">B now misses. Window = delivery</text>
+  <text x="160" y="506" font-size="12" text-anchor="middle" fill="#111">time (measured, see 6.9)</text>
+
+  <rect x="320" y="440" width="270" height="70" fill="#dddddd" stroke="#111"/>
+  <circle cx="320" cy="440" r="13" fill="#111"/><text x="320" y="445" font-size="12" font-weight="bold" text-anchor="middle" fill="#fff">5</text>
+  <text x="455" y="460" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">Peer B unreachable or slow</text>
+  <text x="455" y="477" font-size="12" text-anchor="middle" fill="#111">job recorded in RepairLedger (bounded:</text>
+  <text x="455" y="493" font-size="12" text-anchor="middle" fill="#111">1024 entries, 256 KiB per peer; overflow</text>
+  <text x="455" y="506" font-size="12" text-anchor="middle" fill="#111">escalates to tenant, then full flush)</text>
+
+  <rect x="620" y="440" width="250" height="70" fill="#ffffff" stroke="#111"/>
+  <text x="745" y="460" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">Gap detection (pull)</text>
+  <text x="745" y="477" font-size="12" text-anchor="middle" fill="#111">anti-entropy worker, 250 ms tick:</text>
+  <text x="745" y="493" font-size="12" text-anchor="middle" fill="#111">B asks A to replay A's own</text>
+  <text x="745" y="506" font-size="12" text-anchor="middle" fill="#111">records after a sequence gap</text>
+  <line x1="300" y1="408" x2="160" y2="440" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+  <line x1="450" y1="408" x2="455" y2="440" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+  <line x1="590" y1="475" x2="620" y2="475" stroke="#222" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#ar3)"/>
+
+  <rect x="200" y="540" width="500" height="58" fill="#dddddd" stroke="#111"/>
+  <circle cx="200" cy="540" r="13" fill="#111"/><text x="200" y="545" font-size="12" font-weight="bold" text-anchor="middle" fill="#fff">6</text>
+  <text x="450" y="560" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">Repair worker re-sends owed jobs when B answers (64 per tick)</text>
+  <text x="450" y="577" font-size="12" text-anchor="middle" fill="#111">same stream sequence is reused so the receiver sees no permanent gap</text>
+  <text x="450" y="591" font-size="12" text-anchor="middle" fill="#111">test names say promotion waits for repaid debt (cluster_followup_tests m1); bodies not read</text>
+  <line x1="455" y1="510" x2="450" y2="540" stroke="#222" stroke-width="2" marker-end="url(#ar3)"/>
+
+  <!-- failure branch -->
+  <rect x="30" y="632" width="840" height="82" fill="#ffffff" stroke="#111" stroke-width="3"/>
+  <rect x="34" y="636" width="832" height="74" fill="#ffffff" stroke="#111" stroke-width="1"/>
+  <text x="450" y="656" font-size="13" font-weight="bold" text-anchor="middle" fill="#111">OPEN (G4B-09, claims ledger C6 qualifier): issuer dies before step 6 completes</text>
+  <text x="450" y="674" font-size="12" text-anchor="middle" fill="#111">The ledger and the replay ring are in process memory. SIGTERM or crash of A loses what B is owed; main.rs does not drain the router on shutdown.</text>
+  <text x="450" y="690" font-size="12" text-anchor="middle" fill="#111">B can keep serving the old entry until its freshness lifetime ends (literal 60 s default, or whatever the origin allowed). No test kills the issuer.</text>
+  <text x="450" y="704" font-size="12" text-anchor="middle" fill="#111">Durable-log proposal M3 exists only as a sandbox patch, not integrated.</text>
+  <line x1="450" y1="598" x2="450" y2="632" stroke="#222" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ar3)"/>
+  <text x="462" y="620" font-size="11.5" fill="#111">crash window</text>
+</svg>

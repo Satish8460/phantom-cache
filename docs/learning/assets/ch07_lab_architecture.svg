@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 650" font-family="Arial, Helvetica, sans-serif" font-size="14">
+<title>Phantom Lab architecture: UI, Lab API, T1 simulator, T2 real-gateway runner, evidence store</title>
+<desc>Boxes show the browser UI Lab screens calling the Lab API (lab-1), which starts either the T1 simulator in src/lab (SIMULATED) or the T2 Scenario B runner in src/lab_live (REAL, loopback, one host). Both write to the lab-results evidence store. The phantom-lab command line starts the same two runners.</desc>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#222"/></marker></defs>
+<rect width="900" height="650" fill="#fff"/>
+<text x="450" y="24" text-anchor="middle" font-weight="bold" font-size="17">Phantom Lab: who talks to whom</text>
+<rect x="30" y="50" width="290" height="74" fill="#eee" stroke="#222" stroke-width="2"/>
+<text x="175" y="74" text-anchor="middle" font-weight="bold">Browser UI (ui/src/screens/lab)</text>
+<text x="175" y="93" text-anchor="middle">About, Start a run, Runs, Evidence</text>
+<text x="175" y="112" text-anchor="middle">token kept in memory only</text>
+<rect x="620" y="50" width="250" height="74" fill="#eee" stroke="#222" stroke-width="2"/>
+<text x="745" y="74" text-anchor="middle" font-weight="bold">phantom-lab CLI</text>
+<text x="745" y="93" text-anchor="middle">src/bin/phantom-lab.rs</text>
+<text x="745" y="112" text-anchor="middle">run | list | scenario-b</text>
+<rect x="30" y="170" width="290" height="100" fill="#d9d9d9" stroke="#222" stroke-width="2"/>
+<text x="175" y="194" text-anchor="middle" font-weight="bold">Lab API (src/api/lab_api.rs)</text>
+<text x="175" y="213" text-anchor="middle">/api/v1/lab/... schema lab-1</text>
+<text x="175" y="232" text-anchor="middle">off unless PHANTOM_LAB_ENABLED=true</text>
+<text x="175" y="251" text-anchor="middle">one run at a time; SSE run events</text>
+<rect x="350" y="300" width="270" height="120" fill="#fff" stroke="#222" stroke-width="3" stroke-dasharray="8 4"/>
+<text x="485" y="324" text-anchor="middle" font-weight="bold">T1 runner: src/lab (SIMULATED)</text>
+<text x="485" y="343" text-anchor="middle">virtual time, seeded RNG, event heap</text>
+<text x="485" y="362" text-anchor="middle">REAL cache + executor in-process</text>
+<text x="485" y="381" text-anchor="middle">SIMULATED origin and workload</text>
+<text x="485" y="400" text-anchor="middle">output: cells.csv, verdict.json</text>
+<rect x="650" y="300" width="220" height="175" fill="#bdbdbd" stroke="#222" stroke-width="3"/>
+<text x="760" y="324" text-anchor="middle" font-weight="bold">T2 runner: src/lab_live</text>
+<text x="760" y="343" text-anchor="middle">REAL, loopback, one host</text>
+<text x="760" y="362" text-anchor="middle">load generator (open loop)</text>
+<text x="760" y="381" text-anchor="middle">gateway process (child)</text>
+<text x="760" y="400" text-anchor="middle">scripted delay-server origin</text>
+<text x="760" y="419" text-anchor="middle">real time, not bit-exact</text>
+<text x="760" y="438" text-anchor="middle">output: per-run CSV + summary</text>
+<text x="760" y="457" text-anchor="middle">(Scenario B only)</text>
+<rect x="30" y="510" width="610" height="100" fill="#f5f5f5" stroke="#222" stroke-width="2"/>
+<text x="335" y="534" text-anchor="middle" font-weight="bold">Evidence store: lab-results/ (retained folders are read-only to the API)</text>
+<text x="335" y="553" text-anchor="middle">manifest.json (hashes, seeds, git head, host) | cells.csv | summary.json | verdict.json</text>
+<text x="335" y="572" text-anchor="middle">retained: m6_sealed_*, m6_dryrun_*, scenario_b/*, tuning_*  (never edited)</text>
+<text x="335" y="591" text-anchor="middle">API-started runs live in &lt;lab root&gt;/runs/&lt;id&gt;/ (run.json, events.jsonl)</text>
+<polyline points="175,124 175,168" fill="none" stroke="#222" stroke-width="2" marker-end="url(#a)"/>
+<text x="185" y="152" font-size="13">HTTP + SSE</text>
+<polyline points="200,270 200,360 348,360" fill="none" stroke="#222" stroke-width="2" marker-end="url(#a)"/>
+<text x="208" y="352" font-size="13">kind t1_matrix</text>
+<polyline points="320,215 710,215 710,298" fill="none" stroke="#222" stroke-width="2" marker-end="url(#a)"/>
+<text x="332" y="207" font-size="13">kind scenario_b</text>
+<polyline points="640,124 640,250 560,250 560,298" fill="none" stroke="#222" stroke-width="2" marker-end="url(#a)"/>
+<polyline points="810,124 810,298" fill="none" stroke="#222" stroke-width="2" marker-end="url(#a)"/>
+<polyline points="485,420 485,508" fill="none" stroke="#222" stroke-width="2" marker-end="url(#a)"/>
+<polyline points="700,475 700,560 642,560" fill="none" stroke="#222" stroke-width="2" marker-end="url(#a)"/>
+<polyline points="60,508 60,272" fill="none" stroke="#222" stroke-width="2" stroke-dasharray="3 3" marker-end="url(#a)"/>
+<text x="70" y="400" font-size="13">read evidence</text>
+<text x="890" y="640" text-anchor="end" font-size="12">Dashed border = simulation; solid heavy border = real processes.</text>
+</svg>

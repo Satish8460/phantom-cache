@@ -1,0 +1,27 @@
+diff --git a/Cargo.toml b/Cargo.toml
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -23,6 +23,10 @@
+ url = "2.5"
+ ring = "0.17"
+ 
++[features]
++# Crash-point instrumentation for the M3 durability test matrix. OFF by default; never enable in production.
++m3-failpoints = []
++
+ [dev-dependencies]
+ jsonwebtoken = "9"
+ rcgen = "0.13"
+@@ -351,3 +355,12 @@
+ [[test]]
+ name = "lab_live_scenario_b_tests"
+ path = "tests/integration/lab_live_scenario_b_tests.rs"
++
++[[test]]
++name = "m3_invalidation_durability_tests"
++path = "tests/integration/m3_invalidation_durability_tests.rs"
++
++[[test]]
++name = "m3_crash_point_tests"
++path = "tests/integration/m3_crash_point_tests.rs"
++required-features = ["m3-failpoints"]

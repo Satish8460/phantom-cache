@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" width="900" height="700" role="img" aria-labelledby="t4 d4">
+<title id="t4">Origin failure and stale-serving decision</title>
+<desc id="d4">After a miss the single-flight leader fetches the origin. Success stores and serves. A 304 refreshes the stored entry. Any failure triggers a stale-if-error check; if eligible the stale copy is served as STALE, otherwise every waiter receives a mapped error and nothing is stored.</desc>
+<defs>
+<style>
+text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#111}
+.h{font-size:14px;font-weight:bold}
+.s{font-size:13px;fill:#333}
+.b{fill:#fff;stroke:#222;stroke-width:1.5}
+.g{fill:#e4e4e4;stroke:#222;stroke-width:1.5}
+.k{fill:#c8c8c8;stroke:#222;stroke-width:2}
+.d{fill:#fff;stroke:#222;stroke-width:1.5;stroke-dasharray:6 4}
+.a{stroke:#222;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+</style>
+<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker>
+</defs>
+<rect width="900" height="700" fill="#fff"/>
+<rect class="g" x="200" y="12" width="400" height="44" rx="4"/>
+<text x="400" y="31" text-anchor="middle" class="h">Miss, or entry expired and not servable stale</text>
+<text x="400" y="48" text-anchor="middle" class="s">leader is chosen by begin_fetch_atomic (Initiate)</text>
+<path class="a" d="M400 56 L400 80"/>
+<rect class="b" x="170" y="80" width="460" height="52" rx="4"/>
+<text x="400" y="100" text-anchor="middle" class="h">Leader task: fetch_origin_raw (permit first, if executor)</text>
+<text x="400" y="118" text-anchor="middle" class="s">SSRF check, pinned IP, 5 s connect / TLS / read timeouts, 2 MiB body cap</text>
+<path class="a" d="M250 132 L130 168"/><path class="a" d="M400 132 L400 168"/><path class="a" d="M550 132 L690 168"/>
+<rect class="g" x="20" y="168" width="220" height="86" rx="4"/>
+<text x="130" y="188" text-anchor="middle" class="h">200 (or cacheable 301/404/410)</text>
+<text x="130" y="207" text-anchor="middle" class="s">store if fence holds</text><text x="130" y="223" text-anchor="middle" class="s">waiters: MISS and COALESCED</text><text x="130" y="239" text-anchor="middle" class="s">uncacheable: served, not stored</text>
+<rect class="g" x="290" y="168" width="220" height="86" rx="4"/>
+<text x="400" y="188" text-anchor="middle" class="h">304 Not Modified</text>
+<text x="400" y="207" text-anchor="middle" class="s">only if we sent validators</text><text x="400" y="223" text-anchor="middle" class="s">complete_not_modified refreshes</text><text x="400" y="239" text-anchor="middle" class="s">the stored entry's lifetime</text>
+<rect class="k" x="570" y="168" width="310" height="86" rx="4"/>
+<text x="725" y="188" text-anchor="middle" class="h">Failure</text>
+<text x="725" y="207" text-anchor="middle" class="s">timeout, connect or TLS error, bad framing,</text><text x="725" y="223" text-anchor="middle" class="s">oversize, other status, or origin permit</text><text x="725" y="239" text-anchor="middle" class="s">refused (cap saturated)</text>
+<path class="a" d="M725 254 L725 290"/>
+<polygon points="725,290 880,355 725,420 570,355" fill="#fff" stroke="#222" stroke-width="2"/>
+<text x="725" y="338" text-anchor="middle" class="h">Stale copy usable?</text>
+<text x="725" y="355" text-anchor="middle" class="s">check_stale_serving</text><text x="725" y="371" text-anchor="middle" class="s">(error context)</text>
+<path class="a" d="M570 355 L500 355 L500 460"/>
+<text x="508" y="348" class="s">yes</text>
+<path class="a" d="M725 420 L725 460"/>
+<text x="735" y="445" class="s">no</text>
+<rect class="g" x="290" y="460" width="270" height="108" rx="4"/>
+<text x="425" y="480" text-anchor="middle" class="h">Serve stale to leader and waiters</text>
+<text x="425" y="499" text-anchor="middle" class="s">200, X-Cache-Status: STALE, Age</text><text x="425" y="515" text-anchor="middle" class="s">revalidation_error + 1,</text><text x="425" y="531" text-anchor="middle" class="s">per-key backoff recorded</text><text x="425" y="551" text-anchor="middle" class="s">never older than lifetime + hard cap</text>
+<rect class="b" x="590" y="460" width="290" height="190" rx="4"/>
+<text x="735" y="480" text-anchor="middle" class="h">Error to leader and all waiters</text>
+<text x="602" y="502" class="s">nothing stored; origin_fetches_failed + 1</text>
+<text x="602" y="524" class="s">Timeout            to 504 (Origin Timeout)</text>
+<text x="602" y="542" class="s">Network, TLS, framing, oversize to 502</text>
+<text x="602" y="560" class="s">Origin status N    to N (404 keeps X-Cache-Error:</text><text x="602" y="576" class="s">                           NotFound)</text>
+<text x="602" y="596" class="s">Permit refused     to 503, Retry-After: 1</text>
+<text x="602" y="614" class="s">                           (X-Cache-Error: CapacityExceeded)</text>
+<text x="602" y="636" class="s">Next request starts a fresh fetch</text>
+<rect class="d" x="20" y="300" width="250" height="160" rx="4"/>
+<text x="30" y="320" class="h">Stale is allowed only if</text>
+<text x="30" y="340" class="s">entry exists, epochs match,</text><text x="30" y="356" class="s">not must-revalidate, the origin</text><text x="30" y="372" class="s">sent stale-if-error (else</text><text x="30" y="388" class="s">stale-while-revalidate) greater</text><text x="30" y="404" class="s">than 0, and age is within</text><text x="30" y="420" class="s">lifetime + min(window, cap).</text><text x="30" y="440" class="s">With no directive: no stale.</text>
+<text x="20" y="690" class="s">Derived from get_cache_handler, map_origin_error_to_response, PartitionedCache::check_stale_serving.</text>
+</svg>

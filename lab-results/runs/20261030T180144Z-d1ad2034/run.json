@@ -1,0 +1,44 @@
+{
+  "artifact_index": {
+    "manifest.json": {
+      "bytes": 6947,
+      "sha256": "8ae46ba6c7e02bb3a7501e0de8e7d62788ad48439a5d0cd84a69187f703b12a4"
+    },
+    "summary.json": {
+      "bytes": 16556,
+      "sha256": "3c23765d58bb9e4bccc270cff0a1ed00e1cce7e64a917b6e9f85105975ae7b31"
+    }
+  },
+  "build_profile": "release",
+  "created_utc": "2026-10-30T18:01:44Z",
+  "ended_utc": "2026-10-30T18:01:56Z",
+  "exit_code": 0,
+  "gateway_created_ft": "134378569115169174",
+  "gateway_pid": 14692,
+  "kind": "scenario_b",
+  "persistence_errors": 0,
+  "progress": {
+    "done": 2,
+    "total": 2
+  },
+  "run_id": "20261030T180144Z-d1ad2034",
+  "spec": {
+    "aimd_max": 32,
+    "aimd_min": 12,
+    "arms": [
+      "BASE",
+      "STATIC-CAP"
+    ],
+    "degraded_s": 1,
+    "healthy_s": 1,
+    "n_keys": 100,
+    "rate_rps": 50.0,
+    "recovery_s": 1,
+    "repetitions": 1,
+    "static_cap": 24,
+    "warmup_s": 1
+  },
+  "started_utc": "2026-10-30T18:01:44Z",
+  "state": "completed",
+  "tier": "MEASURED_LOOPBACK"
+}

@@ -1,0 +1,40 @@
+{
+ "status": "ok",
+ "schema": "pie-api-v1",
+ "installed": true,
+ "mode": {
+  "value": "observe",
+  "src": "measured",
+  "samples": 1
+ },
+ "window": null,
+ "features": {
+  "F1": {
+   "name": "request_rate_rps",
+   "unit": "req/s",
+   "value": null,
+   "src": "unavailable",
+   "samples": 0,
+   "reason": "no_window_closed_yet"
+  },
+  "F2": {
+   "name": "hit_ratio",
+   "unit": "ratio",
+   "value": null,
+   "src": "unavailable",
+   "samples": 0,
+   "reason": "no_window_closed_yet"
+  }
+ },
+ "top_keys": {
+  "src": "derived",
+  "items": []
+ },
+ "classification": {
+  "value": null,
+  "src": "unavailable",
+  "samples": 0,
+  "reason": "no_window_closed_yet"
+ },
+ "history": []
+}

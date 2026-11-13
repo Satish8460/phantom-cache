@@ -3,6 +3,8 @@
 **Date:** 2026-10-28. **Mode:** read-only. Nothing was executed except `cargo test --all-targets -j 1` (242 passed, 0 failed, 19 targets, debug profile).
 **Method:** Source reading plus `Grep` for call sites. "Confirmed" means the statement follows from the code as read; it does **not** mean the performance impact is measured. Impact claims are tagged **[HYP]**.
 
+> **Correction notice (2026-10-30, owner-approved DEC-020; the register text below is unchanged and dates from 2026-10-28):** several findings describe code that has since changed. F15 (GET local-only and peer invalidations purge a separate per-node cache): in the mTLS cluster branch the local node now shares the serving cache (`VirtualNode::new_with_cache`, `src/main.rs:332`); remote peers are address-only descriptors; the demo nodes still own separate caches; GET remains local-only. F18 ("the only staleness bound is the fixed 60 s TTL"): the 60 s literal is only the no-origin-headers default (`PHANTOM_DEFAULT_TTL_MS` NotWired, `src/api/server.rs:1405`, `:1688`), origin headers set the lifetime with no gateway ceiling, and there is therefore no proven staleness bound; a cluster repair path (anti-entropy worker, 250 ms, `src/main.rs:375`) now exists but its effectiveness is not established. "DELETE ordering reversed relative to docs" (`server.rs:830-832`): the local purge now runs first (`src/api/server.rs:1990`). The test baseline "242 passed, 19 targets" is superseded by `docs/STATUS.md` section 3. All line numbers are from the 2026-10-28 tree.
+
 Status vocabulary: **CONFIRMED** (code supports it), **CONFIRMED-WITH-CORRECTION** (my earlier wording was inaccurate), **UNRESOLVED**, **REJECTED**.
 
 ## 1. Findings from the first pass, re-checked

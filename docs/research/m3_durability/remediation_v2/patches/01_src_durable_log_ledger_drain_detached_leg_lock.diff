@@ -1,0 +1,2996 @@
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -122,6 +122,15 @@
+         "low", "Lazy invalidation sweeper per-tick shard inspection limit (design cap 32; above 32 warns)."),
+     key!("PHANTOM_SWEEPER_INTERVAL_MS", Kind::Uint { min: 1, max: 3_600_000 }, Some("100"), "ms", false, Wiring::Main,
+         "low", "Sweeper tick period."),
++    key!("PHANTOM_INVALIDATION_LOG_PATH", Kind::Str, None, "file path", false, Wiring::Main,
++        "medium: durable record of accepted-but-unacknowledged invalidations; restrict directory permissions",
++        "PROPOSED (M3): opt-in durable owed-invalidation log. Unset = off (invalidations not yet acknowledged by every peer are lost if this gateway dies)."),
++    key!("PHANTOM_INVALIDATION_LOG_FSYNC", Kind::Enum(&["always", "interval", "never"]), Some("always"), "enum", false, Wiring::Main,
++        "low", "PROPOSED (M3): durability of the invalidation log. always = fsync before the DELETE is answered (power-loss safe); interval = fsync every 100 ms (process-crash safe); never = OS cache only (process-crash safe)."),
++    key!("PHANTOM_INVALIDATION_LOG_WAIT_MS", Kind::Uint { min: 50, max: 60_000 }, Some("2000"), "ms", false, Wiring::Main,
++        "low", "PROPOSED (M3): upper bound on how long a DELETE waits for its owed-invalidation record to become durable (queue + write + fsync). On expiry the DELETE is still answered (fail-open) and the miss is counted and reported on stderr. Ignored unless the log path is set."),
++    key!("PHANTOM_SHUTDOWN_DRAIN_MS", Kind::Uint { min: 0, max: 60_000 }, Some("2000"), "ms", false, Wiring::Main,
++        "low", "PROPOSED (M3): on SIGINT/SIGTERM keep delivering owed invalidations to peers for at most this long before exiting (0 = exit immediately). Peers in state Suspect or Recovering that still owe an acknowledgement also hold the drain until the deadline; Failed/Offline peers do not. Keep the supervisor termination grace above this value."),
+     key!("ORIGIN_URL", Kind::Url, None, "http(s) URL", false, Wiring::EnvExport,
+         "high: upstream destination; validated against the SSRF policy at startup", "Origin base URL the gateway fetches from on a miss. Not PHANTOM_-prefixed (historical name)."),
+     key!("PHANTOM_ORIGIN_ALLOWLIST", Kind::UrlList, None, "comma-separated URLs", false, Wiring::EnvExport,
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -278,6 +278,9 @@
+     let cert_path = cfg.get("PHANTOM_NODE_CERT");
+     let key_path = cfg.get("PHANTOM_NODE_KEY");
+ 
++    // PROPOSED (M3): handle of the opt-in durable invalidation log (None = off).
++    let mut durable_log_handle: Option<Arc<dist::router::durable_log::DurableLog>> = None;
++
+     let router: Option<Arc<dist::router::RendezvousRouter>> =
+         if let (Some(ca_path), Some(cert_path), Some(key_path)) = (ca_path, cert_path, key_path) {
+             let registry = cluster_registry.ok_or_else(|| {
+@@ -372,6 +375,46 @@
+ 
+             eprintln!("[EXPERIMENTAL] Cluster mode (mTLS): the local cluster node shares this gateway's HTTP serving cache, so invalidation frames received from peers purge it; GET is still served from the local cache only. DELETE purges locally, waits for the primary's ack and fans out to every other active member (re-delivered by the repair worker if a peer cannot be reached); see docs/research/adr/ADR-001-present-architecture-and-direction.md");
+             let r = Arc::new(dist::router::RendezvousRouter::new(nodes.clone()).with_cluster_tls(cluster_tls));
++            // PROPOSED (M3): opt-in durable owed-invalidation log. Replay BEFORE the repair worker
++            // starts, then attach (so the replay is not appended to the log again).
++            if let Some(log_path) = cfg.get("PHANTOM_INVALIDATION_LOG_PATH") {
++                let peers: Vec<u8> = registry.members.keys().copied().filter(|id| *id != node_id).collect();
++                let policy = dist::router::durable_log::FsyncPolicy::parse(cfg.get("PHANTOM_INVALIDATION_LOG_FSYNC").unwrap_or("always"))
++                    .unwrap_or(dist::router::durable_log::FsyncPolicy::Always);
++                let mut lcfg = dist::router::durable_log::LogConfig { fsync: policy, ..Default::default() };
++                let lcfg_wait_ms = cfg.get_u64("PHANTOM_INVALIDATION_LOG_WAIT_MS");
++                lcfg.durability_wait = std::time::Duration::from_millis(lcfg_wait_ms);
++                dist::router::durable_log::apply_test_overrides(&mut lcfg); // no-op unless built with --cfg m3_failpoints
++                match dist::router::durable_log::DurableLog::open(std::path::Path::new(log_path), node_id, &peers, lcfg) {
++                    Ok((log, rep)) => {
++                        let ledger = r.broadcaster().repair_ledger();
++                        for d in &rep.debts {
++                            ledger.record(d.peer, None, d.scope, &d.key);
++                        }
++                        ledger.attach_durable(log.clone());
++                        eprintln!(
++                            "[invalidation-log] {} opened (fsync={:?}): replay outcome {:?}, {} records, {} owed invalidation(s) re-queued, {} aged out",
++                            log_path, policy, rep.outcome, rep.records, rep.debts.len(), rep.aged_out
++                        );
++                        match &rep.outcome {
++                            dist::router::durable_log::ReplayOutcome::Fresh | dist::router::durable_log::ReplayOutcome::Replayed => {}
++                            other => eprintln!("[invalidation-log] WARNING: the log was not replayed cleanly ({other:?}); a corrupt or lost log means every peer is owed a full cache flush, a discarded torn tail means the interrupted last record was dropped"),
++                        }
++                        eprintln!(
++                            "[invalidation-log] durability wait bound {} ms (fail-open on expiry); the durability state (not_durable, wait_timeouts, write_errors, degraded) is reported on stderr only, NOT on /api/v1/metrics",
++                            lcfg_wait_ms
++                        );
++                        dist::router::durable_log::failpoint("boot.after_replay");
++                        durable_log_handle = Some(log);
++                    }
++                    Err(e) => {
++                        return Err(Fatal(
++                            EXIT_CONFIG,
++                            format!("PHANTOM_INVALIDATION_LOG_PATH {}: cannot open the invalidation log: {}", log_path, e),
++                        ));
++                    }
++                }
++            }
+             r.start_anti_entropy_worker(std::time::Duration::from_millis(250));
+             // Open and handshake one pooled connection per member now, so the first invalidation to a
+             // destination does not pay TCP connect + mTLS handshake. Never gates /health/live or readiness.
+@@ -423,6 +466,7 @@
+         Arc::new(sec_cfg)
+     });
+ 
++    let router_for_shutdown = router.clone();
+     let api_state = Arc::new(ApiState {
+         cache: Some(cache.clone()),
+         origin_url,
+@@ -508,9 +552,34 @@
+         }
+         sig = shutdown_signal() => {
+             readiness.begin_draining();
+-            println!("[shutdown] received {}; stopping the ingress listener and exiting (cache is in-memory, nothing to flush)", sig);
+-            // Dropping `server` closes the listener. In-flight connection draining requires a
+-            // graceful-shutdown hook in api::server::start_server (deferred integration item).
++            println!("[shutdown] received {}; stopping the ingress listener (the cache is in-memory; owed peer invalidations are drained first)", sig);
++            // The server future is no longer polled: no new connections are accepted. In-flight
++            // connection draining requires a graceful-shutdown hook in api::server::start_server
++            // (deferred integration item).
++            // PROPOSED (M3): deliver invalidations that peers have not acknowledged yet, bounded.
++            let drain_ms = cfg.get_u64("PHANTOM_SHUTDOWN_DRAIN_MS");
++            let mut drained_clean = true;
++            if let Some(r) = router_for_shutdown.as_ref() {
++                if drain_ms > 0 {
++                    let rep = r.drain(std::time::Duration::from_millis(drain_ms)).await;
++                    println!(
++                        "[shutdown] invalidation drain: complete={} elapsed={:?} pending_jobs={} inflight_delete_legs={} peers_still_owed={:?}",
++                        rep.complete, rep.elapsed, rep.pending_jobs, rep.inflight_legs, rep.peers_still_owed
++                    );
++                    drained_clean = rep.complete;
++                    if !rep.complete {
++                        if durable_log_handle.is_some() {
++                            eprintln!("[shutdown] some peers still owe acknowledgement; the owed invalidations stay in the durable log and are re-delivered on the next start");
++                        } else {
++                            eprintln!("[shutdown] WARNING: invalidations not yet acknowledged by peers {:?} are LOST (no PHANTOM_INVALIDATION_LOG_PATH); they stay stale there until expiry", rep.peers_still_owed);
++                        }
++                    }
++                }
++                r.stop();
++            }
++            if let Some(l) = durable_log_handle.as_ref() {
++                l.close(drained_clean);
++            }
+             Ok(EXIT_OK)
+         }
+     }
+@@ -565,7 +634,19 @@
+     }
+     #[cfg(not(unix))]
+     {
+-        let _ = tokio::signal::ctrl_c().await;
+-        "Ctrl-C"
++        // PROPOSED (M3): CTRL_BREAK is the only console event that can be aimed at one process
++        // (via its process group) on Windows, so supervisors and the test harness use it.
++        match tokio::signal::windows::ctrl_break() {
++            Ok(mut brk) => {
++                tokio::select! {
++                    _ = tokio::signal::ctrl_c() => "Ctrl-C",
++                    _ = brk.recv() => "Ctrl-Break",
++                }
++            }
++            Err(_) => {
++                let _ = tokio::signal::ctrl_c().await;
++                "Ctrl-C"
++            }
++        }
+     }
+ }
+--- a/src/api/server.rs
++++ b/src/api/server.rs
+@@ -1988,15 +1988,32 @@
+     // Invalidate local cache FIRST before cluster round-trip (C-08 / Guarantee G1 / ADR-003)
+     // Guarantees linearizability: concurrent GETs on this gateway immediately miss / observe deletion.
+     cache.delete(&cache_key);
++    crate::dist::router::durable_log::failpoint("delete.after_local_purge");
+ 
+     let (status_code, headers_resp) = if let Some(ref router) = state.router {
+         let canonical_key = cache_key.to_canonical_string();
+-        match router
+-            .invalidate_key_across_cluster(
+-                &canonical_key,
+-                crate::dist::frame::InvalidationScope::ExactKey,
+-            )
+-            .await
++        // M3: the cluster leg runs as a DETACHED task. The server drops this handler future when
++        // the client disconnects; if the leg ran inline it would be cancelled mid-flight and the
++        // fan-out to the other members (and, with the durable log, the owed-set bookkeeping) would
++        // never happen although the local purge and possibly the primary leg already did. The
++        // handler still awaits the task so the response is unchanged.
++        let leg_router = router.clone();
++        // F-06: registered before the spawn; the shutdown drain waits for the leg to finish.
++        let leg_guard = leg_router.begin_delete_leg();
++        let leg = tokio::spawn(async move {
++            let _leg_guard = leg_guard;
++            leg_router
++                .invalidate_key_across_cluster(
++                    &canonical_key,
++                    crate::dist::frame::InvalidationScope::ExactKey,
++                )
++                .await
++        });
++        let leg_result = match leg.await {
++            Ok(r) => r,
++            Err(_join_error) => Err(crate::dist::router::DistError::ProtocolError),
++        };
++        match leg_result
+         {
+             Ok(outcome) => {
+                 if outcome.status.is_success() {
+--- a/src/dist/router.rs
++++ b/src/dist/router.rs
+@@ -1,3 +1,8 @@
++// M3: the durable invalidation log is declared here (not in src/lib.rs, which the M6 v2.2 freeze pins).
++// `#[path]` keeps the source at src/dist/durable_log.rs; the module path is crate::dist::router::durable_log.
++#[path = "durable_log.rs"]
++pub mod durable_log;
++
+ use crate::dist::node::{NodeState, VirtualNode};
+ use std::hash::{Hash, Hasher};
+ use std::sync::Arc;
+@@ -29,6 +34,26 @@
+     pub membership_epoch: u64,
+ }
+ 
++/// PROPOSED (M3): result of `RendezvousRouter::drain`.
++#[derive(Debug, Clone)]
++pub struct DrainReport {
++    /// Nothing pending and nothing owed to a deliverable peer when the drain returned.
++    pub complete: bool,
++    pub elapsed: Duration,
++    pub pending_jobs: usize,
++    /// DELETE cluster legs (detached tasks) still running when the drain returned (F-06).
++    pub inflight_legs: usize,
++    pub peers_still_owed: Vec<u8>,
++}
++
++/// Held by a DELETE cluster leg for as long as it runs; the shutdown drain waits for these (F-06).
++pub struct DeleteLegGuard(Arc<std::sync::atomic::AtomicUsize>);
++impl Drop for DeleteLegGuard {
++    fn drop(&mut self) {
++        self.0.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
++    }
++}
++
+ #[derive(Clone, Default)]
+ pub struct DestinationSequencer {
+     counters: Arc<std::sync::Mutex<std::collections::HashMap<u8, u64>>>,
+@@ -75,6 +100,9 @@
+     /// The same (scope, key) was recorded again while a delivery was in flight, so the in-flight
+     /// delivery may predate the newest invalidation: keep the entry after its ack.
+     pub again: bool,
++    /// PROPOSED (M3): durable-log high-water mark captured when delivery of this entry started
++    /// (0 when the durable log is off). An ack covers owed intents with stamp <= this value.
++    pub durable_w: u64,
+ }
+ 
+ #[derive(Default)]
+@@ -93,11 +121,13 @@
+     flush_seq: Option<u64>,
+     /// A taken flush is being delivered right now.
+     flush_in_flight: bool,
++    /// PROPOSED (M3): durable-log high-water mark captured when the flush was taken.
++    flush_w: u64,
+ }
+ 
+ /// Tenant id of a canonical key, exactly as the receiving node resolves it
+ /// (`CacheKey::from_canonical_string`). Untenanted keys belong to the `__default__` tenant.
+-fn tenant_of_canonical(key: &str) -> String {
++pub(crate) fn tenant_of_canonical(key: &str) -> String {
+     crate::core::cache::CacheKey::from_canonical_string(key)
+         .map(|k| k.tenant_id)
+         .unwrap_or_else(|| "__default__".to_string())
+@@ -144,6 +174,8 @@
+     pub tenant_collapse_count: std::sync::atomic::AtomicUsize,
+     /// Entries dropped because delivery failed permanently (oversized key, hard rejection).
+     pub permanent_drop_count: std::sync::atomic::AtomicUsize,
++    /// PROPOSED (M3): optional durable mirror of the owed set (opt-in, set once at start-up).
++    durable: std::sync::OnceLock<Arc<crate::dist::router::durable_log::DurableLog>>,
+ }
+ 
+ impl RepairLedger {
+@@ -151,6 +183,28 @@
+         Self::default()
+     }
+ 
++    /// PROPOSED (M3): attaches the durable log. Call AFTER replaying its debts into this ledger,
++    /// otherwise the replay would be appended to the log again. Returns false if already attached.
++    pub fn attach_durable(&self, log: Arc<crate::dist::router::durable_log::DurableLog>) -> bool {
++        self.durable.set(log).is_ok()
++    }
++
++    pub fn durable(&self) -> Option<&Arc<crate::dist::router::durable_log::DurableLog>> {
++        self.durable.get()
++    }
++
++    /// High-water mark of the durable log (0 when off); capture BEFORE starting a delivery.
++    pub fn durable_high_water(&self) -> u64 {
++        self.durable.get().map(|d| d.high_water()).unwrap_or(0)
++    }
++
++    /// Records in the durable log that `node_id` acknowledged a delivery that started at `w`.
++    pub fn durable_ack(&self, node_id: u8, scope: crate::dist::frame::InvalidationScope, key: &str, w: u64) {
++        if let Some(d) = self.durable.get() {
++            d.ack(node_id, scope, key, w);
++        }
++    }
++
+     fn over_limits(peer: &PeerRepair, extra_bytes: usize) -> bool {
+         peer.entries.len() >= REPAIR_MAX_ENTRIES_PER_PEER
+             || peer.key_bytes.saturating_add(extra_bytes) > REPAIR_MAX_KEY_BYTES_PER_PEER
+@@ -219,6 +273,7 @@
+                 in_flight: false,
+                 stamp,
+                 again: false,
++                durable_w: 0,
+             });
+         }
+         self.tenant_collapse_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+@@ -238,6 +293,10 @@
+         // An oversized exact key is owed as a tenant-scope invalidation (see normalize_wire_invalidation).
+         let (norm_key, scope) = normalize_wire_invalidation(key, scope);
+         let key: &str = norm_key.as_str();
++        // PROPOSED (M3): mirror every owed invalidation into the durable log (non-blocking enqueue).
++        if let Some(d) = self.durable.get() {
++            d.note_owed(node_id, scope, key);
++        }
+         let mut guard = self.peers.lock().unwrap();
+         let peer = guard.entry(node_id).or_default();
+         peer.debt_gen = peer.debt_gen.wrapping_add(1);
+@@ -297,6 +356,7 @@
+             in_flight: false,
+             stamp,
+             again: false,
++            durable_w: 0,
+         });
+         self.recorded_count.fetch_add(1, Ordering::Relaxed);
+     }
+@@ -328,6 +388,9 @@
+         let peer = guard.entry(node_id).or_default();
+         peer.debt_gen = peer.debt_gen.wrapping_add(1);
+         if !peer.full_flush {
++            if let Some(d) = self.durable.get() {
++                d.note_owed(node_id, crate::dist::frame::InvalidationScope::FullCache, "");
++            }
+             let oldest = peer.entries.iter().map(|e| e.stamp).min();
+             let stamp = oldest.unwrap_or_else(|| self.next_stamp());
+             peer.flush_stamp = Some(peer.flush_stamp.map_or(stamp, |s| s.min(stamp)));
+@@ -365,6 +428,7 @@
+             Some(p) if p.full_flush => {
+                 p.full_flush = false;
+                 p.flush_in_flight = true;
++                p.flush_w = self.durable_high_water();
+                 true
+             }
+             _ => false,
+@@ -422,6 +486,9 @@
+     pub fn flush_finished(&self, node_id: u8) {
+         let mut guard = self.peers.lock().unwrap();
+         if let Some(p) = guard.get_mut(&node_id) {
++            if p.flush_in_flight {
++                self.durable_ack(node_id, crate::dist::frame::InvalidationScope::FullCache, "", p.flush_w);
++            }
+             p.flush_in_flight = false;
+             p.flush_seq = None;
+             if !p.full_flush {
+@@ -432,6 +499,7 @@
+ 
+     /// Copies up to `max` oldest entries and marks them in flight (removed only on ack).
+     pub fn peek_batch(&self, node_id: u8, max: usize) -> Vec<RepairEntry> {
++        let hw = self.durable_high_water();
+         let mut guard = self.peers.lock().unwrap();
+         match guard.get_mut(&node_id) {
+             Some(p) => p
+@@ -441,6 +509,7 @@
+                 .map(|e| {
+                     e.in_flight = true;
+                     e.again = false;
++                    e.durable_w = hw;
+                     e.clone()
+                 })
+                 .collect(),
+@@ -451,6 +520,9 @@
+     /// Removes an acknowledged entry, unless the same (scope, key) was recorded again while the
+     /// delivery was in flight (then the entry stays for another delivery).
+     pub fn complete(&self, node_id: u8, entry: &RepairEntry) {
++        // PROPOSED (M3): the acknowledged delivery started at `entry.durable_w`; it covers every
++        // durable intent for this (scope, key) with a stamp <= that mark (newer ones stay owed).
++        self.durable_ack(node_id, entry.scope, &entry.key, entry.durable_w);
+         let mut guard = self.peers.lock().unwrap();
+         if let Some(p) = guard.get_mut(&node_id) {
+             let pos = match p.entries.iter().position(|e| e.scope == entry.scope && e.key == entry.key) {
+@@ -471,6 +543,8 @@
+     /// Drops an entry whose delivery failed permanently (it can never succeed); counted.
+     pub fn drop_permanent(&self, node_id: u8, entry: &RepairEntry) {
+         self.permanent_drop_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
++        // PROPOSED (M3): the caller escalates to a wider record() (logged); this entry is settled.
++        self.durable_ack(node_id, entry.scope, &entry.key, entry.durable_w);
+         let mut guard = self.peers.lock().unwrap();
+         if let Some(p) = guard.get_mut(&node_id) {
+             if let Some(pos) = p.entries.iter().position(|e| e.scope == entry.scope && e.key == entry.key) {
+@@ -498,6 +572,9 @@
+     /// Tasks diverted to the repair ledger because the destination already had `PER_PEER_INFLIGHT`
+     /// deliveries in flight.
+     pub diverted_to_repair_count: Arc<std::sync::atomic::AtomicUsize>,
++    /// PROPOSED (M3): fan-out jobs accepted into a per-peer queue and not yet settled (delivered,
++    /// or recorded in the repair ledger). Used by the graceful-shutdown drain.
++    pub pending_jobs: Arc<std::sync::atomic::AtomicUsize>,
+ }
+ 
+ /// Maximum concurrent delivery tasks per destination peer. Together with the bounded queue this
+@@ -524,16 +601,20 @@
+     rx: tokio::sync::mpsc::Receiver<PeerJob>,
+     current: Option<PeerJob>,
+     ledger: Arc<RepairLedger>,
++    /// PROPOSED (M3): jobs accepted but not yet settled (delivered or moved to the ledger).
++    pending: Arc<std::sync::atomic::AtomicUsize>,
+ }
+ 
+ impl Drop for WorkerGuard {
+     fn drop(&mut self) {
+         if let Some(j) = self.current.take() {
+             self.ledger.record(self.node_id, Some(j.dest_seq), j.scope, &j.key);
++            self.pending.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+         }
+         self.rx.close();
+         while let Ok(j) = self.rx.try_recv() {
+             self.ledger.record(self.node_id, Some(j.dest_seq), j.scope, &j.key);
++            self.pending.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+         }
+     }
+ }
+@@ -619,8 +700,10 @@
+         let inflight_tasks = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+         let peak_inflight_tasks = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+         let diverted_to_repair_count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
++        let pending_jobs = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+ 
+         if tokio::runtime::Handle::try_current().is_ok() {
++            let pending_loop = pending_jobs.clone();
+             let d_seq = dest_sequencer.clone();
+             let repair_loop = repair.clone();
+             let diverted_loop = diverted_to_repair_count.clone();
+@@ -647,6 +730,7 @@
+                 let inflight = inflight_tasks.clone();
+                 let peak = peak_inflight_tasks.clone();
+                 let stopped = stopped.clone();
++                let pending_w = pending_jobs.clone();
+                 move |node_id: u8, target_node: Arc<VirtualNode>| -> tokio::sync::mpsc::Sender<PeerJob> {
+                     let (jtx, jrx) = tokio::sync::mpsc::channel::<PeerJob>(PER_PEER_QUEUE);
+                     let sem = sem.clone();
+@@ -660,8 +744,15 @@
+                     let inflight = inflight.clone();
+                     let peak = peak.clone();
+                     let stopped = stopped.clone();
++                    let pending_t = pending_w.clone();
+                     tokio::spawn(async move {
+-                        let mut guard = WorkerGuard { node_id, rx: jrx, current: None, ledger: repair_t.clone() };
++                        let mut guard = WorkerGuard {
++                            node_id,
++                            rx: jrx,
++                            current: None,
++                            ledger: repair_t.clone(),
++                            pending: pending_t,
++                        };
+                         while let Some(job) = guard.rx.recv().await {
+                             // Held until the job is fully handled; a panic or stop leaves it in
+                             // `current`, from where the guard's Drop records it as owed.
+@@ -673,6 +764,8 @@
+                             peak.fetch_max(now_alive, std::sync::atomic::Ordering::Relaxed);
+                             let _inflight_guard = InflightGuard(inflight.clone());
+                             let PeerJob { key: t_key, scope: t_scope, epoch: t_epoch, dest_seq } = job;
++                            // PROPOSED (M3): durable high-water mark BEFORE the first send.
++                            let durable_w = repair_t.durable_high_water();
+ 
+                             let mut backoff_ms = 25u64;
+                             let mut delivered = false;
+@@ -758,7 +851,12 @@
+                                 // anti-entropy worker re-delivers it (same stream_seq) until acknowledged.
+                                 repair_t.record(node_id, Some(dest_seq), t_scope, &t_key);
+                             }
++                            if delivered {
++                                crate::dist::router::durable_log::failpoint("router.worker.after_delivery");
++                                repair_t.durable_ack(node_id, t_scope, &t_key, durable_w);
++                            }
+                             guard.current = None;
++                            guard.pending.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                         }
+                     });
+                     jtx
+@@ -823,13 +921,17 @@
+                                 .entry(node_id)
+                                 .or_insert_with(|| spawn_worker(node_id, target_node.clone()))
+                                 .clone();
++                            // PROPOSED (M3): count before the send so a fast worker cannot underflow it.
++                            pending_loop.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                             match jtx.try_send(pending.take().expect("job present")) {
+                                 Ok(()) => break,
+                                 Err(tokio::sync::mpsc::error::TrySendError::Full(j)) => {
++                                    pending_loop.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                                     pending = Some(j);
+                                     break;
+                                 }
+                                 Err(tokio::sync::mpsc::error::TrySendError::Closed(j)) => {
++                                    pending_loop.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                                     peer_txs.remove(&node_id);
+                                     pending = Some(j);
+                                 }
+@@ -841,6 +943,9 @@
+                             repair_loop.record(node_id, Some(dest_seq), t_scope, &t_key);
+                         }
+                     }
++                    // F-05: this task was counted in `enqueue`; its per-peer jobs now carry their own
++                    // counts (added before the sends above), so the task leaves the main-queue count.
++                    pending_loop.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                 }
+                 stopped.store(true, std::sync::atomic::Ordering::Relaxed);
+                 // Tasks accepted into the main queue but not yet dispatched are owed as well.
+@@ -849,6 +954,7 @@
+                     for id in t.replica_node_ids {
+                         repair_loop.record(id, None, t.scope, &t.key);
+                     }
++                    pending_loop.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                 }
+                 // Dropping the senders lets every worker end; each worker's guard then moves its
+                 // in-flight and queued jobs into the repair ledger.
+@@ -868,6 +974,7 @@
+             inflight_tasks,
+             peak_inflight_tasks,
+             diverted_to_repair_count,
++            pending_jobs,
+         }
+     }
+ 
+@@ -885,9 +992,13 @@
+         let (k, s) = normalize_wire_invalidation(&task.key, task.scope);
+         task.key = k;
+         task.scope = s;
++        // F-05: a task waiting in the main queue is "pending" for the shutdown drain. Counted BEFORE
++        // the send so the dispatcher (which decrements after handing the task over) cannot underflow.
++        self.pending_jobs.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+         match self.tx.try_send(task) {
+             Ok(_) => true,
+             Err(e) => {
++                self.pending_jobs.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                 self.dropped_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                 let task = match e {
+                     tokio::sync::mpsc::error::TrySendError::Full(t) => t,
+@@ -920,6 +1031,8 @@
+     /// Per-peer promotion ticket: the ledger stamp when the peer entered its current Recovering
+     /// episode. Only debts at or before it block the return to Active.
+     recovery_tickets: std::sync::Mutex<std::collections::HashMap<u8, u64>>,
++    /// PROPOSED (M3, F-06): DELETE cluster legs currently running (see `begin_delete_leg`).
++    legs_inflight: Arc<std::sync::atomic::AtomicUsize>,
+ }
+ 
+ impl RendezvousRouter {
+@@ -945,6 +1058,7 @@
+             reconcile_shutdown_tx: std::sync::Mutex::new(None),
+             prewarm_shutdown_tx: std::sync::Mutex::new(None),
+             recovery_tickets: std::sync::Mutex::new(std::collections::HashMap::new()),
++            legs_inflight: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+         }
+     }
+ 
+@@ -1750,6 +1864,95 @@
+         }
+     }
+ 
++    /// PROPOSED (M3): makes the owed set of an accepted DELETE durable (no-op when the log is off).
++    /// Fail-open: a log that cannot persist is counted in its stats and the DELETE proceeds.
++    async fn durable_intent(
++        &self,
++        key: &str,
++        scope: crate::dist::frame::InvalidationScope,
++        live: &[u8],
++        deferred: &[u8],
++        extra: Option<u8>,
++    ) {
++        let log = match self.broadcaster.repair_ledger().durable() {
++            Some(l) => l.clone(),
++            None => return,
++        };
++        let mut peers: Vec<u8> = live.iter().chain(deferred.iter()).copied().collect();
++        if let Some(e) = extra {
++            peers.push(e);
++        }
++        if log.append_intent(scope, key, &peers).await.is_err() {
++            // Fail-open (owner decision D1 pending): the DELETE is answered although this owed set
++            // is NOT durable. Explicit but rate-limited stderr line; counters in `LogStats`.
++            log.warn_rate_limited("an accepted DELETE was answered WITHOUT a durable record of its owed fan-out (fail-open)");
++        }
++    }
++
++    /// PROPOSED (M3, F-06): registers a DELETE cluster leg that is about to run as a detached task.
++    /// Call it BEFORE `tokio::spawn` and move the guard into the task, so a stop request arriving
++    /// between the spawn and the first poll is still seen. The shutdown drain waits for every live
++    /// guard (bounded by its deadline) so the leg can finish, record its owed set and hand the
++    /// fan-out over instead of being cancelled when the runtime shuts down.
++    pub fn begin_delete_leg(&self) -> DeleteLegGuard {
++        self.legs_inflight.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
++        DeleteLegGuard(self.legs_inflight.clone())
++    }
++
++    /// PROPOSED (M3): graceful-shutdown drain. Keeps delivering (repair pass every ~25 ms) until no
++    /// fan-out job is pending (counting tasks still in the broadcaster's main queue, F-05) and
++    /// nothing is owed to a deliverable peer, or `deadline` elapses.
++    ///
++    /// Which peers hold the drain up (D4): every member that is not local and is not in state
++    /// Failed or Offline. That INCLUDES Suspect and Recovering peers: while one of them still owes an
++    /// acknowledgement the drain keeps retrying until `deadline` (default
++    /// `PHANTOM_SHUTDOWN_DRAIN_MS` = 2000 ms), so a planned stop can take that long whenever a
++    /// Suspect/Recovering peer has an unacknowledged invalidation. Failed/Offline/revoked peers
++    /// cannot be repaired and do not hold the drain up. The supervisor's termination grace must
++    /// exceed the deadline.
++    pub async fn drain(&self, deadline: Duration) -> DrainReport {
++        let start = std::time::Instant::now();
++        let local_id = self.get_local_node().map(|n| n.node_id);
++        let report = |this: &Self, complete: bool| {
++            let ledger = this.broadcaster.repair_ledger();
++            let owed: Vec<u8> = this
++                .nodes
++                .iter()
++                .filter(|n| Some(n.node_id) != local_id && ledger.has_pending(n.node_id))
++                .map(|n| n.node_id)
++                .collect();
++            DrainReport {
++                complete,
++                elapsed: start.elapsed(),
++                pending_jobs: this.broadcaster.pending_jobs.load(std::sync::atomic::Ordering::SeqCst),
++                inflight_legs: this.legs_inflight.load(std::sync::atomic::Ordering::SeqCst),
++                peers_still_owed: owed,
++            }
++        };
++        loop {
++            let ledger = self.broadcaster.repair_ledger();
++            let pending = self.broadcaster.pending_jobs.load(std::sync::atomic::Ordering::SeqCst)
++                + self.legs_inflight.load(std::sync::atomic::Ordering::SeqCst);
++            let deliverable_owed = self.nodes.iter().any(|n| {
++                Some(n.node_id) != local_id
++                    && ledger.has_pending(n.node_id)
++                    && self.is_active_member(n.node_id)
++                    && !matches!(n.get_state(), NodeState::Failed | NodeState::Offline)
++            });
++            if pending == 0 && !deliverable_owed {
++                return report(self, true);
++            }
++            let left = deadline.saturating_sub(start.elapsed());
++            if left.is_zero() {
++                return report(self, false);
++            }
++            if deliverable_owed {
++                let _ = tokio::time::timeout(left, self.repair_all_peers()).await;
++            }
++            tokio::time::sleep(Duration::from_millis(25).min(left)).await;
++        }
++    }
++
+     /// A DELETE that fails (primary unreachable, no eligible acting primary, rejection) has still
+     /// changed the origin: record EVERY non-local member as owed this invalidation so the repair
+     /// worker delivers it once reachable. `known_seqs` carries sequences that the failed attempts
+@@ -1819,8 +2022,13 @@
+             .await;
+         match res {
+             Ok((status, reclaimed_bytes)) => {
++                crate::dist::router::durable_log::failpoint("router.after_primary_ack");
+                 let (live, deferred) = self.fanout_targets(&[primary.node_id], &[]);
++                // PROPOSED (M3): the owed set is durable BEFORE the 204 can be produced.
++                self.durable_intent(key, scope, &live, &deferred, None).await;
++                crate::dist::router::durable_log::failpoint("router.after_durable_before_dispatch");
+                 self.dispatch_fanout(key, scope, live, deferred);
++                crate::dist::router::durable_log::failpoint("router.after_dispatch");
+ 
+                 Ok(InvalidationOutcome {
+                     canonical_node_id: primary.node_id,
+@@ -1859,6 +2067,7 @@
+                             .repair_ledger()
+                             .record(primary.node_id, primary_seq, scope, key);
+                         let (live, deferred) = self.fanout_targets(&[acting_primary.node_id], &[]);
++                        self.durable_intent(key, scope, &live, &deferred, Some(primary.node_id)).await;
+                         self.dispatch_fanout(key, scope, live, deferred);
+ 
+                         Ok(InvalidationOutcome {
+--- /dev/null
++++ b/src/dist/durable_log.rs
+@@ -0,0 +1,2334 @@
++//! PROPOSED PATCH (investigation prototype, validated only in a scratch copy, NOT integrated).
++//!
++//! Opt-in durable owed-invalidation log (M3). Off unless `PHANTOM_INVALIDATION_LOG_PATH` is set.
++//!
++//! Purpose: an invalidation that this gateway accepted (DELETE answered 204) but that some peer has
++//! not acknowledged yet must survive a crash/restart of this gateway, so that the restarted
++//! gateway can keep delivering it. Failure model: process crash / kill -9 / SIGTERM / restart.
++//! With `fsync=always` also power loss / OS crash. Disk loss is excluded.
++//!
++//! File format (all integers little endian), version 1:
++//!   header (20 bytes): magic "PCIL" | version u16 | node_id u8 | reserved u8 | created_unix_ms u64
++//!                      | crc32 u32 (over the preceding 16 bytes)
++//!   record: body_len u32 | body | crc32 u32 (over body_len bytes and body)
++//!   body  : type u8 | payload
++//!     1 Intent      stamp u64 | unix_ms u64 | scope u8 | key_len u16 | key | npeers u8 | peers u8*npeers
++//!     2 Ack         peer u8 | scope u8 | key_len u16 | key | upto_stamp u64
++//!     3 FlushMarker peer u8 | stamp u64 | unix_ms u64      (peer owes a FullCache flush)
++//!     4 Checkpoint  stamp_counter u64                      (first record of a compacted file)
++//!     5 Clean       unix_ms u64                            (informational: orderly shutdown)
++//!
++//! The stream sequence counters and the replay ring are NOT persisted (a restarted gateway starts
++//! new streams; the receiver applies every InvalidateRequest regardless of sequence).
++//!
++//! In-memory image (`State`) mirrors the repair-ledger bounds (entries and key bytes per peer, tenant
++//! collapse, then full-flush marker). It is rebuilt from the log on boot and re-injected into the live
++//! `RepairLedger` by the caller.
++
++// The `m3_failpoints` cfg is set only by an explicit `RUSTFLAGS="--cfg m3_failpoints"` (see below), so it is
++// unknown to cargo's cfg check; silence that lint for this module only (an item-level allow does not
++// reach the cfg attribute itself).
++#![allow(unexpected_cfgs)]
++
++use crate::dist::frame::{InvalidationScope, MAX_KEY_LENGTH_BYTES};
++use crate::dist::router::{
++    tenant_of_canonical, REPAIR_MAX_ENTRIES_PER_PEER, REPAIR_MAX_KEY_BYTES_PER_PEER,
++    REPAIR_MAX_TENANT_FLUSHES_PER_PEER,
++};
++use std::collections::{BTreeMap, HashMap};
++use std::io::{Read, Write};
++use std::path::{Path, PathBuf};
++use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
++use std::sync::mpsc;
++use std::sync::{Arc, Mutex};
++use std::time::{Duration, Instant};
++
++pub const MAGIC: &[u8; 4] = b"PCIL";
++pub const VERSION: u16 = 1;
++pub const HEADER_LEN: usize = 20;
++/// Largest record body accepted on replay (a 4096-byte key plus 255 peers plus fixed fields).
++pub const MAX_BODY: usize = 8192;
++const CHANNEL_CAPACITY: usize = 8192;
++
++const T_INTENT: u8 = 1;
++const T_ACK: u8 = 2;
++const T_FLUSH: u8 = 3;
++const T_CHECKPOINT: u8 = 4;
++const T_CLEAN: u8 = 5;
++
++// ---------------------------------------------------------------------------
++// CRC-32 (IEEE 802.3, reflected, poly 0xEDB88320); table built at compile time, no dependency.
++// ---------------------------------------------------------------------------
++const fn make_crc_table() -> [u32; 256] {
++    let mut table = [0u32; 256];
++    let mut i = 0;
++    while i < 256 {
++        let mut c = i as u32;
++        let mut k = 0;
++        while k < 8 {
++            c = if c & 1 != 0 { 0xEDB8_8320 ^ (c >> 1) } else { c >> 1 };
++            k += 1;
++        }
++        table[i] = c;
++        i += 1;
++    }
++    table
++}
++static CRC_TABLE: [u32; 256] = make_crc_table();
++
++pub fn crc32(parts: &[&[u8]]) -> u32 {
++    let mut c = 0xFFFF_FFFFu32;
++    for p in parts {
++        for &b in *p {
++            c = CRC_TABLE[((c ^ b as u32) & 0xFF) as usize] ^ (c >> 8);
++        }
++    }
++    !c
++}
++
++// Crash-point instrumentation for the M3 test matrix. Compiled ONLY when the crate is built with
++// `RUSTFLAGS="--cfg m3_failpoints"` (a compiler flag, not a cargo feature, so Cargo.toml is not
++// touched). A plain `cargo build` / `cargo build --release` never defines that cfg, so in every
++// default and production build `failpoint` is an empty inline function and the string
++// `PHANTOM_M3_FAILPOINT` is absent from the binary. The combination `m3_failpoints` + release
++// profile is rejected at compile time (below).
++//
++// With the cfg on, a gateway whose environment names this point in `PHANTOM_M3_FAILPOINT`
++// (comma separated) terminates itself at once with exit code 137, without running any shutdown
++// path: the closest in-process equivalent of kill -9 at an exact code location.
++#[cfg(all(m3_failpoints, not(debug_assertions)))]
++compile_error!("the m3_failpoints cfg is a test-only crash injector and must never be built without debug assertions (release)");
++
++#[cfg(m3_failpoints)]
++pub fn failpoint(name: &str) {
++    if let Ok(v) = std::env::var("PHANTOM_M3_FAILPOINT") {
++        if v.split(',').any(|p| !p.is_empty() && p == name) {
++            eprintln!("[failpoint] {name}: terminating the process now (exit 137)");
++            std::process::exit(137);
++        }
++    }
++}
++#[cfg(not(m3_failpoints))]
++#[inline(always)]
++pub fn failpoint(_name: &str) {}
++
++/// Test-matrix only (cfg `m3_failpoints`): lets the crash tests force very frequent compaction.
++/// A no-op in every other build.
++#[cfg(m3_failpoints)]
++pub fn apply_test_overrides(cfg: &mut LogConfig) {
++    if let Some(n) = std::env::var("PHANTOM_M3_TEST_COMPACT_MIN_BYTES").ok().and_then(|v| v.parse::<u64>().ok()) {
++        cfg.compact_min_bytes = n;
++    }
++}
++#[cfg(not(m3_failpoints))]
++#[inline(always)]
++pub fn apply_test_overrides(_cfg: &mut LogConfig) {}
++
++fn now_ms() -> u64 {
++    std::time::SystemTime::now()
++        .duration_since(std::time::UNIX_EPOCH)
++        .map(|d| d.as_millis() as u64)
++        .unwrap_or(0)
++}
++
++// ---------------------------------------------------------------------------
++// Configuration, public types
++// ---------------------------------------------------------------------------
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub enum FsyncPolicy {
++    /// Group commit: an intent is acknowledged to its caller only after the batch containing it was
++    /// fsync'ed. Survives power loss.
++    Always,
++    /// Writes reach the OS before the caller is released; fsync at most every `n` ms. Survives a
++    /// process crash; power loss may lose up to `n` ms of intents.
++    Interval(Duration),
++    /// Never fsync. Survives a process crash (data is in the OS page cache), not an OS crash.
++    Never,
++}
++
++impl FsyncPolicy {
++    pub fn parse(s: &str) -> Option<Self> {
++        match s {
++            "always" => Some(Self::Always),
++            "interval" => Some(Self::Interval(Duration::from_millis(100))),
++            "never" => Some(Self::Never),
++            _ => None,
++        }
++    }
++}
++
++#[derive(Debug, Clone)]
++pub struct LogConfig {
++    pub fsync: FsyncPolicy,
++    /// Compaction is considered once the file exceeds this many bytes.
++    pub compact_min_bytes: u64,
++    /// Hard cap of the file size; exceeding it forces a compaction, and failing that, degrades.
++    pub max_file_bytes: u64,
++    /// Debts older than this are dropped at replay/compaction (safety net for debts whose ack can
++    /// never arrive because the live ledger collapsed differently). 0 disables the age-out.
++    pub max_debt_age_ms: u64,
++    /// Upper bound on how long `append_intent` waits for the writer thread to make an intent durable
++    /// (queue wait + write + fsync). On expiry the DELETE proceeds fail-open and the miss is counted
++    /// (`LogStats::not_durable` / `wait_timeouts`) and reported on stderr. PROPOSAL default 2000 ms
++    /// (`PHANTOM_INVALIDATION_LOG_WAIT_MS`); the owner decides the fail-open vs fail-closed policy (D1).
++    pub durability_wait: Duration,
++    /// How long `open` keeps retrying the single-writer lock before failing (covers the overlap of an
++    /// old process that is still draining with its supervised replacement).
++    pub lock_wait: Duration,
++    /// First delay before a failed compaction is retried; doubles per consecutive failure up to
++    /// `COMPACT_RETRY_MAX`. Keeps a persistently failing compaction from retrying (and logging) every tick.
++    pub compact_retry_initial: Duration,
++    /// Fault injection for unit tests only (None in every production configuration).
++    pub hooks: Option<Arc<Hooks>>,
++}
++
++/// Fault-injection switches consulted by the writer thread (tests only; see `LogConfig::hooks`).
++#[derive(Default)]
++pub struct Hooks {
++    /// Number of upcoming batch writes that fail with an I/O error.
++    pub fail_writes: std::sync::atomic::AtomicU32,
++    /// When set, a failing write first writes the first half of the batch (a partial write).
++    pub partial_write: AtomicBool,
++    /// Number of upcoming `sync_data` calls that fail.
++    pub fail_syncs: std::sync::atomic::AtomicU32,
++    /// Milliseconds the writer sleeps before handling each batch (simulates a slow disk).
++    pub stall_ms: AtomicU64,
++}
++
++impl std::fmt::Debug for Hooks {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        f.write_str("Hooks")
++    }
++}
++
++impl Default for LogConfig {
++    fn default() -> Self {
++        Self {
++            fsync: FsyncPolicy::Always,
++            compact_min_bytes: 1 << 20,
++            max_file_bytes: 64 << 20,
++            max_debt_age_ms: 7 * 24 * 3600 * 1000,
++            durability_wait: Duration::from_millis(2000),
++            lock_wait: Duration::from_millis(5000),
++            compact_retry_initial: Duration::from_secs(5),
++            hooks: None,
++        }
++    }
++}
++
++#[derive(Debug, Clone, PartialEq, Eq)]
++pub struct Debt {
++    pub peer: u8,
++    pub scope: InvalidationScope,
++    /// Canonical key (ExactKey), tenant id (Tenant) or "" (FullCache).
++    pub key: String,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq)]
++pub enum ReplayOutcome {
++    /// No log existed (first start).
++    Fresh,
++    /// Log replayed completely.
++    Replayed,
++    /// Replayed; an incomplete/garbled LAST record was discarded (crash during append).
++    TornTailDiscarded { dropped_bytes: u64 },
++    /// Header or a mid-file record failed validation: the log was set aside as `<path>.corrupt` and
++    /// every peer was marked as owing a full flush.
++    CorruptFallbackFlush(String),
++    /// The log file was missing although its sentinel exists (log deleted/lost): full-flush fallback.
++    LostFallbackFlush,
++}
++
++#[derive(Debug, Clone)]
++pub struct ReplayReport {
++    pub outcome: ReplayOutcome,
++    pub records: usize,
++    pub debts: Vec<Debt>,
++    pub aged_out: usize,
++    pub last_was_clean: bool,
++}
++
++#[derive(Default)]
++pub struct LogStats {
++    pub intents: AtomicU64,
++    pub acks: AtomicU64,
++    pub fsyncs: AtomicU64,
++    pub compactions: AtomicU64,
++    pub write_errors: AtomicU64,
++    pub dropped_acks: AtomicU64,
++    pub file_bytes: AtomicU64,
++    /// Set after an unrecoverable write error: new intents are no longer durable (fail-open).
++    /// Cleared again when a later rewrite of the log succeeds.
++    pub degraded: AtomicBool,
++    /// Times the log file was rewritten from the in-memory image after a write or fsync error.
++    pub rotations: AtomicU64,
++    /// Intents that could not be made durable (channel full beyond the back-pressure bound,
++    /// or a write error that could not be recovered). Each one is a DELETE that proceeded fail-open.
++    pub not_durable: AtomicU64,
++    /// `append_intent` calls that gave up waiting for the writer (subset of `not_durable`).
++    pub wait_timeouts: AtomicU64,
++    /// Failed compaction attempts (one per attempt, not per writer tick; retries are backed off).
++    pub compaction_failures: AtomicU64,
++}
++
++/// The log could not make an intent durable. Fail-open: the caller proceeds (the DELETE is still
++/// answered), and the loss is visible in `LogStats::not_durable` / `write_errors` / `degraded`.
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub struct LogError;
++
++/// Upper bound on how long `append_intent` waits for room in a full command channel before it
++/// gives up and the DELETE proceeds fail-open (counted in `LogStats::not_durable`). This bound is
++/// inside the overall `LogConfig::durability_wait` budget, which also covers the writer.
++const BACKPRESSURE_MAX: Duration = Duration::from_millis(500);
++
++/// Upper bound of the exponential delay between retries of a failed compaction.
++const COMPACT_RETRY_MAX: Duration = Duration::from_secs(300);
++
++/// Minimum spacing of the repeated "not durable" stderr line (counts keep running in `LogStats`).
++const WARN_EVERY: Duration = Duration::from_secs(10);
++
++// ---------------------------------------------------------------------------
++// In-memory image of what is owed (mirrors the RepairLedger bounds)
++// ---------------------------------------------------------------------------
++#[derive(Default, Clone, Debug)]
++struct PeerDebt {
++    /// (stamp, unix_ms) of a pending FullCache flush.
++    flush: Option<(u64, u64)>,
++    entries: HashMap<(u8, String), (u64, u64)>,
++    key_bytes: usize,
++}
++
++#[derive(Default, Clone, Debug)]
++struct State {
++    peers: BTreeMap<u8, PeerDebt>,
++    counter: u64,
++}
++
++impl State {
++    fn set_flush(p: &mut PeerDebt, stamp: u64, ms: u64) {
++        let (s, m) = p.flush.map_or((stamp, ms), |(s, m)| (s.max(stamp), m.max(ms)));
++        p.flush = Some((s, m));
++        p.entries.clear();
++        p.key_bytes = 0;
++    }
++
++    fn apply_intent(&mut self, stamp: u64, ms: u64, scope: InvalidationScope, key: &str, peers: &[u8]) {
++        self.counter = self.counter.max(stamp);
++        for &peer in peers {
++            let p = self.peers.entry(peer).or_default();
++            Self::add_entry(p, stamp, ms, scope, key);
++        }
++    }
++
++    fn add_entry(p: &mut PeerDebt, stamp: u64, ms: u64, scope: InvalidationScope, key: &str) {
++        if p.flush.is_some() || scope == InvalidationScope::FullCache {
++            Self::set_flush(p, stamp, ms);
++            return;
++        }
++        let idx = (scope.to_u8(), key.to_string());
++        if let Some(e) = p.entries.get_mut(&idx) {
++            e.0 = e.0.max(stamp);
++            e.1 = e.1.max(ms);
++            return;
++        }
++        if scope == InvalidationScope::ExactKey {
++            let tenant = tenant_of_canonical(key);
++            if let Some(e) = p.entries.get_mut(&(InvalidationScope::Tenant.to_u8(), tenant)) {
++                e.0 = e.0.max(stamp);
++                e.1 = e.1.max(ms);
++                return;
++            }
++        }
++        while p.entries.len() >= REPAIR_MAX_ENTRIES_PER_PEER
++            || p.key_bytes.saturating_add(key.len()) > REPAIR_MAX_KEY_BYTES_PER_PEER
++        {
++            if !Self::collapse_largest_tenant(p, key, scope) {
++                Self::set_flush(p, stamp, ms);
++                return;
++            }
++            if scope == InvalidationScope::ExactKey {
++                let tenant = tenant_of_canonical(key);
++                if let Some(e) = p.entries.get_mut(&(InvalidationScope::Tenant.to_u8(), tenant)) {
++                    e.0 = e.0.max(stamp);
++                    e.1 = e.1.max(ms);
++                    return;
++                }
++            }
++        }
++        p.key_bytes += key.len();
++        p.entries.insert(idx, (stamp, ms));
++    }
++
++    fn collapse_largest_tenant(p: &mut PeerDebt, pending_key: &str, pending_scope: InvalidationScope) -> bool {
++        let tenant_flushes = p.entries.keys().filter(|(s, _)| *s == InvalidationScope::Tenant.to_u8()).count();
++        if tenant_flushes >= REPAIR_MAX_TENANT_FLUSHES_PER_PEER {
++            return false;
++        }
++        let mut counts: HashMap<String, usize> = HashMap::new();
++        for (s, k) in p.entries.keys() {
++            if *s == InvalidationScope::ExactKey.to_u8() {
++                *counts.entry(tenant_of_canonical(k)).or_insert(0) += 1;
++            }
++        }
++        if pending_scope == InvalidationScope::ExactKey {
++            *counts.entry(tenant_of_canonical(pending_key)).or_insert(0) += 1;
++        }
++        let (tenant, n) = match counts.into_iter().max_by(|a, b| a.1.cmp(&b.1).then_with(|| b.0.cmp(&a.0))) {
++            Some(x) => x,
++            None => return false,
++        };
++        if n < 2 {
++            return false;
++        }
++        let mut max_stamp = 0u64;
++        let mut max_ms = 0u64;
++        let mut bytes = 0usize;
++        let mut kept = HashMap::new();
++        for ((s, k), (st, ms)) in p.entries.drain() {
++            if s == InvalidationScope::ExactKey.to_u8() && tenant_of_canonical(&k) == tenant {
++                max_stamp = max_stamp.max(st);
++                max_ms = max_ms.max(ms);
++                continue;
++            }
++            bytes += k.len();
++            kept.insert((s, k), (st, ms));
++        }
++        p.entries = kept;
++        p.key_bytes = bytes;
++        let tkey = (InvalidationScope::Tenant.to_u8(), tenant.clone());
++        if let Some(e) = p.entries.get_mut(&tkey) {
++            e.0 = e.0.max(max_stamp);
++            e.1 = e.1.max(max_ms);
++        } else {
++            p.key_bytes += tenant.len();
++            p.entries.insert(tkey, (max_stamp, max_ms));
++        }
++        true
++    }
++
++    /// An acknowledged delivery of `(scope, key)` that STARTED after stamp `upto` was assigned
++    /// covers every owed invalidation of that key (or tenant, or everything) with stamp <= upto.
++    fn apply_ack(&mut self, peer: u8, scope: InvalidationScope, key: &str, upto: u64) {
++        let p = match self.peers.get_mut(&peer) {
++            Some(p) => p,
++            None => return,
++        };
++        match scope {
++            InvalidationScope::FullCache => {
++                if matches!(p.flush, Some((s, _)) if s <= upto) {
++                    p.flush = None;
++                }
++                p.entries.retain(|_, (s, _)| *s > upto);
++            }
++            InvalidationScope::Tenant => {
++                p.entries.retain(|(sc, k), (s, _)| {
++                    let covered = *s <= upto
++                        && ((*sc == InvalidationScope::Tenant.to_u8() && k == key)
++                            || (*sc == InvalidationScope::ExactKey.to_u8() && tenant_of_canonical(k) == key));
++                    !covered
++                });
++            }
++            InvalidationScope::ExactKey => {
++                let idx = (scope.to_u8(), key.to_string());
++                if matches!(p.entries.get(&idx), Some((s, _)) if *s <= upto) {
++                    p.entries.remove(&idx);
++                }
++            }
++        }
++        p.key_bytes = p.entries.keys().map(|(_, k)| k.len()).sum();
++        if p.flush.is_none() && p.entries.is_empty() {
++            self.peers.remove(&peer);
++        }
++    }
++
++    /// Safety net for debts whose ack can never arrive (ledger/image divergence). A debt older than
++    /// `max_age_ms` is NEVER silently forgotten: the wall clock cannot tell "old" from "the clock
++    /// stepped forward", so every aged entry of a peer is replaced by ONE pending full flush for that
++    /// peer (constant size, coarse but safe, the same rule the ledger applies to removed members).
++    /// A pending flush itself never ages out. Records dated in the future (backward clock step) are
++    /// never aged. Returns one human-readable line per escalated entry (the caller logs them).
++    fn age_out(&mut self, now: u64, max_age_ms: u64) -> Vec<String> {
++        let mut lines = Vec::new();
++        if max_age_ms == 0 {
++            return lines;
++        }
++        let mut counter = self.counter;
++        for (&peer, p) in self.peers.iter_mut() {
++            let aged: Vec<String> = p
++                .entries
++                .iter()
++                .filter(|(_, (_, ms))| now.saturating_sub(*ms) > max_age_ms)
++                .map(|((sc, k), (_, ms))| format!("peer {peer} scope {sc} key {k:?} age {} ms", now.saturating_sub(*ms)))
++                .collect();
++            if aged.is_empty() {
++                continue;
++            }
++            lines.extend(aged);
++            counter += 1;
++            Self::set_flush(p, counter, now);
++        }
++        self.counter = counter;
++        lines
++    }
++
++    /// Debts of peers that are no longer members cannot be delivered by this node. Like the ledger
++    /// does for removed members, each such peer is reduced to ONE pending full flush (constant
++    /// size) so a member re-admitted later is flushed rather than silently keeping stale entries.
++    /// Returns the ids that were collapsed.
++    fn collapse_departed(&mut self, members: &[u8], now: u64) -> Vec<u8> {
++        let mut out = Vec::new();
++        let mut counter = self.counter;
++        for (&peer, p) in self.peers.iter_mut() {
++            if members.contains(&peer) || (p.flush.is_some() && p.entries.is_empty()) {
++                continue;
++            }
++            counter += 1;
++            Self::set_flush(p, counter, now);
++            out.push(peer);
++        }
++        self.counter = counter;
++        out
++    }
++
++    fn debts(&self) -> Vec<Debt> {
++        let mut out = Vec::new();
++        for (&peer, p) in &self.peers {
++            if p.flush.is_some() {
++                out.push(Debt { peer, scope: InvalidationScope::FullCache, key: String::new() });
++            }
++            let mut es: Vec<_> = p.entries.iter().collect();
++            es.sort_by_key(|(_, (st, _))| *st);
++            for ((sc, k), _) in es {
++                if let Ok(scope) = InvalidationScope::from_u8(*sc) {
++                    out.push(Debt { peer, scope, key: k.clone() });
++                }
++            }
++        }
++        out
++    }
++}
++
++// ---------------------------------------------------------------------------
++// Record encoding / decoding
++// ---------------------------------------------------------------------------
++fn frame_record(body: &[u8], out: &mut Vec<u8>) {
++    let len = (body.len() as u32).to_le_bytes();
++    out.extend_from_slice(&len);
++    out.extend_from_slice(body);
++    out.extend_from_slice(&crc32(&[&len, body]).to_le_bytes());
++}
++
++fn enc_intent(stamp: u64, ms: u64, scope: InvalidationScope, key: &str, peers: &[u8], out: &mut Vec<u8>) {
++    let mut b = Vec::with_capacity(24 + key.len() + peers.len());
++    b.push(T_INTENT);
++    b.extend_from_slice(&stamp.to_le_bytes());
++    b.extend_from_slice(&ms.to_le_bytes());
++    b.push(scope.to_u8());
++    b.extend_from_slice(&(key.len() as u16).to_le_bytes());
++    b.extend_from_slice(key.as_bytes());
++    b.push(peers.len() as u8);
++    b.extend_from_slice(peers);
++    frame_record(&b, out);
++}
++
++fn enc_ack(peer: u8, scope: InvalidationScope, key: &str, upto: u64, out: &mut Vec<u8>) {
++    let mut b = Vec::with_capacity(16 + key.len());
++    b.push(T_ACK);
++    b.push(peer);
++    b.push(scope.to_u8());
++    b.extend_from_slice(&(key.len() as u16).to_le_bytes());
++    b.extend_from_slice(key.as_bytes());
++    b.extend_from_slice(&upto.to_le_bytes());
++    frame_record(&b, out);
++}
++
++fn enc_flush(peer: u8, stamp: u64, ms: u64, out: &mut Vec<u8>) {
++    let mut b = vec![T_FLUSH, peer];
++    b.extend_from_slice(&stamp.to_le_bytes());
++    b.extend_from_slice(&ms.to_le_bytes());
++    frame_record(&b, out);
++}
++
++fn enc_checkpoint(counter: u64, out: &mut Vec<u8>) {
++    let mut b = vec![T_CHECKPOINT];
++    b.extend_from_slice(&counter.to_le_bytes());
++    frame_record(&b, out);
++}
++
++fn enc_clean(ms: u64, out: &mut Vec<u8>) {
++    let mut b = vec![T_CLEAN];
++    b.extend_from_slice(&ms.to_le_bytes());
++    frame_record(&b, out);
++}
++
++fn header_bytes(node_id: u8) -> Vec<u8> {
++    let mut h = Vec::with_capacity(HEADER_LEN);
++    h.extend_from_slice(MAGIC);
++    h.extend_from_slice(&VERSION.to_le_bytes());
++    h.push(node_id);
++    h.push(0);
++    h.extend_from_slice(&now_ms().to_le_bytes());
++    let c = crc32(&[&h]);
++    h.extend_from_slice(&c.to_le_bytes());
++    h
++}
++
++struct Cursor<'a> {
++    b: &'a [u8],
++    i: usize,
++}
++impl<'a> Cursor<'a> {
++    fn take(&mut self, n: usize) -> Result<&'a [u8], String> {
++        if self.i + n > self.b.len() {
++            return Err("record body shorter than its fields".into());
++        }
++        let s = &self.b[self.i..self.i + n];
++        self.i += n;
++        Ok(s)
++    }
++    fn u8(&mut self) -> Result<u8, String> {
++        Ok(self.take(1)?[0])
++    }
++    fn u16(&mut self) -> Result<u16, String> {
++        Ok(u16::from_le_bytes(self.take(2)?.try_into().unwrap()))
++    }
++    fn u64(&mut self) -> Result<u64, String> {
++        Ok(u64::from_le_bytes(self.take(8)?.try_into().unwrap()))
++    }
++    fn key(&mut self) -> Result<String, String> {
++        let n = self.u16()? as usize;
++        if n > MAX_KEY_LENGTH_BYTES {
++            return Err("key longer than the frame cap".into());
++        }
++        String::from_utf8(self.take(n)?.to_vec()).map_err(|_| "key is not UTF-8".to_string())
++    }
++}
++
++fn scope_of(v: u8) -> Result<InvalidationScope, String> {
++    InvalidationScope::from_u8(v).map_err(|_| format!("unknown scope {v}"))
++}
++
++/// A record that declares `blen` body bytes but is cut short by the end of the file is either the
++/// crash-torn last write (the bytes present are a PREFIX of a valid record) or a record whose
++/// length field was corrupted. `prefix` is the body bytes that are present. Returns `Some(why)`
++/// when fields that are demonstrably present contradict `blen`, which a tear cannot produce.
++/// Misclassifying a tear as corruption costs one full flush per peer (the safe direction);
++/// misclassifying corruption as a tear silently drops later records, hence the asymmetry.
++/// Fields are trusted only if they lie before the last non-zero byte (a zero-filled, not yet
++/// persisted tail proves nothing).
++fn length_contradicts_prefix(prefix: &[u8], blen: usize) -> Option<String> {
++    let nz_end = prefix.iter().rposition(|&b| b != 0).map_or(0, |p| p + 1);
++    let known = |end: usize| end <= prefix.len() && end <= nz_end;
++    if !known(1) {
++        return None;
++    }
++    // (exact body length when determinable, otherwise a lower bound)
++    let (exact, at_least): (Option<usize>, usize) = match prefix[0] {
++        T_INTENT => {
++            // type 1 | stamp 8 | ms 8 | scope 1 | key_len 2 | key | npeers 1 | peers
++            if known(20) {
++                let kl = u16::from_le_bytes([prefix[18], prefix[19]]) as usize;
++                if known(21 + kl) {
++                    (Some(21 + kl + prefix[20 + kl] as usize), 0)
++                } else {
++                    (None, 21 + kl)
++                }
++            } else {
++                (None, 0)
++            }
++        }
++        T_ACK => {
++            // type 1 | peer 1 | scope 1 | key_len 2 | key | upto 8
++            if known(5) {
++                (Some(13 + u16::from_le_bytes([prefix[3], prefix[4]]) as usize), 0)
++            } else {
++                (None, 0)
++            }
++        }
++        T_FLUSH => (Some(18), 0),
++        T_CHECKPOINT | T_CLEAN => (Some(9), 0),
++        t => return Some(format!("unknown record type {t}")),
++    };
++    match exact {
++        Some(e) if e != blen => Some(format!("its own fields imply {e} body bytes")),
++        None if blen < at_least => Some(format!("its own fields imply at least {at_least} body bytes")),
++        _ => None,
++    }
++}
++
++enum Tail {
++    Clean,
++    Torn(u64),
++}
++
++struct Parsed {
++    state: State,
++    records: usize,
++    valid_len: usize,
++    tail: Tail,
++    last_clean: bool,
++}
++
++/// Parses a log image. `Err` = corruption that must trigger the full-flush fallback; a torn tail
++/// (incomplete or garbled LAST record, or a zero-filled tail) is tolerated and reported.
++fn parse(bytes: &[u8], node_id: u8) -> Result<Parsed, String> {
++    if bytes.len() < HEADER_LEN {
++        return Err("file shorter than the header".into());
++    }
++    if &bytes[0..4] != MAGIC {
++        return Err("bad magic".into());
++    }
++    let ver = u16::from_le_bytes([bytes[4], bytes[5]]);
++    if ver != VERSION {
++        return Err(format!("unsupported version {ver}"));
++    }
++    if crc32(&[&bytes[0..16]]) != u32::from_le_bytes(bytes[16..20].try_into().unwrap()) {
++        return Err("header checksum mismatch".into());
++    }
++    if bytes[6] != node_id {
++        return Err(format!("log belongs to node {} (this is node {})", bytes[6], node_id));
++    }
++    let mut st = State::default();
++    let mut i = HEADER_LEN;
++    let mut records = 0usize;
++    let mut last_clean = false;
++    loop {
++        if i == bytes.len() {
++            return Ok(Parsed { state: st, records, valid_len: i, tail: Tail::Clean, last_clean });
++        }
++        let rest = &bytes[i..];
++        if rest.iter().all(|&b| b == 0) {
++            // zero-filled tail (file extended before data reached the disk)
++            return Ok(Parsed { state: st, records, valid_len: i, tail: Tail::Torn(rest.len() as u64), last_clean });
++        }
++        if rest.len() < 4 {
++            return Ok(Parsed { state: st, records, valid_len: i, tail: Tail::Torn(rest.len() as u64), last_clean });
++        }
++        let blen = u32::from_le_bytes(rest[0..4].try_into().unwrap()) as usize;
++        if blen == 0 || blen > MAX_BODY {
++            return Err(format!("record at offset {i} has invalid length {blen}"));
++        }
++        if rest.len() < 8 + blen {
++            // The record runs past the end of the file. A crash tears the LAST write, so the bytes
++            // present are a prefix of a valid record; a corrupted mid-file length field would
++            // instead contradict the fields that are present (F-08). The latter must not be
++            // discarded as a "torn tail" (that would silently drop every later record).
++            let present = &rest[4..];
++            if let Some(why) = length_contradicts_prefix(&present[..present.len().min(blen)], blen) {
++                return Err(format!(
++                    "record at offset {i} declares {blen} body bytes but the file ends {} bytes later and the fields that are present contradict the length ({why}): corrupt length field, not a torn tail",
++                    rest.len()
++                ));
++            }
++            return Ok(Parsed { state: st, records, valid_len: i, tail: Tail::Torn(rest.len() as u64), last_clean });
++        }
++        let body = &rest[4..4 + blen];
++        let crc = u32::from_le_bytes(rest[4 + blen..8 + blen].try_into().unwrap());
++        if crc32(&[&rest[0..4], body]) != crc {
++            if rest.len() == 8 + blen {
++                // last record garbled: crash during append
++                return Ok(Parsed { state: st, records, valid_len: i, tail: Tail::Torn(rest.len() as u64), last_clean });
++            }
++            return Err(format!("record at offset {i} failed its checksum"));
++        }
++        let mut c = Cursor { b: body, i: 0 };
++        last_clean = false;
++        match c.u8()? {
++            T_INTENT => {
++                let stamp = c.u64()?;
++                let ms = c.u64()?;
++                let scope = scope_of(c.u8()?)?;
++                let key = c.key()?;
++                let n = c.u8()? as usize;
++                let peers = c.take(n)?.to_vec();
++                st.apply_intent(stamp, ms, scope, &key, &peers);
++            }
++            T_ACK => {
++                let peer = c.u8()?;
++                let scope = scope_of(c.u8()?)?;
++                let key = c.key()?;
++                let upto = c.u64()?;
++                st.apply_ack(peer, scope, &key, upto);
++            }
++            T_FLUSH => {
++                let peer = c.u8()?;
++                let stamp = c.u64()?;
++                let ms = c.u64()?;
++                st.counter = st.counter.max(stamp);
++                let p = st.peers.entry(peer).or_default();
++                State::set_flush(p, stamp, ms);
++            }
++            T_CHECKPOINT => {
++                st.counter = st.counter.max(c.u64()?);
++            }
++            T_CLEAN => {
++                let _ = c.u64()?;
++                last_clean = true;
++            }
++            t => return Err(format!("unknown record type {t} at offset {i}")),
++        }
++        records += 1;
++        i += 8 + blen;
++    }
++}
++
++// ---------------------------------------------------------------------------
++// The log
++// ---------------------------------------------------------------------------
++enum Cmd {
++    Intent {
++        scope: InvalidationScope,
++        key: String,
++        peers: Vec<u8>,
++        done: Option<tokio::sync::oneshot::Sender<Result<u64, ()>>>,
++    },
++    Ack { peer: u8, scope: InvalidationScope, key: String, upto: u64 },
++    Close { clean: bool, done: mpsc::Sender<()> },
++    /// Completes after every command queued before it has been applied (and written).
++    Barrier { done: tokio::sync::oneshot::Sender<Result<u64, ()>> },
++}
++
++pub struct DurableLog {
++    tx: mpsc::SyncSender<Cmd>,
++    high_water: Arc<AtomicU64>,
++    pub stats: Arc<LogStats>,
++    join: Mutex<Option<std::thread::JoinHandle<()>>>,
++    path: PathBuf,
++    /// Single-writer guard (F-07): an OS lock on `<path>.lock`, held until `close` or drop. The OS
++    /// releases it when the process dies, so a crash never leaves a stale lock behind.
++    lock: Mutex<Option<std::fs::File>>,
++    durability_wait: Duration,
++    created: Instant,
++    /// `created`-relative milliseconds of the last repeated warning (`u64::MAX` = none yet).
++    last_warn_ms: AtomicU64,
++}
++
++fn lock_path(path: &Path) -> PathBuf {
++    let mut s = path.as_os_str().to_owned();
++    s.push(".lock");
++    PathBuf::from(s)
++}
++
++/// Creates the directory (and missing parents). New directories are private (0700) on Unix; on
++/// Windows they inherit the parent's ACL (nothing is hardened here: see the docs).
++fn create_private_dir_all(dir: &Path) -> std::io::Result<()> {
++    #[cfg(unix)]
++    {
++        use std::os::unix::fs::DirBuilderExt;
++        std::fs::DirBuilder::new().recursive(true).mode(0o700).create(dir)
++    }
++    #[cfg(not(unix))]
++    {
++        std::fs::create_dir_all(dir)
++    }
++}
++
++/// Tightens an existing file to owner-only on Unix (a file created by an older build or by hand).
++fn ensure_private_file(path: &Path) {
++    #[cfg(unix)]
++    {
++        use std::os::unix::fs::PermissionsExt;
++        if let Ok(md) = std::fs::metadata(path) {
++            if md.permissions().mode() & 0o077 != 0 {
++                let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
++            }
++        }
++    }
++    #[cfg(not(unix))]
++    {
++        let _ = path;
++    }
++}
++
++/// Takes the exclusive single-writer lock for the log at `path` (F-07), retrying for up to `wait`
++/// so that a supervised replacement process can start while its predecessor is still draining.
++/// Uses the standard library's advisory/OS file lock (`flock` on Unix, `LockFileEx` on Windows):
++/// no dependency. The lock file is separate from the log because compaction renames the log.
++fn acquire_single_writer_lock(path: &Path, wait: Duration) -> std::io::Result<std::fs::File> {
++    let lp = lock_path(path);
++    let mut o = std::fs::OpenOptions::new();
++    o.create(true).write(true).truncate(false);
++    #[cfg(unix)]
++    {
++        use std::os::unix::fs::OpenOptionsExt;
++        o.mode(0o600);
++    }
++    let f = o.open(&lp)?;
++    ensure_private_file(&lp);
++    let give_up = Instant::now() + wait;
++    loop {
++        match f.try_lock() {
++            Ok(()) => return Ok(f),
++            Err(std::fs::TryLockError::WouldBlock) => {
++                if Instant::now() >= give_up {
++                    return Err(std::io::Error::new(
++                        std::io::ErrorKind::WouldBlock,
++                        format!(
++                            "another gateway process holds the single-writer lock {} for this invalidation log (two gateways must not share one log path; if a predecessor is still shutting down, it releases the lock when it exits; waited {} ms)",
++                            lp.display(),
++                            wait.as_millis()
++                        ),
++                    ));
++                }
++                std::thread::sleep(Duration::from_millis(50));
++            }
++            Err(std::fs::TryLockError::Error(e)) => return Err(e),
++        }
++    }
++}
++
++fn sentinel_path(path: &Path) -> PathBuf {
++    let mut s = path.as_os_str().to_owned();
++    s.push(".sentinel");
++    PathBuf::from(s)
++}
++fn tmp_path(path: &Path) -> PathBuf {
++    let mut s = path.as_os_str().to_owned();
++    s.push(".tmp");
++    PathBuf::from(s)
++}
++fn corrupt_path(path: &Path) -> PathBuf {
++    let mut s = path.as_os_str().to_owned();
++    s.push(".corrupt");
++    PathBuf::from(s)
++}
++
++fn open_append(path: &Path) -> std::io::Result<std::fs::File> {
++    let mut o = std::fs::OpenOptions::new();
++    o.create(true).append(true).read(true);
++    #[cfg(unix)]
++    {
++        use std::os::unix::fs::OpenOptionsExt;
++        o.mode(0o600);
++    }
++    o.open(path)
++}
++
++fn create_new_file(path: &Path) -> std::io::Result<std::fs::File> {
++    let mut o = std::fs::OpenOptions::new();
++    o.create(true).write(true).truncate(true);
++    #[cfg(unix)]
++    {
++        use std::os::unix::fs::OpenOptionsExt;
++        o.mode(0o600);
++    }
++    o.open(path)
++}
++
++#[cfg(unix)]
++fn sync_parent(path: &Path) {
++    if let Some(dir) = path.parent() {
++        if let Ok(d) = std::fs::File::open(if dir.as_os_str().is_empty() { Path::new(".") } else { dir }) {
++            let _ = d.sync_all();
++        }
++    }
++}
++#[cfg(not(unix))]
++fn sync_parent(_path: &Path) {}
++
++/// Serialises a full image of `state` (compacted file contents).
++fn snapshot_bytes(node_id: u8, state: &State, clean: bool) -> Vec<u8> {
++    let mut out = header_bytes(node_id);
++    enc_checkpoint(state.counter, &mut out);
++    for (&peer, p) in &state.peers {
++        if let Some((st, ms)) = p.flush {
++            enc_flush(peer, st, ms, &mut out);
++        }
++        let mut es: Vec<_> = p.entries.iter().collect();
++        es.sort_by_key(|(_, (st, _))| *st);
++        for ((sc, k), (st, ms)) in es {
++            if let Ok(scope) = InvalidationScope::from_u8(*sc) {
++                enc_intent(*st, *ms, scope, k, &[peer], &mut out);
++            }
++        }
++    }
++    if clean {
++        enc_clean(now_ms(), &mut out);
++    }
++    out
++}
++
++impl DurableLog {
++    /// Opens (creating if needed) the log at `path`, replays it, and starts the writer thread.
++    /// `all_peers` = every non-local member id; used for the full-flush fallback.
++    ///
++    /// Returns the log and what must be re-injected into the live ledger. Never panics on a bad
++    /// file: corruption yields a `CorruptFallbackFlush` report with one FullCache debt per peer.
++    pub fn open(
++        path: &Path,
++        node_id: u8,
++        all_peers: &[u8],
++        cfg: LogConfig,
++    ) -> std::io::Result<(Arc<DurableLog>, ReplayReport)> {
++        if let Some(dir) = path.parent() {
++            if !dir.as_os_str().is_empty() {
++                create_private_dir_all(dir)?;
++            }
++        }
++        // F-07: only one process may own this log. Taken before anything is read or renamed.
++        let lock = acquire_single_writer_lock(path, cfg.lock_wait)?;
++        let sentinel = sentinel_path(path);
++        let existed = path.exists();
++        let sentinel_existed = sentinel.exists();
++
++        let mut state = State::default();
++        let outcome: ReplayOutcome;
++        let mut records = 0usize;
++        let mut last_clean = false;
++        let mut fallback: Option<String> = None;
++
++        if existed {
++            let mut bytes = Vec::new();
++            std::fs::File::open(path)?.read_to_end(&mut bytes)?;
++            if bytes.is_empty() {
++                outcome = ReplayOutcome::Fresh;
++            } else if bytes.len() < HEADER_LEN && header_prefix_ok(&bytes) {
++                // crash while the header itself was being written: nothing was ever acknowledged
++                outcome = ReplayOutcome::Fresh;
++                bytes.clear();
++            } else {
++                match parse(&bytes, node_id) {
++                    Ok(p) => {
++                        records = p.records;
++                        last_clean = p.last_clean;
++                        state = p.state;
++                        match p.tail {
++                            Tail::Clean => outcome = ReplayOutcome::Replayed,
++                            Tail::Torn(n) => {
++                                outcome = ReplayOutcome::TornTailDiscarded { dropped_bytes: n };
++                                let f = std::fs::OpenOptions::new().write(true).open(path)?;
++                                f.set_len(p.valid_len as u64)?;
++                                f.sync_all()?;
++                            }
++                        }
++                    }
++                    Err(why) => {
++                        fallback = Some(why.clone());
++                        outcome = ReplayOutcome::CorruptFallbackFlush(why);
++                    }
++                }
++            }
++            if bytes.is_empty() {
++                // zero-length / torn-header file: re-initialised below
++                let _ = std::fs::remove_file(path);
++            }
++        } else if sentinel_existed {
++            outcome = ReplayOutcome::LostFallbackFlush;
++            fallback = Some("log file missing while its sentinel exists".into());
++        } else {
++            outcome = ReplayOutcome::Fresh;
++        }
++
++        let mut aged_out = 0usize;
++        let mut rewrite = false;
++        if fallback.is_none() {
++            let now = now_ms();
++            // Members that left: one pending flush each (never forgotten, never replayed per key).
++            let departed = state.collapse_departed(all_peers, now);
++            for peer in &departed {
++                eprintln!("[invalidation-log] peer {peer} is no longer a cluster member: its owed invalidations are reduced to one pending full flush (kept until acknowledged)");
++            }
++            let aged = state.age_out(now, cfg.max_debt_age_ms);
++            for line in &aged {
++                eprintln!("[invalidation-log] owed invalidation older than the age-out was escalated to a full flush of that peer (not dropped): {line}");
++            }
++            aged_out = aged.len();
++            rewrite = !departed.is_empty() || !aged.is_empty();
++        } else {
++            // Keep the evidence (one generation), start from an empty image, owe every peer a flush.
++            if existed {
++                let _ = std::fs::remove_file(corrupt_path(path));
++                let _ = std::fs::rename(path, corrupt_path(path));
++            }
++            state = State::default();
++            let stamp = 1u64;
++            let ms = now_ms();
++            for &peer in all_peers {
++                State::set_flush(state.peers.entry(peer).or_default(), stamp, ms);
++            }
++            state.counter = stamp;
++        }
++
++        // (Re)write the file as a compacted image when it is new, was corrupt, or lost debts.
++        let fresh_file = !path.exists();
++        if fresh_file || fallback.is_some() || rewrite {
++            let tmp = tmp_path(path);
++            let mut f = create_new_file(&tmp)?;
++            f.write_all(&snapshot_bytes(node_id, &state, false))?;
++            f.sync_all()?;
++            drop(f);
++            let _ = std::fs::remove_file(path);
++            std::fs::rename(&tmp, path)?;
++            sync_parent(path);
++        }
++        if !sentinel.exists() {
++            let mut sf = create_new_file(&sentinel)?;
++            sf.write_all(b"phantom invalidation log sentinel\n")?;
++            drop(sf);
++            sync_parent(path);
++        }
++        ensure_private_file(path);
++        ensure_private_file(&sentinel);
++
++        let file = open_append(path)?;
++        let file_len = file.metadata().map(|m| m.len()).unwrap_or(0);
++        let stats = Arc::new(LogStats::default());
++        stats.file_bytes.store(file_len, Ordering::Relaxed);
++        let high_water = Arc::new(AtomicU64::new(state.counter));
++        let debts = state.debts();
++        let (tx, rx) = mpsc::sync_channel::<Cmd>(CHANNEL_CAPACITY);
++
++        let durability_wait = cfg.durability_wait;
++        let writer = Writer {
++            path: path.to_path_buf(),
++            node_id,
++            cfg,
++            file,
++            state,
++            file_len,
++            next_compact_at: 0,
++            last_sync: Instant::now(),
++            dirty: false,
++            needs_rotation: false,
++            compact_retry_at: None,
++            compact_fail_streak: 0,
++            high_water: high_water.clone(),
++            stats: stats.clone(),
++        };
++        let join = std::thread::Builder::new()
++            .name("phantom-inval-log".into())
++            .spawn(move || writer.run(rx))?;
++
++        let log = Arc::new(DurableLog {
++            tx,
++            high_water,
++            stats,
++            join: Mutex::new(Some(join)),
++            path: path.to_path_buf(),
++            lock: Mutex::new(Some(lock)),
++            durability_wait,
++            created: Instant::now(),
++            last_warn_ms: AtomicU64::new(u64::MAX),
++        });
++        Ok((
++            log,
++            ReplayReport { outcome, records, debts, aged_out, last_was_clean: last_clean },
++        ))
++    }
++
++    pub fn path(&self) -> &Path {
++        &self.path
++    }
++
++    /// Highest stamp assigned so far. A delivery attempt captures this BEFORE sending and passes
++    /// it to `ack` on success.
++    pub fn high_water(&self) -> u64 {
++        self.high_water.load(Ordering::SeqCst)
++    }
++
++    /// Records, and waits until durable (per the fsync policy), that `peers` owe `(scope, key)`.
++    /// Returns the stamp. `Err(())` = the log could not persist it (fail-open: the caller proceeds;
++    /// `stats.degraded` / `write_errors` make this visible).
++    /// Resolves once everything enqueued before this call has been applied and written
++    /// (useful for tests and orderly hand-offs; production paths never wait on it).
++    pub async fn barrier(&self) {
++        let (otx, orx) = tokio::sync::oneshot::channel();
++        if self.tx.try_send(Cmd::Barrier { done: otx }).is_ok() {
++            let _ = orx.await;
++        }
++    }
++
++    pub async fn append_intent(&self, scope: InvalidationScope, key: &str, peers: &[u8]) -> Result<u64, LogError> {
++        if peers.is_empty() {
++            return Ok(self.high_water());
++        }
++        let (otx, orx) = tokio::sync::oneshot::channel();
++        let mut cmd = Cmd::Intent { scope, key: key.to_string(), peers: peers.to_vec(), done: Some(otx) };
++        // A full channel means the writer is busy (slow disk, burst). Apply bounded async
++        // back-pressure (never a blocking call on a runtime worker) before giving up: a busy
++        // moment must not silently turn into "this DELETE is not durable".
++        let give_up = Instant::now() + BACKPRESSURE_MAX;
++        loop {
++            match self.tx.try_send(cmd) {
++                Ok(()) => break,
++                Err(mpsc::TrySendError::Full(c)) if Instant::now() < give_up => {
++                    cmd = c;
++                    tokio::time::sleep(Duration::from_millis(5)).await;
++                }
++                Err(_) => {
++                    self.stats.write_errors.fetch_add(1, Ordering::Relaxed);
++                    self.stats.not_durable.fetch_add(1, Ordering::Relaxed);
++                    return Err(LogError);
++                }
++            }
++        }
++        // F-03: the wait for the writer (queue + write + fsync) is bounded too. A stalled disk or a
++        // hung fsync must not hold every DELETE (and its detached task) for as long as it stalls:
++        // after `durability_wait` the DELETE proceeds fail-open. The writer may still complete the
++        // intent later; that only leaves an extra owed record (re-delivery is idempotent).
++        match tokio::time::timeout(self.durability_wait, orx).await {
++            Ok(Ok(Ok(stamp))) => Ok(stamp),
++            Err(_elapsed) => {
++                self.stats.wait_timeouts.fetch_add(1, Ordering::Relaxed);
++                self.stats.not_durable.fetch_add(1, Ordering::Relaxed);
++                Err(LogError)
++            }
++            _ => {
++                self.stats.not_durable.fetch_add(1, Ordering::Relaxed);
++                Err(LogError)
++            }
++        }
++    }
++
++    /// Prints `msg` to stderr at most once per `WARN_EVERY` (first occurrence immediately), with the
++    /// running counters, so a persistent fault is explicit without flooding the log. This stderr
++    /// line and `LogStats` are the ONLY signals of lost durability today (not on `/api/v1/metrics`,
++    /// F-11 is an open owner decision).
++    pub fn warn_rate_limited(&self, msg: &str) {
++        let now = self.created.elapsed().as_millis() as u64;
++        let last = self.last_warn_ms.load(Ordering::Relaxed);
++        let due = last == u64::MAX || now.saturating_sub(last) >= WARN_EVERY.as_millis() as u64;
++        if due
++            && self
++                .last_warn_ms
++                .compare_exchange(last, now, Ordering::Relaxed, Ordering::Relaxed)
++                .is_ok()
++        {
++            let st = &self.stats;
++            eprintln!(
++                "[invalidation-log] WARNING: {msg} (not_durable={} wait_timeouts={} write_errors={} degraded={}); repeated lines are limited to one per {} s",
++                st.not_durable.load(Ordering::Relaxed),
++                st.wait_timeouts.load(Ordering::Relaxed),
++                st.write_errors.load(Ordering::Relaxed),
++                st.degraded.load(Ordering::Relaxed),
++                WARN_EVERY.as_secs()
++            );
++        }
++    }
++
++    /// Fire-and-forget intent (ledger mirror); durable at the next group commit.
++    pub fn note_owed(&self, peer: u8, scope: InvalidationScope, key: &str) {
++        let cmd = Cmd::Intent { scope, key: key.to_string(), peers: vec![peer], done: None };
++        if self.tx.try_send(cmd).is_err() {
++            self.stats.write_errors.fetch_add(1, Ordering::Relaxed);
++        }
++    }
++
++    /// `peer` acknowledged a delivery of `(scope, key)` that started when `high_water() == upto`.
++    /// A lost ack only causes a redundant (idempotent) re-delivery after a restart.
++    pub fn ack(&self, peer: u8, scope: InvalidationScope, key: &str, upto: u64) {
++        let cmd = Cmd::Ack { peer, scope, key: key.to_string(), upto };
++        if self.tx.try_send(cmd).is_err() {
++            self.stats.dropped_acks.fetch_add(1, Ordering::Relaxed);
++        }
++    }
++
++    /// Flushes everything queued, optionally writes the orderly-shutdown marker, compacts when the
++    /// image is empty, fsyncs and stops the writer thread. Blocking (call from shutdown only).
++    pub fn close(&self, clean: bool) {
++        let (dtx, drx) = mpsc::channel();
++        if self.tx.send(Cmd::Close { clean, done: dtx }).is_ok() {
++            let _ = drx.recv_timeout(Duration::from_secs(10));
++        }
++        if let Some(j) = self.join.lock().unwrap().take() {
++            let _ = j.join();
++        }
++        // The writer has stopped: release the single-writer lock now so that a replacement process
++        // started while this one finishes its shutdown can take over (F-07).
++        drop(self.lock.lock().unwrap().take());
++        let st = &self.stats;
++        let (we, nd, rot) = (st.write_errors.load(Ordering::Relaxed), st.not_durable.load(Ordering::Relaxed), st.rotations.load(Ordering::Relaxed));
++        if we > 0 || nd > 0 || rot > 0 {
++            eprintln!("[invalidation-log] closed: write_errors={we} not_durable={nd} rewrites={rot} degraded={}", st.degraded.load(Ordering::Relaxed));
++        }
++    }
++}
++
++fn header_prefix_ok(bytes: &[u8]) -> bool {
++    // A file shorter than the header is a torn creation only if it is a prefix of a plausible header.
++    let n = bytes.len().min(4);
++    bytes[..n] == MAGIC[..n]
++}
++
++struct Writer {
++    path: PathBuf,
++    node_id: u8,
++    cfg: LogConfig,
++    file: std::fs::File,
++    state: State,
++    file_len: u64,
++    next_compact_at: u64,
++    last_sync: Instant,
++    dirty: bool,
++    /// The file is not trustworthy for appends (failed write or fsync): the next batch rewrites it.
++    needs_rotation: bool,
++    /// A failed compaction is not retried before this instant (F-13).
++    compact_retry_at: Option<Instant>,
++    compact_fail_streak: u32,
++    high_water: Arc<AtomicU64>,
++    stats: Arc<LogStats>,
++}
++
++impl Writer {
++    /// Rewrites the whole log from the in-memory image into `<path>.tmp`, fsyncs it, atomically
++    /// renames it over the log and reopens it. Used after a failed write or fsync. On success every
++    /// intent applied to the image so far is genuinely durable (per fsync of the new file) and the
++    /// degraded flag is cleared; on failure the log stays degraded and the next batch retries.
++    fn rotate(&mut self, why: &str) -> bool {
++        let image = snapshot_bytes(self.node_id, &self.state, false);
++        let tmp = tmp_path(&self.path);
++        let written = (|| -> std::io::Result<()> {
++            let mut f = create_new_file(&tmp)?;
++            f.write_all(&image)?;
++            f.sync_all()?;
++            Ok(())
++        })();
++        let renamed = written.and_then(|_| std::fs::rename(&tmp, &self.path));
++        if let Err(e) = renamed {
++            let _ = std::fs::remove_file(&tmp);
++            self.stats.write_errors.fetch_add(1, Ordering::Relaxed);
++            self.stats.degraded.store(true, Ordering::Relaxed);
++            eprintln!("[invalidation-log] rewrite after {why} FAILED ({e}); new invalidations are NOT durable until it succeeds");
++            return false;
++        }
++        sync_parent(&self.path);
++        match open_append(&self.path) {
++            Ok(f) => {
++                self.file = f;
++                self.file_len = self.file.metadata().map(|m| m.len()).unwrap_or(image.len() as u64);
++                self.stats.file_bytes.store(self.file_len, Ordering::Relaxed);
++                self.dirty = false;
++                self.needs_rotation = false;
++                self.stats.degraded.store(false, Ordering::Relaxed);
++                self.stats.rotations.fetch_add(1, Ordering::Relaxed);
++                self.next_compact_at = self.file_len.saturating_mul(2);
++                eprintln!("[invalidation-log] recovered after {why}: log rewritten from memory ({} bytes)", self.file_len);
++                true
++            }
++            Err(e) => {
++                self.stats.write_errors.fetch_add(1, Ordering::Relaxed);
++                self.stats.degraded.store(true, Ordering::Relaxed);
++                eprintln!("[invalidation-log] cannot reopen the log after {why} ({e}); degraded");
++                false
++            }
++        }
++    }
++
++    fn write_batch(&mut self, buf: &[u8]) -> std::io::Result<()> {
++        if let Some(h) = &self.cfg.hooks {
++            let n = h.fail_writes.load(Ordering::SeqCst);
++            if n > 0 {
++                h.fail_writes.store(n - 1, Ordering::SeqCst);
++                if h.partial_write.load(Ordering::Relaxed) {
++                    let _ = self.file.write_all(&buf[..buf.len() / 2]);
++                }
++                return Err(std::io::Error::other("injected write failure"));
++            }
++        }
++        self.file.write_all(buf)
++    }
++
++    fn sync_file(&mut self) -> std::io::Result<()> {
++        if let Some(h) = &self.cfg.hooks {
++            let n = h.fail_syncs.load(Ordering::SeqCst);
++            if n > 0 {
++                h.fail_syncs.store(n - 1, Ordering::SeqCst);
++                return Err(std::io::Error::other("injected fsync failure"));
++            }
++        }
++        self.file.sync_data()
++    }
++
++    fn run(mut self, rx: mpsc::Receiver<Cmd>) {
++        let mut closing: Option<(bool, mpsc::Sender<()>)> = None;
++        loop {
++            // Block for the first command (bounded, so interval fsync still happens when idle).
++            let first = match rx.recv_timeout(Duration::from_millis(100)) {
++                Ok(c) => Some(c),
++                Err(mpsc::RecvTimeoutError::Timeout) => None,
++                Err(mpsc::RecvTimeoutError::Disconnected) => break,
++            };
++            if let Some(h) = &self.cfg.hooks {
++                let ms = h.stall_ms.load(Ordering::Relaxed);
++                if ms > 0 && first.is_some() {
++                    std::thread::sleep(Duration::from_millis(ms));
++                }
++            }
++            let mut batch = Vec::new();
++            if let Some(c) = first {
++                batch.push(c);
++                while batch.len() < 512 {
++                    match rx.try_recv() {
++                        Ok(c) => batch.push(c),
++                        Err(_) => break,
++                    }
++                }
++            }
++            let mut buf: Vec<u8> = Vec::new();
++            let mut waiters: Vec<(tokio::sync::oneshot::Sender<Result<u64, ()>>, u64)> = Vec::new();
++            let mut had_intent = false;
++            for cmd in batch {
++                match cmd {
++                    Cmd::Intent { scope, key, peers, done } => {
++                        had_intent = true;
++                        let stamp = self.state.counter + 1;
++                        let ms = now_ms();
++                        self.state.apply_intent(stamp, ms, scope, &key, &peers);
++                        enc_intent(stamp, ms, scope, &key, &peers, &mut buf);
++                        self.high_water.store(stamp, Ordering::SeqCst);
++                        self.stats.intents.fetch_add(1, Ordering::Relaxed);
++                        if let Some(d) = done {
++                            waiters.push((d, stamp));
++                        }
++                    }
++                    Cmd::Ack { peer, scope, key, upto } => {
++                        self.state.apply_ack(peer, scope, &key, upto);
++                        enc_ack(peer, scope, &key, upto, &mut buf);
++                        self.stats.acks.fetch_add(1, Ordering::Relaxed);
++                    }
++                    Cmd::Barrier { done } => {
++                        waiters.push((done, self.state.counter));
++                    }
++                    Cmd::Close { clean, done } => {
++                        closing = Some((clean, done));
++                    }
++                }
++            }
++            if let Some((clean, _)) = &closing {
++                if *clean {
++                    enc_clean(now_ms(), &mut buf);
++                }
++            }
++            let mut ok = true;
++            // Set when this iteration already rewrote AND fsynced the whole file from the image.
++            let mut synced_by_rotation = false;
++            if self.needs_rotation {
++                // An earlier write or fsync failed: the file may hold a partial record or may have
++                // lost pages. This batch is already in the in-memory image, so the rewrite covers it.
++                ok = self.rotate("pending recovery");
++                synced_by_rotation = ok;
++            } else if !buf.is_empty() {
++                match self.write_batch(&buf) {
++                    Ok(()) => {
++                        self.file_len += buf.len() as u64;
++                        self.stats.file_bytes.store(self.file_len, Ordering::Relaxed);
++                        self.dirty = true;
++                    }
++                    Err(e) => {
++                        self.stats.write_errors.fetch_add(1, Ordering::Relaxed);
++                        eprintln!("[invalidation-log] WRITE FAILED ({e}); rewriting the log from memory");
++                        // A partial write may have left garbage at the tail; appending after it would
++                        // poison the file (mid-file corruption on the next boot). Never append to it again.
++                        self.needs_rotation = true;
++                        ok = self.rotate("write failure");
++                        synced_by_rotation = ok;
++                    }
++                }
++            }
++            let must_sync = closing.is_some()
++                || match self.cfg.fsync {
++                    FsyncPolicy::Always => self.dirty && !buf.is_empty(),
++                    FsyncPolicy::Interval(d) => self.dirty && self.last_sync.elapsed() >= d,
++                    FsyncPolicy::Never => false,
++                };
++            if had_intent && ok {
++                failpoint("log.after_write_before_sync");
++            }
++            if must_sync && self.dirty && !synced_by_rotation {
++                if let Err(e) = self.sync_file() {
++                    self.stats.write_errors.fetch_add(1, Ordering::Relaxed);
++                    eprintln!("[invalidation-log] FSYNC FAILED ({e}); rewriting the log into a new file");
++                    // After a failed fsync the kernel may have dropped the dirty pages; a retried fsync
++                    // on the same file can then report success without the data being on disk. Never
++                    // trust the old file again: write the image into a NEW file and fsync that.
++                    self.needs_rotation = true;
++                    ok = self.rotate("fsync failure");
++                } else {
++                    self.stats.fsyncs.fetch_add(1, Ordering::Relaxed);
++                    self.last_sync = Instant::now();
++                    self.dirty = false;
++                }
++            }
++            for (w, stamp) in waiters {
++                let _ = w.send(if ok { Ok(stamp) } else { Err(()) });
++            }
++            if ok {
++                let (is_closing, clean) = match &closing {
++                    Some((c, _)) => (true, *c),
++                    None => (false, false),
++                };
++                self.maybe_compact(is_closing, clean);
++            }
++            if let Some((_, done)) = closing.take() {
++                let _ = done.send(());
++                break;
++            }
++        }
++    }
++
++    fn maybe_compact(&mut self, closing: bool, clean: bool) {
++        let over_cap = self.file_len > self.cfg.max_file_bytes;
++        let threshold = self.next_compact_at.max(self.cfg.compact_min_bytes);
++        let empty_on_close = closing && self.state.peers.is_empty() && self.file_len > (HEADER_LEN as u64 + 64);
++        if !(self.file_len >= threshold || over_cap || empty_on_close) {
++            return;
++        }
++        // F-13: after a failed compaction wait before the next attempt (the writer ticks every
++        // ~100 ms; retrying and counting each tick would be noise). Closing always tries once.
++        if !closing {
++            if let Some(t) = self.compact_retry_at {
++                if Instant::now() < t {
++                    return;
++                }
++            }
++        }
++        for line in self.state.age_out(now_ms(), self.cfg.max_debt_age_ms) {
++            eprintln!("[invalidation-log] owed invalidation older than the age-out was escalated to a full flush of that peer (not dropped): {line}");
++        }
++        let image = snapshot_bytes(self.node_id, &self.state, closing && clean);
++        let tmp = tmp_path(&self.path);
++        let written = (|| -> std::io::Result<()> {
++            let mut f = create_new_file(&tmp)?;
++            f.write_all(&image)?;
++            f.sync_all()?;
++            Ok(())
++        })();
++        if written.is_ok() && !self.state.peers.is_empty() && self.stats.intents.load(Ordering::Relaxed) > 0 {
++            failpoint("log.compact.after_tmp");
++        }
++        let step = match written {
++            Err(e) => Some(format!("writing {}: {e}", tmp.display())),
++            Ok(()) => std::fs::rename(&tmp, &self.path).err().map(|e| format!("renaming over the log: {e}")),
++        };
++        if let Some(why) = step {
++            // keep appending to the old file; it is still complete and valid. One count and one
++            // line per ATTEMPT; attempts are spaced by an exponential backoff.
++            self.stats.write_errors.fetch_add(1, Ordering::Relaxed);
++            self.stats.compaction_failures.fetch_add(1, Ordering::Relaxed);
++            let _ = std::fs::remove_file(&tmp);
++            self.compact_fail_streak = self.compact_fail_streak.saturating_add(1);
++            let delay = self
++                .cfg
++                .compact_retry_initial
++                .saturating_mul(1u32 << (self.compact_fail_streak - 1).min(16))
++                .min(COMPACT_RETRY_MAX);
++            self.compact_retry_at = Some(Instant::now() + delay);
++            eprintln!(
++                "[invalidation-log] compaction failed ({why}); the log keeps growing from {} bytes (hard cap {}); failure #{}, next attempt in {} ms",
++                self.file_len,
++                self.cfg.max_file_bytes,
++                self.compact_fail_streak,
++                delay.as_millis()
++            );
++            return;
++        }
++        self.compact_fail_streak = 0;
++        self.compact_retry_at = None;
++        sync_parent(&self.path);
++        if !self.state.peers.is_empty() && self.stats.intents.load(Ordering::Relaxed) > 0 {
++            failpoint("log.compact.after_rename");
++        }
++        match open_append(&self.path) {
++            Ok(f) => {
++                self.file = f;
++                self.file_len = self.file.metadata().map(|m| m.len()).unwrap_or(image.len() as u64);
++                self.stats.file_bytes.store(self.file_len, Ordering::Relaxed);
++                self.stats.compactions.fetch_add(1, Ordering::Relaxed);
++                self.dirty = false;
++                self.next_compact_at = self.file_len.saturating_mul(2);
++            }
++            Err(e) => {
++                self.stats.degraded.store(true, Ordering::Relaxed);
++                self.stats.write_errors.fetch_add(1, Ordering::Relaxed);
++                eprintln!("[invalidation-log] cannot reopen log after compaction ({e}); degraded");
++            }
++        }
++    }
++}
++
++
++// ---------------------------------------------------------------------------
++// Tests
++// ---------------------------------------------------------------------------
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    fn tmpdir(tag: &str) -> PathBuf {
++        let d = std::env::temp_dir().join(format!("pcil_{}_{}_{}", tag, std::process::id(), rand::random::<u32>()));
++        std::fs::create_dir_all(&d).unwrap();
++        d
++    }
++
++    fn cfg() -> LogConfig {
++        LogConfig::default()
++    }
++
++    const K1: &str = "__default__:/a";
++    const K2: &str = "__default__:/b";
++
++    #[tokio::test]
++    async fn round_trip_with_acks_flush_markers_and_clean_marker() {
++        let d = tmpdir("rt");
++        let p = d.join("inval.log");
++        let (log, rep) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        assert_eq!(rep.outcome, ReplayOutcome::Fresh);
++        assert!(rep.debts.is_empty());
++        let s1 = log.append_intent(InvalidationScope::ExactKey, K1, &[2, 3]).await.unwrap();
++        let _s2 = log.append_intent(InvalidationScope::ExactKey, K2, &[2]).await.unwrap();
++        // peer 3 acknowledged K1; peer 2 did not
++        log.ack(3, InvalidationScope::ExactKey, K1, s1);
++        // peer 3 owes a full flush
++        log.append_intent(InvalidationScope::FullCache, "", &[3]).await.unwrap();
++        log.close(false);
++
++        let (log2, rep2) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        assert_eq!(rep2.outcome, ReplayOutcome::Replayed);
++        let mut got: Vec<_> = rep2.debts.iter().map(|d| (d.peer, d.scope, d.key.clone())).collect();
++        got.sort_by_key(|(p, s, k)| (*p, s.to_u8(), k.clone()));
++        assert_eq!(
++            got,
++            vec![
++                (2, InvalidationScope::ExactKey, K1.to_string()),
++                (2, InvalidationScope::ExactKey, K2.to_string()),
++                (3, InvalidationScope::FullCache, String::new()),
++            ]
++        );
++        assert!(!rep2.last_was_clean);
++        // a clean close is reported
++        log2.close(true);
++        let (log3, rep3) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        assert!(rep3.last_was_clean);
++        log3.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn newer_intent_survives_an_ack_that_started_before_it() {
++        let d = tmpdir("stamp");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        let s1 = log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        // second DELETE of the same key arrives while the first delivery (started at s1) is in flight
++        let _s2 = log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        log.ack(2, InvalidationScope::ExactKey, K1, s1);
++        log.close(false);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(rep.debts.len(), 1, "the later intent must remain owed: {:?}", rep.debts);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn fully_acked_log_compacts_to_empty_on_close() {
++        let d = tmpdir("empty");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        for i in 0..50 {
++            let k = format!("__default__:/k{i}");
++            let s = log.append_intent(InvalidationScope::ExactKey, &k, &[2]).await.unwrap();
++            log.ack(2, InvalidationScope::ExactKey, &k, s);
++        }
++        let before = std::fs::metadata(&p).unwrap().len();
++        log.close(true);
++        let after = std::fs::metadata(&p).unwrap().len();
++        assert!(after < before, "compaction on close should shrink the file ({before} -> {after})");
++        let (_l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert!(rep.debts.is_empty());
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn truncated_last_record_is_tolerated_and_earlier_records_survive() {
++        let d = tmpdir("torn");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K2, &[2]).await.unwrap();
++        log.close(false);
++        let full = std::fs::read(&p).unwrap();
++        // chop the last record in the middle (every possible cut point inside it)
++        let last_len = {
++            let mut b = Vec::new();
++            enc_intent(2, 0, InvalidationScope::ExactKey, K2, &[2], &mut b);
++            b.len()
++        };
++        let start_last = full.len() - last_len; // clean close wrote no Clean marker (close(false))
++        for cut in (start_last + 1)..full.len() {
++            std::fs::write(&p, &full[..cut]).unwrap();
++            let (l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++            assert!(
++                matches!(rep.outcome, ReplayOutcome::TornTailDiscarded { .. }),
++                "cut {cut}: {:?}",
++                rep.outcome
++            );
++            assert_eq!(rep.debts.len(), 1, "cut {cut}");
++            assert_eq!(rep.debts[0].key, K1);
++            l.close(false);
++        }
++        // garbled (bit-flipped) LAST record is also a torn tail
++        let mut garbled = full.clone();
++        let n = garbled.len();
++        garbled[n - 6] ^= 0xFF;
++        std::fs::write(&p, &garbled).unwrap();
++        let (l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert!(matches!(rep.outcome, ReplayOutcome::TornTailDiscarded { .. }), "{:?}", rep.outcome);
++        assert_eq!(rep.debts.len(), 1);
++        l.close(false);
++        // zero-filled tail
++        let mut zeros = full.clone();
++        zeros.extend_from_slice(&[0u8; 37]);
++        std::fs::write(&p, &zeros).unwrap();
++        let (l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert!(matches!(rep.outcome, ReplayOutcome::TornTailDiscarded { dropped_bytes: 37 }), "{:?}", rep.outcome);
++        assert_eq!(rep.debts.len(), 2);
++        l.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn appends_after_torn_tail_recovery_are_readable() {
++        let d = tmpdir("torn2");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        log.close(false);
++        let mut bytes = std::fs::read(&p).unwrap();
++        bytes.extend_from_slice(&[9, 9, 9]); // partial length prefix
++        std::fs::write(&p, &bytes).unwrap();
++        let (log, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert!(matches!(rep.outcome, ReplayOutcome::TornTailDiscarded { dropped_bytes: 3 }));
++        log.append_intent(InvalidationScope::ExactKey, K2, &[2]).await.unwrap();
++        log.close(false);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(rep.outcome, ReplayOutcome::Replayed);
++        assert_eq!(rep.debts.len(), 2);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn mid_file_corruption_falls_back_to_full_flush_for_every_peer() {
++        let d = tmpdir("corrupt");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        for i in 0..5 {
++            log.append_intent(InvalidationScope::ExactKey, &format!("__default__:/c{i}"), &[2, 3]).await.unwrap();
++        }
++        log.close(false);
++        let mut bytes = std::fs::read(&p).unwrap();
++        bytes[HEADER_LEN + 12] ^= 0x55; // inside the first record
++        std::fs::write(&p, &bytes).unwrap();
++        let (log, rep) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        assert!(matches!(rep.outcome, ReplayOutcome::CorruptFallbackFlush(_)), "{:?}", rep.outcome);
++        let mut peers: Vec<u8> = rep.debts.iter().map(|d| d.peer).collect();
++        peers.sort();
++        assert_eq!(peers, vec![2, 3]);
++        assert!(rep.debts.iter().all(|d| d.scope == InvalidationScope::FullCache));
++        assert!(corrupt_path(&p).exists(), "corrupt log must be preserved for forensics");
++        log.close(false);
++        // the fallback flush markers are themselves durable until acknowledged
++        let (log, rep) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        assert_eq!(rep.debts.len(), 2);
++        let hw = log.high_water();
++        log.ack(2, InvalidationScope::FullCache, "", hw);
++        log.close(false);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        assert_eq!(rep.debts.len(), 1);
++        assert_eq!(rep.debts[0].peer, 3);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn bad_header_wrong_node_and_lost_log_all_fall_back() {
++        let d = tmpdir("hdr");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        log.close(false);
++        // wrong node id
++        let (l, rep) = DurableLog::open(&p, 7, &[2], cfg()).unwrap();
++        assert!(matches!(rep.outcome, ReplayOutcome::CorruptFallbackFlush(_)));
++        l.close(false);
++        // garbage file
++        std::fs::write(&p, b"this is not a log file at all, sorry").unwrap();
++        let (l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert!(matches!(rep.outcome, ReplayOutcome::CorruptFallbackFlush(_)));
++        l.close(false);
++        // log deleted, sentinel still there
++        std::fs::remove_file(&p).unwrap();
++        let (l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(rep.outcome, ReplayOutcome::LostFallbackFlush);
++        assert_eq!(rep.debts.len(), 1);
++        l.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn replay_is_idempotent_and_bounded() {
++        let d = tmpdir("bound");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        // 3000 distinct keys in ONE tenant: must collapse to a tenant debt (ledger bound is 1024)
++        for i in 0..3000 {
++            log.append_intent(InvalidationScope::ExactKey, &format!("__default__:/many{i}"), &[2]).await.unwrap();
++        }
++        // plus duplicates of one key in another tenant
++        for _ in 0..50 {
++            log.append_intent(InvalidationScope::ExactKey, "t1:/dup", &[2]).await.unwrap();
++        }
++        log.close(false);
++        let (l1, r1) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert!(r1.debts.len() <= REPAIR_MAX_ENTRIES_PER_PEER + 1, "len {}", r1.debts.len());
++        assert!(r1.debts.iter().any(|d| d.scope == InvalidationScope::Tenant && d.key == "__default__"), "{:?}", r1.debts.len());
++        assert_eq!(r1.debts.iter().filter(|d| d.key == "t1:/dup").count(), 1);
++        l1.close(false);
++        // replaying twice yields the same debts (idempotent)
++        let (l2, r2) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        let mut a: Vec<_> = r1.debts.iter().map(|d| (d.peer, d.scope.to_u8(), d.key.clone())).collect();
++        let mut b: Vec<_> = r2.debts.iter().map(|d| (d.peer, d.scope.to_u8(), d.key.clone())).collect();
++        a.sort();
++        b.sort();
++        assert_eq!(a, b);
++        l2.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn file_size_stays_bounded_under_churn_via_compaction() {
++        let d = tmpdir("churn");
++        let p = d.join("inval.log");
++        let mut c = cfg();
++        c.compact_min_bytes = 16 * 1024;
++        c.fsync = FsyncPolicy::Never;
++        let (log, _) = DurableLog::open(&p, 1, &[2], c).unwrap();
++        for i in 0..4000 {
++            let k = format!("__default__:/churn{i}");
++            let s = log.append_intent(InvalidationScope::ExactKey, &k, &[2]).await.unwrap();
++            log.ack(2, InvalidationScope::ExactKey, &k, s);
++        }
++        let hw = log.high_water();
++        assert!(hw >= 4000);
++        log.close(false);
++        let len = std::fs::metadata(&p).unwrap().len();
++        // uncompacted this would be 4000 * (intent ~70 B + ack ~65 B) = ~540 KB
++        assert!(len < 128 * 1024, "log not compacted: {len} bytes");
++        assert!(log.stats.compactions.load(Ordering::Relaxed) >= 1);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[tokio::test]
++    async fn tenant_ack_clears_covered_exact_entries_but_not_newer_ones() {
++        let mut st = State::default();
++        st.apply_intent(1, 0, InvalidationScope::ExactKey, "t1:/a", &[2]);
++        st.apply_intent(2, 0, InvalidationScope::ExactKey, "t2:/a", &[2]);
++        st.apply_intent(5, 0, InvalidationScope::ExactKey, "t1:/b", &[2]);
++        st.apply_ack(2, InvalidationScope::Tenant, "t1", 3);
++        let keys: Vec<_> = st.debts().into_iter().map(|d| d.key).collect();
++        assert!(keys.contains(&"t2:/a".to_string()));
++        assert!(keys.contains(&"t1:/b".to_string()), "stamp 5 > upto 3 must remain");
++        assert!(!keys.contains(&"t1:/a".to_string()));
++    }
++
++    #[tokio::test]
++    async fn live_ledger_round_trip_including_inflight_complete_and_flush_marker() {
++        use crate::dist::router::RepairLedger;
++        let d = tmpdir("ledger");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        let ledger = Arc::new(RepairLedger::new());
++        assert!(ledger.attach_durable(log.clone()));
++        ledger.record(2, None, InvalidationScope::ExactKey, K1);
++        ledger.record(3, None, InvalidationScope::ExactKey, K1);
++        ledger.record(2, None, InvalidationScope::ExactKey, K2);
++        log.barrier().await;
++        // delivery of peer 2's entries starts (in flight), the first one is acknowledged
++        let batch = ledger.peek_batch(2, 10);
++        assert_eq!(batch.len(), 2);
++        assert!(batch.iter().all(|e| e.in_flight && e.durable_w >= 3));
++        ledger.complete(2, &batch[0]);
++        // peer 3 is escalated to a full flush; the flush is taken (in flight) and acknowledged
++        ledger.mark_full_flush(3);
++        log.barrier().await;
++        assert!(ledger.take_full_flush(3));
++        ledger.flush_finished(3);
++        log.barrier().await;
++        log.close(false);
++
++        let (_l, rep) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        let got: Vec<_> = rep.debts.iter().map(|d| (d.peer, d.scope, d.key.clone())).collect();
++        assert_eq!(
++            got,
++            vec![(2, InvalidationScope::ExactKey, K2.to_string())],
++            "only the unacknowledged, in-flight entry may remain owed after replay"
++        );
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    #[test]
++    fn crc32_matches_the_standard_check_value() {
++        assert_eq!(crc32(&[b"123456789"]), 0xCBF4_3926);
++    }
++
++    #[test]
++    fn age_out_escalates_old_debts_to_a_flush_and_keeps_young_ones_of_other_peers() {
++        // CHANGED by the remediation round: old debts used to be dropped; they are now escalated.
++        let mut st = State::default();
++        st.apply_intent(1, 1_000, InvalidationScope::ExactKey, "t1:/old", &[2]);
++        st.apply_intent(2, 9_000_000, InvalidationScope::ExactKey, "t1:/new", &[3]);
++        assert_eq!(st.age_out(9_000_100, 100_000).len(), 1);
++        let got: Vec<_> = st.debts().into_iter().map(|d| (d.peer, d.scope, d.key)).collect();
++        assert_eq!(
++            got,
++            vec![
++                (2, InvalidationScope::FullCache, String::new()),
++                (3, InvalidationScope::ExactKey, "t1:/new".to_string())
++            ]
++        );
++        assert!(st.age_out(9_000_100, 0).is_empty(), "age-out 0 disables");
++        assert!(st.age_out(9_000_100, 100_000).is_empty(), "a pending flush never ages out");
++    }
++
++    // ---------------------------------------------------------------------------------------
++    // Independent-review additions (remediation round). Each test names the property it can falsify.
++    // ---------------------------------------------------------------------------------------
++
++    fn hooked_cfg() -> (LogConfig, Arc<Hooks>) {
++        let h = Arc::new(Hooks::default());
++        let c = LogConfig { hooks: Some(h.clone()), ..LogConfig::default() };
++        (c, h)
++    }
++
++    /// Writes a log file holding one Intent (timestamp `ms`) for the given peers.
++    fn write_log_with_intent(p: &Path, ms: u64, peers: &[u8]) {
++        let mut out = header_bytes(1);
++        enc_checkpoint(1, &mut out);
++        enc_intent(1, ms, InvalidationScope::ExactKey, K1, peers, &mut out);
++        std::fs::write(p, out).unwrap();
++        std::fs::write(sentinel_path(p), b"s").unwrap();
++    }
++
++    /// Finding 5 (partial `write_all` leaves garbage mid-file).
++    /// Falsifies: "after a failed, partially written append, later appends stay readable and the
++    /// next boot replays normally instead of treating the file as corrupt (full flush of every peer)".
++    #[tokio::test]
++    async fn partial_write_failure_does_not_leave_garbage_mid_file() {
++        let d = tmpdir("pw");
++        let p = d.join("inval.log");
++        let (c, hooks) = hooked_cfg();
++        let (log, _) = DurableLog::open(&p, 1, &[2], c).unwrap();
++        hooks.partial_write.store(true, Ordering::Relaxed);
++        hooks.fail_writes.store(1, Ordering::SeqCst);
++        let _r1 = log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await;
++        let r2 = log.append_intent(InvalidationScope::ExactKey, K2, &[2]).await;
++        assert!(r2.is_ok(), "the log must recover after one failed write");
++        assert_eq!(log.stats.rotations.load(Ordering::Relaxed), 1, "exactly one rewrite must have recovered the log");
++        assert!(!log.stats.degraded.load(Ordering::Relaxed));
++        log.close(false);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(rep.outcome, ReplayOutcome::Replayed, "a partial write must not poison the file: {:?}", rep.outcome);
++        assert!(rep.debts.iter().any(|d| d.key == K2), "the append after the failure must be replayed");
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// Finding 4 (fsync error semantics).
++    /// Falsifies: "an intent whose fsync failed is reported durable later by a retried fsync on the
++    /// same file" (on some Linux filesystems the dirty pages are dropped after a failed fsync, so a
++    /// retry succeeds without the data). Required behaviour: the file is rewritten from the in-memory
++    /// image into a NEW file and fsynced; the intent is then genuinely durable (Ok) or reported Err.
++    #[tokio::test]
++    async fn fsync_failure_is_recovered_by_rewriting_the_log_and_the_intent_is_durable() {
++        let d = tmpdir("fs");
++        let p = d.join("inval.log");
++        let (c, hooks) = hooked_cfg();
++        let (log, _) = DurableLog::open(&p, 1, &[2], c).unwrap();
++        hooks.fail_syncs.store(1, Ordering::SeqCst);
++        let r1 = log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await;
++        assert!(r1.is_ok(), "after a failed fsync the intent must be re-persisted by rewriting the file (or reported lost)");
++        assert_eq!(log.stats.rotations.load(Ordering::Relaxed), 1, "the old file must not be trusted again after a failed fsync");
++        log.close(false);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert!(rep.debts.iter().any(|d| d.key == K1), "the intent must be in the log");
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// Finding 6 (fail-open weakest under load).
++    /// Falsifies: "a full command channel makes the log silently stop protecting DELETEs": a burst
++    /// must be absorbed by bounded back-pressure, not turned into an immediate not-durable result.
++    #[tokio::test]
++    async fn full_command_channel_applies_backpressure_instead_of_failing_open() {
++        let d = tmpdir("bp");
++        let p = d.join("inval.log");
++        let (mut c, hooks) = hooked_cfg();
++        c.fsync = FsyncPolicy::Never;
++        let (log, _) = DurableLog::open(&p, 1, &[2], c).unwrap();
++        hooks.stall_ms.store(60, Ordering::Relaxed);
++        for i in 0..30_000 {
++            log.note_owed(2, InvalidationScope::ExactKey, &format!("__default__:/flood_{i}"));
++        }
++        assert!(log.stats.write_errors.load(Ordering::Relaxed) > 0, "test precondition: the channel must have overflowed");
++        let r = tokio::time::timeout(
++            Duration::from_secs(5),
++            log.append_intent(InvalidationScope::ExactKey, "__default__:/the_delete", &[2]),
++        )
++        .await
++        .expect("append_intent must not hang");
++        assert!(r.is_ok(), "an accepted DELETE must not silently lose durability just because the writer is busy");
++        hooks.stall_ms.store(0, Ordering::Relaxed);
++        log.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// Finding 3 / K16 (wall-clock age-out silently drops debts after a clock step).
++    /// Falsifies: "a debt can disappear because the wall clock moved": an old-looking debt must stay
++    /// owed (escalated to a full flush of the peer), never be forgotten. A forward clock step is
++    /// indistinguishable from an old record, so the only safe action is the flush.
++    #[test]
++    fn age_out_never_silently_loses_a_debt_forward_clock_step() {
++        let d = tmpdir("ao");
++        let p = d.join("inval.log");
++        let eight_days_ms = 8 * 24 * 3600 * 1000u64;
++        write_log_with_intent(&p, now_ms().saturating_sub(eight_days_ms), &[2]);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert!(!rep.debts.is_empty(), "a debt older than the age-out must not vanish silently");
++        assert!(
++            rep.debts.iter().any(|d| d.peer == 2 && d.scope == InvalidationScope::FullCache),
++            "it must be escalated to a full flush of the peer: {:?}",
++            rep.debts
++        );
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// K16b: a BACKWARD clock step (records dated in the future) must not age anything out.
++    #[test]
++    fn backward_clock_step_does_not_age_out() {
++        let d = tmpdir("bk");
++        let p = d.join("inval.log");
++        write_log_with_intent(&p, now_ms() + 30 * 24 * 3600 * 1000, &[2]);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(rep.debts.len(), 1);
++        assert_eq!(rep.debts[0].scope, InvalidationScope::ExactKey);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// Finding 8 (debts for departed members).
++    /// Falsifies: "debts of a peer that is no longer a member are replayed as individual keys forever
++    /// (until age-out)". The ledger's own rule for removed members is one pending flush.
++    #[test]
++    fn debts_of_departed_members_collapse_to_a_flush_marker() {
++        let d = tmpdir("dep");
++        let p = d.join("inval.log");
++        write_log_with_intent(&p, now_ms(), &[2, 7]);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        let for7: Vec<_> = rep.debts.iter().filter(|d| d.peer == 7).collect();
++        assert!(!for7.is_empty(), "the departed member's debt must not be forgotten");
++        assert!(
++            for7.iter().all(|d| d.scope == InvalidationScope::FullCache),
++            "a departed member's debts collapse to a single flush marker: {for7:?}"
++        );
++        assert!(rep.debts.iter().any(|d| d.peer == 2 && d.scope == InvalidationScope::ExactKey), "members keep exact debts");
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// K9 (state level): a leftover `<path>.tmp` from a compaction that crashed before the rename.
++    /// Falsifies: "a stale tmp file breaks boot or is mistaken for the log".
++    #[tokio::test]
++    async fn stale_tmp_from_a_crashed_compaction_is_ignored() {
++        let d = tmpdir("tmp");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        log.close(false);
++        std::fs::write(tmp_path(&p), b"half written compaction garbage").unwrap();
++        let (l2, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(rep.outcome, ReplayOutcome::Replayed);
++        assert_eq!(rep.debts.len(), 1);
++        l2.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// K15c: the log cannot recover (its rewrite target is unusable): DELETEs stay fail-open (Err is
++    /// reported to the caller, the DELETE proceeds), `degraded` is visible, and the log heals itself
++    /// once the obstacle is gone.
++    #[tokio::test]
++    async fn unrecoverable_write_error_is_fail_open_visible_and_self_healing() {
++        let d = tmpdir("deg");
++        let p = d.join("inval.log");
++        let (c, hooks) = hooked_cfg();
++        let (log, _) = DurableLog::open(&p, 1, &[2], c).unwrap();
++        std::fs::create_dir(tmp_path(&p)).unwrap(); // makes the rewrite impossible
++        hooks.fail_writes.store(1, Ordering::SeqCst);
++        let r = log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await;
++        assert!(r.is_err(), "no durable copy exists: the caller must be told");
++        assert!(log.stats.degraded.load(Ordering::Relaxed), "degradation must be visible");
++        std::fs::remove_dir(tmp_path(&p)).unwrap();
++        let r = log.append_intent(InvalidationScope::ExactKey, K2, &[2]).await;
++        assert!(r.is_ok(), "the log must heal once the obstacle is gone");
++        assert!(!log.stats.degraded.load(Ordering::Relaxed));
++        log.close(false);
++        let (_l, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(rep.outcome, ReplayOutcome::Replayed);
++        assert!(rep.debts.iter().any(|d| d.key == K1) && rep.debts.iter().any(|d| d.key == K2), "{:?}", rep.debts);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    // ------------------------------------------------------------------------------------------
++    // Rework v2 (review findings F-03, F-04, F-07, F-08, F-09, F-13). AI-written, not independently verified.
++    // ------------------------------------------------------------------------------------------
++
++    /// F-03. Falsifies: "a stalled writer (hung fsync, dead disk) makes `append_intent` wait for as
++    /// long as the stall lasts". Required: the wait is bounded by `durability_wait`, the caller gets
++    /// `Err` (fail-open), and the miss is counted as `wait_timeouts` and `not_durable`.
++    #[tokio::test]
++    async fn f03_stalled_writer_bounds_the_durability_wait() {
++        let d = tmpdir("f03");
++        let p = d.join("inval.log");
++        let (mut c, hooks) = hooked_cfg();
++        c.durability_wait = Duration::from_millis(250);
++        let (log, _) = DurableLog::open(&p, 1, &[2], c).unwrap();
++        hooks.stall_ms.store(1500, Ordering::Relaxed);
++        let t = Instant::now();
++        let r = log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await;
++        let waited = t.elapsed();
++        assert!(r.is_err(), "a stalled writer must surface as Err (fail-open), got {r:?}");
++        assert!(waited < Duration::from_millis(1200), "the wait must end near durability_wait (250 ms), not at the end of the stall: {waited:?}");
++        assert!(waited >= Duration::from_millis(200), "the wait must not give up before durability_wait: {waited:?}");
++        assert_eq!(log.stats.wait_timeouts.load(Ordering::Relaxed), 1);
++        assert_eq!(log.stats.not_durable.load(Ordering::Relaxed), 1);
++        // the writer finishes the stalled batch afterwards; the log stays usable
++        hooks.stall_ms.store(0, Ordering::Relaxed);
++        log.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// F-04 (unit-level write-before-ack ordering). Falsifies: "`append_intent` can return before the
++    /// intent is in the file (and, under fsync=always, fsynced)". With the writer stalled for 400 ms:
++    /// (1) the future is still pending after 100 ms, (2) when it resolves the intent is READABLE FROM
++    /// THE FILE and at least one fsync was counted. Removing the wait on the writer fails all three.
++    #[tokio::test]
++    async fn f04_append_intent_resolves_only_after_the_intent_is_in_the_file() {
++        let d = tmpdir("f04");
++        let p = d.join("inval.log");
++        let (mut c, hooks) = hooked_cfg();
++        c.durability_wait = Duration::from_secs(10);
++        let (log, _) = DurableLog::open(&p, 1, &[2], c).unwrap();
++        hooks.stall_ms.store(400, Ordering::Relaxed);
++        let fut = log.append_intent(InvalidationScope::ExactKey, K1, &[2]);
++        tokio::pin!(fut);
++        let early = tokio::time::timeout(Duration::from_millis(100), &mut fut).await;
++        assert!(early.is_err(), "append_intent resolved at 100 ms although the writer was stalled for 400 ms: the 204 could precede the write");
++        let stamp = fut.await.expect("the intent must become durable once the stall ends");
++        let bytes = std::fs::read(&p).unwrap();
++        let parsed = parse(&bytes, 1).expect("log parses");
++        assert!(
++            parsed.state.debts().iter().any(|d| d.peer == 2 && d.key == K1),
++            "append_intent returned Ok(stamp={stamp}) but the intent is not in the file"
++        );
++        assert!(log.stats.fsyncs.load(Ordering::Relaxed) >= 1, "fsync=always: the caller was released before any fsync");
++        hooks.stall_ms.store(0, Ordering::Relaxed);
++        log.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// F-07. Falsifies: "two processes (here: two handles) can own the same log". The second open
++    /// must fail with a clear error and must NOT touch the file; after the first closes, it succeeds.
++    #[tokio::test]
++    async fn f07_second_open_of_the_same_log_is_refused_with_a_clear_error() {
++        let d = tmpdir("f07");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        let before = std::fs::read(&p).unwrap();
++        let quick = LogConfig { lock_wait: Duration::from_millis(100), ..cfg() };
++        let t = Instant::now();
++        let err = match DurableLog::open(&p, 1, &[2], quick) {
++            Ok(_) => panic!("a second owner of the same log was accepted"),
++            Err(e) => e,
++        };
++        assert!(t.elapsed() < Duration::from_secs(2), "the refusal must be prompt");
++        assert_eq!(err.kind(), std::io::ErrorKind::WouldBlock, "{err}");
++        let msg = err.to_string();
++        assert!(msg.contains("single-writer lock") && msg.contains(".lock"), "unclear error: {msg}");
++        assert_eq!(std::fs::read(&p).unwrap(), before, "the refused open must not modify the log");
++        log.close(false);
++        // once released, a new owner succeeds and sees the debt
++        let (log2, rep) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(rep.debts.len(), 1);
++        log2.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// F-07. A successor that starts while the predecessor is still shutting down waits for the lock
++    /// (bounded by `lock_wait`) instead of failing: the supervised-restart overlap.
++    #[tokio::test]
++    async fn f07_successor_waits_for_a_predecessor_that_is_shutting_down() {
++        let d = tmpdir("f07b");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        let p2 = p.clone();
++        let successor = std::thread::spawn(move || {
++            let c = LogConfig { lock_wait: Duration::from_secs(5), ..LogConfig::default() };
++            DurableLog::open(&p2, 1, &[2], c).map(|(l, r)| {
++                let n = r.debts.len();
++                l.close(false);
++                n
++            })
++        });
++        std::thread::sleep(Duration::from_millis(300));
++        log.close(false);
++        let n = successor.join().unwrap().expect("the successor must obtain the lock after the predecessor closed");
++        assert_eq!(n, 1);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    fn three_record_log(p: &Path) -> Vec<u8> {
++        let mut out = header_bytes(1);
++        enc_checkpoint(3, &mut out);
++        enc_intent(1, 10, InvalidationScope::ExactKey, K1, &[2], &mut out);
++        enc_intent(2, 11, InvalidationScope::ExactKey, K2, &[2], &mut out);
++        enc_intent(3, 12, InvalidationScope::ExactKey, "__default__:/c", &[2], &mut out);
++        std::fs::write(p, &out).unwrap();
++        std::fs::write(sentinel_path(p), b"s").unwrap();
++        out
++    }
++
++    /// F-08. Falsifies: "a corrupted length field in the middle of the file is classified as a torn
++    /// tail and every later record is silently dropped". The first intent's length is rewritten to a
++    /// value that runs past the end of the (small) file; its own fields contradict it, so the open
++    /// must take the corrupt-log fallback (full flush owed to every peer) and keep the evidence.
++    #[tokio::test]
++    async fn f08_corrupt_mid_file_length_is_corruption_not_a_torn_tail() {
++        let d = tmpdir("f08");
++        let p = d.join("inval.log");
++        let mut bytes = three_record_log(&p);
++        // header 20 | checkpoint record (4+9+4=17) | first intent record starts at 37
++        let first_intent = HEADER_LEN + 17;
++        let real = u32::from_le_bytes(bytes[first_intent..first_intent + 4].try_into().unwrap());
++        assert!(real > 10 && (real as usize) < 200);
++        bytes[first_intent..first_intent + 4].copy_from_slice(&4000u32.to_le_bytes());
++        std::fs::write(&p, &bytes).unwrap();
++        let (log, rep) = DurableLog::open(&p, 1, &[2, 3], cfg()).unwrap();
++        match &rep.outcome {
++            ReplayOutcome::CorruptFallbackFlush(why) => assert!(why.contains("corrupt length field"), "unhelpful reason: {why}"),
++            other => panic!("a corrupt mid-file length was taken for {other:?}; later records would be silently lost"),
++        }
++        let mut peers: Vec<u8> = rep.debts.iter().filter(|d| d.scope == InvalidationScope::FullCache).map(|d| d.peer).collect();
++        peers.sort();
++        assert_eq!(peers, vec![2, 3], "every peer must owe a full flush");
++        assert!(corrupt_path(&p).exists(), "the corrupt log must be kept as evidence");
++        log.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// F-08 guard against false positives: every cut point of every record type, with its TRUE
++    /// length, must be accepted as a plausible torn prefix; a wrong length is contradicted as soon as
++    /// the fields that fix the length are present. (The existing torn-tail test covers the same via `open`.)
++    #[test]
++    fn f08_length_check_accepts_every_true_prefix_and_rejects_wrong_lengths() {
++        let mut recs: Vec<Vec<u8>> = Vec::new();
++        let mut r = Vec::new();
++        enc_intent(7, 99, InvalidationScope::ExactKey, K1, &[2, 3], &mut r);
++        recs.push(r);
++        let mut r = Vec::new();
++        enc_ack(2, InvalidationScope::ExactKey, K2, 5, &mut r);
++        recs.push(r);
++        let mut r = Vec::new();
++        enc_flush(2, 4, 1234, &mut r);
++        recs.push(r);
++        let mut r = Vec::new();
++        enc_checkpoint(9, &mut r);
++        recs.push(r);
++        let mut r = Vec::new();
++        enc_clean(1234, &mut r);
++        recs.push(r);
++        for r in &recs {
++            let blen = u32::from_le_bytes(r[0..4].try_into().unwrap()) as usize;
++            let body = &r[4..4 + blen];
++            for cut in 1..=body.len() {
++                assert_eq!(length_contradicts_prefix(&body[..cut], blen), None, "true length rejected at cut {cut} of type {}", body[0]);
++            }
++            // a wrong length is caught once the whole body is present
++            assert!(length_contradicts_prefix(body, blen + 1).is_some(), "length+1 not contradicted (type {})", body[0]);
++            assert!(length_contradicts_prefix(body, blen - 1).is_some(), "length-1 not contradicted (type {})", body[0]);
++        }
++        // a zero-filled (not yet persisted) tail proves nothing
++        assert_eq!(length_contradicts_prefix(&[0u8; 40], 100), None);
++        assert_eq!(length_contradicts_prefix(&[], 100), None);
++        // an impossible type byte is corruption
++        assert!(length_contradicts_prefix(&[77, 1, 2, 3], 50).is_some());
++    }
++
++    /// F-13. Falsifies: "a persistently failing compaction is retried (and counted) on every ~100 ms
++    /// writer tick". The tmp path is blocked by a directory so compaction cannot write; with the
++    /// backoff there are at most a handful of attempts in 1.1 s (400 ms, 800 ms, ... delays), without
++    /// it about ten. After the obstacle is removed compaction succeeds again.
++    #[tokio::test]
++    async fn f13_failing_compaction_is_backed_off_and_recovers() {
++        let d = tmpdir("f13");
++        let p = d.join("inval.log");
++        let c = LogConfig {
++            compact_min_bytes: 1,
++            max_file_bytes: 1, // over the hard cap: every tick would try to compact
++            compact_retry_initial: Duration::from_millis(400),
++            ..cfg()
++        };
++        let (log, _) = DurableLog::open(&p, 1, &[2], c).unwrap();
++        std::fs::create_dir(tmp_path(&p)).unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        tokio::time::sleep(Duration::from_millis(1100)).await;
++        let fails = log.stats.compaction_failures.load(Ordering::Relaxed);
++        let werr = log.stats.write_errors.load(Ordering::Relaxed);
++        assert!((1..=4).contains(&fails), "compaction attempts must be spaced by a backoff, saw {fails} failures in 1.1 s");
++        assert_eq!(werr, fails, "write_errors must not be inflated per tick (was {werr}, failures {fails})");
++        std::fs::remove_dir(tmp_path(&p)).unwrap();
++        tokio::time::sleep(Duration::from_millis(2500)).await;
++        assert!(log.stats.compactions.load(Ordering::Relaxed) >= 1, "compaction must succeed again once the obstacle is gone");
++        log.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// F-11 (explicit stderr signal only): the repeated warning is limited to one per interval.
++    #[tokio::test]
++    async fn warn_rate_limited_prints_once_per_interval() {
++        let d = tmpdir("warn");
++        let p = d.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        assert_eq!(log.last_warn_ms.load(Ordering::Relaxed), u64::MAX);
++        log.warn_rate_limited("test");
++        let first = log.last_warn_ms.load(Ordering::Relaxed);
++        assert_ne!(first, u64::MAX, "the first warning must be emitted");
++        tokio::time::sleep(Duration::from_millis(30)).await;
++        log.warn_rate_limited("test");
++        assert_eq!(log.last_warn_ms.load(Ordering::Relaxed), first, "a second warning inside the interval must be suppressed");
++        log.close(false);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++
++    /// F-09: UNIX ONLY. THIS TEST COULD NOT BE RUN ON THE WINDOWS DEVELOPMENT HOST (no Linux run was
++    /// possible): it is compiled only under cfg(unix) and its result is UNVERIFIED. Expected: log,
++    /// sentinel and lock files are 0600 (also when an older, looser file already exists) and a
++    /// directory created for the log is 0700.
++    #[cfg(unix)]
++    #[tokio::test]
++    async fn f09_unix_log_files_are_0600_and_new_directories_0700() {
++        use std::os::unix::fs::PermissionsExt;
++        let mode = |p: &Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o777;
++        let d = tmpdir("f09");
++        let sub = d.join("fresh_dir");
++        let p = sub.join("inval.log");
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        log.append_intent(InvalidationScope::ExactKey, K1, &[2]).await.unwrap();
++        log.close(false);
++        assert_eq!(mode(&sub), 0o700, "directory created for the log");
++        for f in [p.clone(), sentinel_path(&p), lock_path(&p)] {
++            assert_eq!(mode(&f), 0o600, "{}", f.display());
++        }
++        // tightening of pre-existing loose files
++        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o644)).unwrap();
++        std::fs::set_permissions(sentinel_path(&p), std::fs::Permissions::from_mode(0o644)).unwrap();
++        let (log, _) = DurableLog::open(&p, 1, &[2], cfg()).unwrap();
++        log.close(false);
++        assert_eq!(mode(&p), 0o600);
++        assert_eq!(mode(&sentinel_path(&p)), 0o600);
++        let _ = std::fs::remove_dir_all(&d);
++    }
++}

@@ -2,7 +2,7 @@
 mod tests {
     use phantom_cache_demo::control::pie::{PieController, PieDecision};
     use phantom_cache_demo::intel::sketch::CountMinSketch;
-    use phantom_cache_demo::intel::telemetry::{RawObservation, TelemetryCollector};
+    use phantom_cache_demo::intel::telemetry::{ObservationKind, RawObservation, TelemetryCollector};
     use std::sync::Arc;
 
     #[test]
@@ -27,6 +27,7 @@ mod tests {
             latency_ms: 10,
             hit: true,
             waiters_coalesced: 2,
+            kind: ObservationKind::Get,
         });
 
         assert_eq!(telemetry.len(), 1);
@@ -54,6 +55,7 @@ mod tests {
                 latency_ms: 10,
                 hit: true,
                 waiters_coalesced: 0,
+                kind: ObservationKind::Get,
             });
         }
         let pie = PieController::new(telemetry.clone());
@@ -73,6 +75,7 @@ mod tests {
                 latency_ms: 5,
                 hit: true,
                 waiters_coalesced: 0,
+                kind: ObservationKind::Get,
             });
         }
         let pie = PieController::new(telemetry.clone());

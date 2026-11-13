@@ -1,0 +1,10 @@
+--- a/tests/integration/cluster_harness_controls_tests.rs
++++ b/tests/integration/cluster_harness_controls_tests.rs
+@@ -241,6 +241,7 @@
+             extra_env: vec![("PHANTOM_NODE_KEY".to_string(), bogus_key.display().to_string())],
+             startup_timeout: Duration::from_secs(12),
+             wait_for_prewarm: false,
++            ..ClusterOptions::default()
+         },
+     )
+     .await;

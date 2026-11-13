@@ -30,6 +30,13 @@ mod tests {
             snapshot: Mutex::new(snap),
             nodes,
             workload_type: Mutex::new("Normal".to_string()),
+            cache: None,
+            origin_url: None,
+            telemetry: None,
+            pie: None,
+            security: None,
+            upstream_policy: None,
+            router: None,
         });
 
         // Verify values read from the shared Mutex
@@ -100,6 +107,13 @@ mod tests {
             snapshot: Mutex::new(snap),
             nodes: nodes.clone(),
             workload_type: Mutex::new("Normal".to_string()),
+            cache: None,
+            origin_url: None,
+            telemetry: None,
+            pie: None,
+            security: None,
+            upstream_policy: None,
+            router: None,
         });
         (api_state, nodes)
     }

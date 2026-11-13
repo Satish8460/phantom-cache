@@ -1,0 +1,46 @@
+# commit_lists_v2/B03_sandbox_investigations_and_patch_records.txt
+# Sandbox investigation and proposed-patch records (G4A-01, M3, U-01, TTL, phase patches)
+# Generated 2026-10-30 16:41 IST from git status --short -uall (4644 entries). One repo-relative path per line; lines starting with # are comments.
+# Use: GIT_LITERAL_PATHSPECS=1 git add --pathspec-from-file=<this file> after stripping comment lines (see g5_batch_plan_v2.md section 6).
+docs/research/g4a01_race/analysis.md
+docs/research/g4a01_race/independent_review_brief.md
+docs/research/g4a01_race/proposal.patch
+docs/research/g4a01_race/repro_attempts.md
+docs/research/g4a01_race/sandbox_g4a01_race_tests.rs.txt
+docs/research/g4a01_race/status.md
+docs/research/m3_durability/design.md
+docs/research/m3_durability/proposed_patch.diff
+docs/research/m3_durability/proposed_patch_0_cargo_toml_test_registration.diff
+docs/research/m3_durability/proposed_patch_1_harness_tests.diff
+docs/research/m3_durability/proposed_patch_1b_harness_controls_test_default_fields.diff
+docs/research/m3_durability/proposed_patch_2_src.diff
+docs/research/m3_durability/proposed_patch_3_docs_configuration.diff
+docs/research/m3_durability/proposed_patch_4_m7_config_tests_matrix.diff
+docs/research/m3_durability/remediation/00_status_and_plan.md
+docs/research/m3_durability/remediation/crash_point_test_matrix.md
+docs/research/m3_durability/remediation/patches/00_cargo_toml_features_and_test_registration.diff
+docs/research/m3_durability/remediation/patches/01_tests_harness_and_crash_point_tests.diff
+docs/research/m3_durability/remediation/patches/02_src_durable_log_ledger_hooks_drain_detached_leg.diff
+docs/research/m3_durability/remediation/patches/03_docs_configuration.diff
+docs/research/m3_durability/remediation/patches/04_m7_config_tests_matrix.diff
+docs/research/m3_durability/remediation/patches/m3_remediation_combined.diff
+docs/research/m3_durability/remediation/review_findings_resolution.md
+docs/research/m3_durability/reproduction_report.md
+docs/research/m3_durability/test_plan.md
+docs/research/phase_1_changes.patch
+docs/research/phase_1_snapshot_manifest.md
+docs/research/phase_2_changes.patch
+docs/research/phase_3_changes.patch
+docs/research/phase_4_changes.patch
+docs/research/phase_5_changes.patch
+docs/research/phase_6_changes.patch
+docs/research/ttl_decision/evidence/02_summary.txt
+docs/research/ttl_decision/proposed_patch.diff
+docs/research/ttl_decision/recommendation.md
+docs/research/ttl_decision/test_plan.md
+docs/research/u01_backend/contract.md
+docs/research/u01_backend/defect_reproduction.md
+docs/research/u01_backend/independent_review_brief.md
+docs/research/u01_backend/status.md
+docs/research/u01_backend/test_evidence.md
+docs/research/u01_backend/u01_backend.patch
