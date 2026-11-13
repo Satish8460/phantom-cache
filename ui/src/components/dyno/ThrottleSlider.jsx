@@ -12,6 +12,8 @@ export default function ThrottleSlider({
   onBurstComplete,
   isTesting,
   setIsTesting,
+  isStreamRunning = false,
+  onStopStream = null,
 }) {
   const [burstResult, setBurstResult] = useState(null);
 
@@ -64,12 +66,13 @@ export default function ThrottleSlider({
         <span>100k req/s (Flash Stampede)</span>
       </div>
 
-      <div className="dyno-throttle-actions">
+      <div className="dyno-throttle-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button
           type="button"
           className="btn btn--primary dyno-burst-btn"
           onClick={fireBurst}
           disabled={isTesting}
+          style={{ flex: 1 }}
         >
           {isTesting ? (
             <>
@@ -84,28 +87,40 @@ export default function ThrottleSlider({
           )}
         </button>
 
-        {burstResult ? (
-          <div className="dyno-burst-chip" aria-live="polite">
-            <span className="dyno-burst-chip__tag">MEASURED TCP BENCHMARK</span>
-            <span className="dyno-burst-chip__stat">
-              <strong>{burstResult.completed}</strong> requests in <strong>{burstResult.totalTimeMs} ms</strong>
-            </span>
-            <span className="dyno-burst-chip__stat">
-              Throughput: <strong>{burstResult.rps?.toFixed(0)} req/s</strong>
-            </span>
-            <span className="dyno-burst-chip__stat">
-              P99 Latency: <strong>{burstResult.latencies?.p99} ms</strong>
-            </span>
-            <span className="dyno-burst-chip__badge">
-              {burstResult.shieldingRatioPct}% Edge Shielded
-            </span>
-          </div>
-        ) : (
-          <p className="dyno-burst-hint">
-            Click to fire genuine TCP pipelined requests directly through active cluster Node 1 (port 18185).
-          </p>
+        {isStreamRunning && onStopStream && (
+          <button
+            type="button"
+            className="btn dyno-burst-btn"
+            onClick={onStopStream}
+            style={{
+              background: 'var(--warn)',
+              color: 'var(--on-primary)',
+              fontWeight: 700,
+            }}
+          >
+            <Icon name="pause" />
+            <span>■ Stop Stream (0 req/s)</span>
+          </button>
         )}
       </div>
+
+      {burstResult ? (
+        <div className="dyno-burst-chip" aria-live="polite">
+          <span className="dyno-burst-chip__tag">MEASURED TCP BENCHMARK</span>
+          <span className="dyno-burst-chip__stat">
+            <strong>{burstResult.completed}</strong> requests in <strong>{burstResult.totalTimeMs} ms</strong>
+          </span>
+          <span className="dyno-burst-chip__stat">
+            Throughput: <strong>{burstResult.rps?.toFixed(0)} req/s</strong>
+          </span>
+          <span className="dyno-burst-chip__stat">
+            P99 Latency: <strong>{burstResult.latencies?.p99} ms</strong>
+          </span>
+          <span className="dyno-burst-chip__badge">
+            {burstResult.shieldingRatioPct}% Edge Shielded
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

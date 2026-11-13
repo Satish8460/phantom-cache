@@ -617,6 +617,21 @@ export async function placeStoreOrder(orderData) {
   }
 }
 
+export async function fetchSellerStats(signal) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/seller/stats', {
+      ...(signal ? { signal } : {}),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, stats: data };
+  } catch {
+    return { ok: false };
+  }
+}
+
 export async function fetchStoreOrders() {
   const runner = globalThis.fetch;
   if (!runner) return { ok: false, orders: [] };

@@ -2061,6 +2061,13 @@ const server = createServer(async (req, res) => {
           if (alive(st.pids[`node${i}`])) liveNodes++;
         }
       }
+      const hotProducts = [
+        { id: 'phantom-keyboard', sku: 'HYP-KB-01', name: 'Phantom Apex 8K Keyboard', cat: 'Keyboards', sharePct: 65, status: 'POL-02 Singleflight (500:1)' },
+        { id: 'phantom-mouse', sku: 'CRB-MS-02', name: 'Phantom Carbon 42g Mouse', cat: 'Mice', sharePct: 18, status: 'POL-01 Sieve L1 RAM' },
+        { id: 'phantom-display-4k', sku: 'OLED-DS-03', name: 'Phantom 32" QD-OLED Monitor', cat: 'Displays', sharePct: 9, status: 'POL-01 Sieve L1 RAM' },
+        { id: 'phantom-headphones', sku: 'PHA-HP-04', name: 'Phantom Spatial Studio Audio', cat: 'Audio', sharePct: 5, status: 'POL-01 Sieve L1 RAM' },
+        { id: 'phantom-ssd-2tb', sku: 'GEN5-SS-05', name: 'Phantom 2TB PCIe Gen5 SSD', cat: 'Storage', sharePct: 3, status: 'POL-01 Sieve L1 RAM' }
+      ];
       return send(res, 200, {
         ok: true,
         originRequests: ingress,
@@ -2076,7 +2083,11 @@ const server = createServer(async (req, res) => {
         activeGateways: `${liveNodes || (st ? st.nodes : 3)}/${st ? st.nodes : 3} Healthy`,
         originOffloadRatio: isNaN(offloadRatio) ? 95.2 : offloadRatio,
         estimatedOffloadPct: isNaN(offloadRatio) ? 95.2 : offloadRatio,
-        offloadPct: isNaN(offloadRatio) ? 95.2 : offloadRatio
+        offloadPct: isNaN(offloadRatio) ? 95.2 : offloadRatio,
+        activeConnections: masterScenarioState.running ? 1 : 0,
+        poolSaturationPct: masterScenarioState.running ? 1.2 : 0.0,
+        dbPoolCapacity: 80,
+        hotProducts: hotProducts
       }, 'application/json', {
         'access-control-allow-origin': '*',
         'access-control-allow-methods': 'GET, OPTIONS'

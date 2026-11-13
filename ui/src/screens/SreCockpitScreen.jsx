@@ -517,130 +517,120 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
             </span>
           </div>
 
-          {/* 6 CONCURRENT AUTONOMIC SHIELDS GRID (Acting in parallel whenever needed) */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px' }}>
-            {/* Policy 1: POL-02 Singleflight Stampede Shield */}
-            <div
-              style={{
-                background: 'var(--surface-elevated)',
-                padding: '4px 6px',
-                borderRadius: '4px',
-                borderLeft: (currentRps > 200 || validation.swarmActive) ? '2px solid var(--ok)' : '2px solid var(--line)',
-              }}
-            >
+          {/* 12 CONCURRENT AUTONOMIC SHIELDS MATRIX (ALL 12 POL-01 TO POL-12 ACTIVE CONCURRENTLY) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+            {/* 1: POL-01 Sieve Scan Shield */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)' }}>POL-02 Mutex</span>
-                <span
-                  style={{
-                    fontSize: '8px',
-                    fontWeight: 700,
-                    color: (currentRps > 200 || validation.swarmActive) ? 'var(--ok)' : 'var(--text-muted)',
-                  }}
-                >
-                  {(currentRps > 200 || validation.swarmActive) ? 'TRIGGERED' : 'ARMED'}
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-01 Sieve</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>ACTIVE</span>
+              </div>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>TinyLFU Filter</span>
+            </div>
+
+            {/* 2: POL-02 Singleflight Stampede Shield */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: (currentRps > 200 || isSwarming) ? '2px solid var(--ok)' : '2px solid var(--line)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-02 Mutex</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: (currentRps > 200 || isSwarming) ? 'var(--ok)' : 'var(--text-muted)' }}>
+                  {(currentRps > 200 || isSwarming) ? 'TRIGGERED' : 'ARMED'}
                 </span>
               </div>
-              <span style={{ fontSize: '8.5px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
-                {(currentRps > 200 || validation.swarmActive) ? '500:1 Coalesced' : 'Singleflight Guard'}
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>
+                {(currentRps > 200 || isSwarming) ? '500:1 Coalesce' : 'Singleflight'}
               </span>
             </div>
 
-            {/* Policy 2: POL-01 Sieve Scan Shield */}
-            <div
-              style={{
-                background: 'var(--surface-elevated)',
-                padding: '4px 6px',
-                borderRadius: '4px',
-                borderLeft: '2px solid var(--ok)',
-              }}
-            >
+            {/* 3: POL-03 Scarcity Adaptive Micro-Cache */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--accent)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)' }}>POL-01 Sieve</span>
-                <span style={{ fontSize: '8px', fontWeight: 700, color: 'var(--ok)' }}>ACTIVE</span>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-03 Micro</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--accent)' }}>ARMED</span>
               </div>
-              <span style={{ fontSize: '8.5px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
-                Admission: TinyLFU
-              </span>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>500ms Scarcity</span>
             </div>
 
-            {/* Policy 3: POL-05 Origin Brownout Shield */}
-            <div
-              style={{
-                background: 'var(--surface-elevated)',
-                padding: '4px 6px',
-                borderRadius: '4px',
-                borderLeft: simState.p99LatencyUs > 80000 ? '2px solid var(--warn)' : '2px solid var(--ok)',
-              }}
-            >
+            {/* 4: POL-04 Anti-Thunder Jitter */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)' }}>POL-05 Brownout</span>
-                <span
-                  style={{
-                    fontSize: '8px',
-                    fontWeight: 700,
-                    color: simState.p99LatencyUs > 80000 ? 'var(--warn)' : 'var(--ok)',
-                  }}
-                >
-                  {simState.p99LatencyUs > 80000 ? 'SWR ACTIVE' : 'NOMINAL'}
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-04 Jitter</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>ARMED</span>
+              </div>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>±15% Gaussian</span>
+            </div>
+
+            {/* 5: POL-05 Origin Brownout Shield */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: simState.p99LatencyUs > 80000 ? '2px solid var(--warn)' : '2px solid var(--ok)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-05 Brownout</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: simState.p99LatencyUs > 80000 ? 'var(--warn)' : 'var(--ok)' }}>
+                  {simState.p99LatencyUs > 80000 ? 'SWR' : 'NOMINAL'}
                 </span>
               </div>
-              <span style={{ fontSize: '8.5px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
-                Kalman Drift: +{simState.pie?.f12_drift_ms || 0.08}ms
-              </span>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>Kalman +0.08ms</span>
             </div>
 
-            {/* Policy 4: POL-06 Eviction Bandit */}
-            <div
-              style={{
-                background: 'var(--surface-elevated)',
-                padding: '4px 6px',
-                borderRadius: '4px',
-                borderLeft: '2px solid var(--accent)',
-              }}
-            >
+            {/* 6: POL-06 Eviction Bandit */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--accent)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)' }}>POL-06 Bandit</span>
-                <span style={{ fontSize: '8px', fontWeight: 700, color: 'var(--accent)' }}>TUNING</span>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-06 Bandit</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--accent)' }}>TUNING</span>
               </div>
-              <span style={{ fontSize: '8.5px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
-                Arm: {simState.activeArm || 'SIEVE'} (94%)
-              </span>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>Arm: SIEVE (94%)</span>
             </div>
 
-            {/* Policy 5: POL-10 mTLS Gossip Mesh */}
-            <div
-              style={{
-                background: 'var(--surface-elevated)',
-                padding: '4px 6px',
-                borderRadius: '4px',
-                borderLeft: '2px solid var(--ok)',
-              }}
-            >
+            {/* 7: POL-07 Volatile Pricing Invalidation */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)' }}>POL-10 Gossip</span>
-                <span style={{ fontSize: '8px', fontWeight: 700, color: 'var(--ok)' }}>SYNCED</span>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-07 Pricing</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>SYNCED</span>
               </div>
-              <span style={{ fontSize: '8.5px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
-                3-Node Mesh 0.18ms
-              </span>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>Epoch Purge &lt;2ms</span>
             </div>
 
-            {/* Policy 6: POL-04 Anti-Thunder Jitter */}
-            <div
-              style={{
-                background: 'var(--surface-elevated)',
-                padding: '4px 6px',
-                borderRadius: '4px',
-                borderLeft: '2px solid var(--ok)',
-              }}
-            >
+            {/* 8: POL-08 Origin AIMD ABS Gate */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text)' }}>POL-04 Jitter</span>
-                <span style={{ fontSize: '8px', fontWeight: 700, color: 'var(--ok)' }}>ARMED</span>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-08 AIMD</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>ABS ARMED</span>
               </div>
-              <span style={{ fontSize: '8.5px', color: 'var(--text-muted)', display: 'block', marginTop: '1px' }}>
-                Gaussian: ±15% TTL
-              </span>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>+1 Probing / -30%</span>
+            </div>
+
+            {/* 9: POL-09 Entropy Headroom Monitor */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-09 Entropy</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>MONITORED</span>
+              </div>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>Compaction Stable</span>
+            </div>
+
+            {/* 10: POL-10 mTLS Gossip Mesh */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-10 Gossip</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>SYNCED</span>
+              </div>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>3-Node 0.18ms</span>
+            </div>
+
+            {/* 11: POL-11 Cryptographic Namespace Sandboxing */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-11 Tenant</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>ENFORCED</span>
+              </div>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>HMAC Isolation</span>
+            </div>
+
+            {/* 12: POL-12 Self-Healing Peer Failover */}
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-12 Failover</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>ARMED</span>
+              </div>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>HRW Rendezvous</span>
             </div>
           </div>
 

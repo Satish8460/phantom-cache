@@ -7,6 +7,7 @@ import DatabaseThermometer from '../components/dyno/DatabaseThermometer.jsx';
 import MasterScenarioDeck from '../components/dyno/MasterScenarioDeck.jsx';
 import PhantomFlowDiagram from '../components/dyno/PhantomFlowDiagram.jsx';
 import Icon from '../components/Icon.jsx';
+import { startMasterScenario, stopMasterScenario, fetchMasterScenarioStatus } from '../lib/labApi.js';
 
 const TOUR_ACTS = [
   {
@@ -38,11 +39,35 @@ const TOUR_ACTS = [
 export default function ExecutiveScreen() {
   const { payload } = useTelemetryContext();
   const [dynoRps, setDynoRps] = useState(25000);
-  const [activeAct, setActiveAct] = useState(1);
+  const [activeAct, setActiveAct] = useState(0); // 0 = Standby Silence
   const [isTesting, setIsTesting] = useState(false);
   const [isPlayingTour, setIsPlayingTour] = useState(false);
+  const [streamRunning, setStreamRunning] = useState(false);
+  const [streamMeasuredRps, setStreamMeasuredRps] = useState(0);
   const [measuredTelemetry, setMeasuredTelemetry] = useState(null);
   const [activeCockpitTab, setActiveCockpitTab] = useState('diagram'); // 'diagram' | 'sidecar' | 'split'
+
+  // Poll master scenario status to keep the entire cockpit unified (no isolated islands)
+  useEffect(() => {
+    let unmounted = false;
+    const poll = async () => {
+      const res = await fetchMasterScenarioStatus();
+      if (!unmounted && res && res.ok && res.state) {
+        setStreamRunning(Boolean(res.state.running));
+        if (res.state.running) {
+          setStreamMeasuredRps(res.state.measuredRps || res.state.targetRps || dynoRps);
+        } else {
+          setStreamMeasuredRps(0);
+        }
+      }
+    };
+    poll();
+    const interval = setInterval(poll, 1200);
+    return () => {
+      unmounted = true;
+      clearInterval(interval);
+    };
+  }, [dynoRps]);
 
   // Auto-play walkthrough timer
   useEffect(() => {
@@ -52,7 +77,12 @@ export default function ExecutiveScreen() {
         setActiveAct((prev) => {
           const nextAct = prev >= 3 ? 1 : prev + 1;
           const config = TOUR_ACTS.find((a) => a.act === nextAct);
-          if (config) setDynoRps(config.rps);
+          if (config) {
+            setDynoRps(config.rps);
+            setStreamMeasuredRps(config.rps);
+            setStreamRunning(true);
+            startMasterScenario({ rate: Math.min(config.rps, 1000), mode: nextAct === 3 ? 'singleflight-surge' : (nextAct === 2 ? 'burst-surge' : 'realistic-mix') });
+          }
           return nextAct;
         });
       }, 7500);
@@ -60,10 +90,23 @@ export default function ExecutiveScreen() {
     return () => clearInterval(timer);
   }, [isPlayingTour]);
 
-  const selectAct = (actNum) => {
+  const selectAct = async (actNum) => {
     setActiveAct(actNum);
     const config = TOUR_ACTS.find((a) => a.act === actNum);
-    if (config) setDynoRps(config.rps);
+    if (config) {
+      setDynoRps(config.rps);
+      setStreamMeasuredRps(config.rps);
+      setStreamRunning(true);
+      await startMasterScenario({ rate: Math.min(config.rps, 1000), mode: actNum === 3 ? 'singleflight-surge' : (actNum === 2 ? 'burst-surge' : 'realistic-mix') });
+    }
+  };
+
+  const handleStopAllTraffic = async () => {
+    setIsPlayingTour(false);
+    setActiveAct(0);
+    setStreamRunning(false);
+    setStreamMeasuredRps(0);
+    await stopMasterScenario();
   };
 
   // Live metrics formatted through sanctioned format.js rules
@@ -81,7 +124,16 @@ export default function ExecutiveScreen() {
     console.log('Mobile shopper order completed:', shopData);
   };
 
-  const currentActConfig = TOUR_ACTS.find((a) => a.act === activeAct) || TOUR_ACTS[0];
+  const currentActConfig = TOUR_ACTS.find((a) => a.act === activeAct) || {
+    act: 0,
+    title: 'Standby',
+    narrative: 'Cluster in standby silence (0 req/s). Select an Act, drag the throttle slider, or start master traffic to ignite load.',
+  };
+
+  const isCurrentlyFlowing = streamRunning || isTesting;
+  const currentEffectiveRps = isTesting
+    ? dynoRps
+    : (streamRunning ? (streamMeasuredRps || dynoRps) : 0);
 
   return (
     <div className="executive-cockpit" role="region" aria-label="Executive Dyno Presentation Cockpit">
@@ -128,13 +180,27 @@ export default function ExecutiveScreen() {
         {/* Row 2: 3-Act Walkthrough Pills on Left, Narrative on Right */}
         <div className="dyno-presentation-row-bottom">
           <div className="dyno-tour-strip__controls" role="group" aria-label="Walkthrough Acts">
+            <button
+              type="button"
+              className={`btn btn--sm ${!isCurrentlyFlowing ? 'btn--primary' : ''}`}
+              onClick={handleStopAllTraffic}
+              style={{
+                fontWeight: 700,
+                background: isCurrentlyFlowing ? 'var(--warn)' : undefined,
+                color: isCurrentlyFlowing ? 'var(--on-primary)' : undefined,
+              }}
+              title="Stop all traffic and return cluster to standby silence"
+            >
+              <Icon name={isCurrentlyFlowing ? 'pause' : 'ok'} />
+              <span>{isCurrentlyFlowing ? '■ Stop / Standby (0 req/s)' : '✓ Standby Silence'}</span>
+            </button>
             {TOUR_ACTS.map((a) => (
               <button
                 key={a.act}
                 type="button"
-                className={`btn btn--sm ${activeAct === a.act ? 'btn--primary' : ''}`}
+                className={`btn btn--sm ${activeAct === a.act && isCurrentlyFlowing ? 'btn--primary' : ''}`}
                 onClick={() => selectAct(a.act)}
-                aria-pressed={activeAct === a.act}
+                aria-pressed={activeAct === a.act && isCurrentlyFlowing}
               >
                 {a.title}
               </button>
@@ -159,14 +225,14 @@ export default function ExecutiveScreen() {
         <>
           {/* The Physical Architecture Flow Diagram */}
           <PhantomFlowDiagram
-            rps={dynoRps}
+            rps={currentEffectiveRps}
             activeAct={activeAct}
             isTesting={isTesting}
-            originInFlight={originInFlight}
+            originInFlight={isCurrentlyFlowing ? originInFlight : 0}
             hitRatio={hitRateDisplay}
             coalescedRatio="1:N"
             latencyMs={measuredTelemetry?.latencies?.p99 != null ? String(measuredTelemetry.latencies.p99) : '0.42'}
-            masterRunning={true}
+            masterRunning={isCurrentlyFlowing}
           />
 
           {/* Compact Side-by-Side Instrument Dock: Load Throttle + Master Scenario Stream */}
@@ -177,9 +243,15 @@ export default function ExecutiveScreen() {
               onBurstComplete={handleBurstComplete}
               isTesting={isTesting}
               setIsTesting={setIsTesting}
+              isStreamRunning={isCurrentlyFlowing}
+              onStopStream={handleStopAllTraffic}
             />
 
-            <MasterScenarioDeck />
+            <MasterScenarioDeck
+              targetRps={dynoRps}
+              onRpsChange={setDynoRps}
+              onRunningChange={setStreamRunning}
+            />
           </div>
         </>
       )}

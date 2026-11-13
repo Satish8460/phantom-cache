@@ -11,7 +11,7 @@ import {
  * Gives operators and executives continuous live streams of requests with realistic Zipfian distributions,
  * micro-burst stampedes, cold tail scans, dynamic PIE policy shifts, and live cloud cost savings.
  */
-export default function MasterScenarioDeck() {
+export default function MasterScenarioDeck({ targetRps, onRpsChange, onRunningChange }) {
   const [status, setStatus] = useState({
     running: false,
     targetRps: 45,
@@ -25,8 +25,15 @@ export default function MasterScenarioDeck() {
     activeArm: 'SIEVE',
   });
   const [loading, setLoading] = useState(false);
-  const [selectedRate, setSelectedRate] = useState(45);
+  const [selectedRate, setSelectedRate] = useState(targetRps || 45);
   const [selectedMode, setSelectedMode] = useState('realistic-mix');
+
+  // Keep selectedRate in sync with parent targetRps when provided
+  useEffect(() => {
+    if (targetRps && targetRps !== selectedRate) {
+      setSelectedRate(targetRps);
+    }
+  }, [targetRps]);
 
   // Poll status periodically to keep the deck in sync across windows
   useEffect(() => {
@@ -35,7 +42,8 @@ export default function MasterScenarioDeck() {
       const res = await fetchMasterScenarioStatus();
       if (!unmounted && res && res.ok && res.state) {
         setStatus(res.state);
-        if (res.state.targetRps) setSelectedRate(res.state.targetRps);
+        if (onRunningChange) onRunningChange(Boolean(res.state.running));
+        if (res.state.targetRps && !targetRps) setSelectedRate(res.state.targetRps);
       }
     };
     poll();
@@ -44,16 +52,23 @@ export default function MasterScenarioDeck() {
       unmounted = true;
       clearInterval(interval);
     };
-  }, []);
+  }, [onRunningChange, targetRps]);
 
   const handleToggleStream = async () => {
     setLoading(true);
     if (status.running) {
       const res = await stopMasterScenario();
-      if (res && res.ok && res.state) setStatus(res.state);
+      if (res && res.ok && res.state) {
+        setStatus(res.state);
+        if (onRunningChange) onRunningChange(false);
+      }
     } else {
-      const res = await startMasterScenario({ rate: selectedRate, mode: selectedMode });
-      if (res && res.ok && res.state) setStatus(res.state);
+      const rateToUse = targetRps || selectedRate;
+      const res = await startMasterScenario({ rate: rateToUse, mode: selectedMode });
+      if (res && res.ok && res.state) {
+        setStatus(res.state);
+        if (onRunningChange) onRunningChange(true);
+      }
     }
     setLoading(false);
   };
@@ -61,10 +76,14 @@ export default function MasterScenarioDeck() {
   const handleRateSelect = async (rate, mode = 'realistic-mix') => {
     setSelectedRate(rate);
     setSelectedMode(mode);
+    if (onRpsChange) onRpsChange(rate);
     if (status.running) {
       setLoading(true);
       const res = await startMasterScenario({ rate, mode });
-      if (res && res.ok && res.state) setStatus(res.state);
+      if (res && res.ok && res.state) {
+        setStatus(res.state);
+        if (onRunningChange) onRunningChange(true);
+      }
       setLoading(false);
     }
   };
@@ -96,9 +115,14 @@ export default function MasterScenarioDeck() {
             className={`master-stream-btn ${status.running ? 'master-stream-btn--stop' : 'master-stream-btn--start'}`}
             onClick={handleToggleStream}
             disabled={loading}
+            style={{
+              background: status.running ? 'var(--warn)' : 'var(--primary)',
+              color: 'var(--on-primary)',
+              fontWeight: 700,
+            }}
           >
             <Icon name={status.running ? 'pause' : 'play'} />
-            <span>{status.running ? '⏸ Pause Master Stream' : '▶ Start Live Master Traffic'}</span>
+            <span>{status.running ? '■ STOP ALL TRAFFIC' : '▶ START LIVE MASTER TRAFFIC'}</span>
           </button>
         </div>
       </div>
