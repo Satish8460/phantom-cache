@@ -34,9 +34,16 @@ export default function PhantomFlowDiagram({
   latencyMs = '0.42',
   masterRunning = false,
   devices = [],
+  trafficMix,
+  gossipLatencyMs = '0.18',
 }) {
   const isStampede = activeAct === 2 || rps >= 50000;
   const isMutexShield = activeAct === 3;
+  const effectiveTrafficMix = trafficMix || (
+    isStampede
+      ? { mobile: 7, scans: 1, crowd: 92 }
+      : { mobile: 75, scans: 15, crowd: 10 }
+  );
 
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -496,7 +503,7 @@ export default function PhantomFlowDiagram({
                 data-emitter-name="Mobile Shoppers"
               >
                 <Icon name="buyer" />
-                <span>Mobile (75%)</span>
+                <span>Mobile ({effectiveTrafficMix.mobile}%)</span>
               </span>
               <span
                 className="flow-client-pill"
@@ -506,7 +513,7 @@ export default function PhantomFlowDiagram({
                 data-emitter-name="Crawler Scans"
               >
                 <Icon name="trace" />
-                <span>Scans (15%)</span>
+                <span>Scans ({effectiveTrafficMix.scans}%)</span>
               </span>
               <span
                 className="flow-client-pill flow-client-pill--surge"
@@ -516,7 +523,7 @@ export default function PhantomFlowDiagram({
                 data-emitter-name="Flash Crowd"
               >
                 <Icon name="dyno" />
-                <span>Crowd (10%)</span>
+                <span>Crowd ({effectiveTrafficMix.crowd}%)</span>
               </span>
             </div>
 
@@ -566,7 +573,7 @@ export default function PhantomFlowDiagram({
                 <span className="flow-node-port">:18185</span>
               </div>
               <span className="flow-node-badge">Primary RAM</span>
-              <span className="flow-node-lat">{latencyMs} ms HIT</span>
+              <span className="flow-node-lat">{rps > 0 ? `${latencyMs} ms HIT` : '0.00 ms (Standby)'}</span>
             </div>
 
             <div className="flow-node-card" ref={node2Ref}>
@@ -575,7 +582,7 @@ export default function PhantomFlowDiagram({
                 <span className="flow-node-port">:18186</span>
               </div>
               <span className="flow-node-badge">Peer Gossip</span>
-              <span className="flow-node-lat">0.18 ms Synced</span>
+              <span className="flow-node-lat">{rps > 0 ? `${gossipLatencyMs} ms Synced` : 'Synced (Standby)'}</span>
             </div>
 
             <div className="flow-node-card" ref={node3Ref}>
@@ -584,7 +591,7 @@ export default function PhantomFlowDiagram({
                 <span className="flow-node-port">:18187</span>
               </div>
               <span className="flow-node-badge">Peer Gossip</span>
-              <span className="flow-node-lat">0.18 ms Synced</span>
+              <span className="flow-node-lat">{rps > 0 ? `${gossipLatencyMs} ms Synced` : 'Synced (Standby)'}</span>
             </div>
           </div>
 
@@ -622,7 +629,7 @@ export default function PhantomFlowDiagram({
         <div className="flow-connector flow-connector--filtered">
           <span className="flow-conduit-pill flow-conduit-pill--filtered">
             <span className="flow-conduit-dot flow-conduit-dot--filtered" />
-            0.2% Filtered
+            {rps > 0 ? `${hitRatio && hitRatio.includes('%') ? Math.max(0.1, (100 - parseFloat(hitRatio))).toFixed(1) + '%' : '0.2%'} Filtered` : '0.0% Standby'}
           </span>
         </div>
 
@@ -666,15 +673,15 @@ export default function PhantomFlowDiagram({
       {/* Storytelling Narrative Summary Strip */}
       <div className="flow-story-bar">
         <span className="flow-story-step">
-          <strong>Step 1:</strong> {rps > 0 ? `${rps.toLocaleString()} req/s enters Node 1` : 'Standby for External Swarm'}
+          <strong>Step 1:</strong> {rps > 0 ? `${rps.toLocaleString()} req/s enters Node 1` : 'Fleet Standby (0 req/s)'}
         </span>
         <span className="flow-story-divider">→</span>
         <span className="flow-story-step">
-          <strong>Step 2:</strong> SIEVE &amp; Singleflight absorb <strong>{hitRatio}</strong> in RAM
+          <strong>Step 2:</strong> SIEVE &amp; Singleflight absorb <strong>{rps > 0 ? hitRatio : '100%'}</strong> in RAM
         </span>
         <span className="flow-story-divider">→</span>
         <span className="flow-story-step">
-          <strong>Step 3:</strong> Origin handles only <strong>{originInFlight} query</strong> (Zero crash)
+          <strong>Step 3:</strong> {rps > 0 ? `Origin handles only ${originInFlight} query (Zero crash)` : 'Origin idle (0 queries in flight)'}
         </span>
       </div>
     </div>

@@ -117,6 +117,12 @@ export default function SellerPersonaScreen() {
   const avoidedQueriesCount = simState?.avoidedQueries || 28312;
   const activeConnCount = isStreamRunning ? 1 : 0;
   const poolSaturationText = isStreamRunning ? '1.2%' : '0.0%';
+  const dynamicOffloadPct = (simState?.totalRequests > 0)
+    ? `${((simState.edgeHits / simState.totalRequests) * 100).toFixed(1)}%`
+    : (sellerStats?.originOffloadRatio ? `${sellerStats.originOffloadRatio.toFixed(1)}%` : (isStreamRunning ? '99.8%' : '100%'));
+  const originIngressPct = isStreamRunning
+    ? (dynamicOffloadPct.includes('%') ? Math.max(0.1, (100 - parseFloat(dynamicOffloadPct))).toFixed(1) + '%' : '0.2%')
+    : '0.0%';
 
   const handleFlashSale = async (item, salePrice) => {
     setIsPulsing(true);
@@ -238,10 +244,10 @@ export default function SellerPersonaScreen() {
             <span className="origin-contract-card__badge">● POL-01 SIEVE</span>
           </div>
           <div className="origin-contract-card__val origin-contract-card__val--green">
-            99.8% Absorbed
+            {isStreamRunning ? `${dynamicOffloadPct} Absorbed` : '100% Shield Armed'}
           </div>
           <div className="origin-contract-card__sub">
-            0.2% Origin Ingress (SLA Guaranteed &gt;99.0%)
+            {originIngressPct} Origin Ingress (SLA Guaranteed &gt;99.0%)
           </div>
         </div>
 

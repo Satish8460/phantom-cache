@@ -2,14 +2,19 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 const TOTAL_SLOTS = 64;
 
-export default function RotarySieveDrum({ externalSweep = 0, size = 210, compact = false }) {
+export default function RotarySieveDrum({
+  externalSweep = 0,
+  evictionCount,
+  size = 210,
+  compact = false,
+}) {
   const canvasRef = useRef(null);
   const prevSweepRef = useRef(externalSweep);
   const stateRef = useRef({
     hand: 0,
     targetHand: 0,
     displayHand: 0,
-    evictions: 142,
+    evictions: evictionCount !== undefined ? evictionCount : 42,
     slots: Array.from({ length: TOTAL_SLOTS }, (_, i) => ({
       id: i,
       visited: i % 3 === 0 ? 0 : 1,
@@ -18,7 +23,14 @@ export default function RotarySieveDrum({ externalSweep = 0, size = 210, compact
   });
 
   const [handPos, setHandPos] = useState(0);
-  const [stats, setStats] = useState({ retained: 42, candidates: 22, evictions: 142 });
+  const [stats, setStats] = useState({ retained: 42, candidates: 22, evictions: evictionCount !== undefined ? evictionCount : 42 });
+
+  useEffect(() => {
+    if (evictionCount !== undefined && Number.isFinite(evictionCount)) {
+      stateRef.current.evictions = evictionCount;
+      setStats((prev) => ({ ...prev, evictions: evictionCount }));
+    }
+  }, [evictionCount]);
 
   // Update canvas on animation frame
   useEffect(() => {
