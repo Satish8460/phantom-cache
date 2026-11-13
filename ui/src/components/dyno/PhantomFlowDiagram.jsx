@@ -202,15 +202,12 @@ export default function PhantomFlowDiagram({
         ctx.stroke();
       });
 
-      // 2. Spawn photons based on live traffic
+      // 2. Spawn photons strictly based on live incoming traffic (True Standby Silence: 0 req/s = 0 photons)
       frameCount++;
       const isLiveTraffic = masterRunning || isTesting || rps > 0;
       if (isLiveTraffic) {
         const spawnCadence = rps > 1000 ? 2 : (rps > 200 ? 4 : 6);
         if (frameCount % spawnCadence === 0) spawnParticle();
-      } else {
-        // Idle gentle heartbeat: 1 photon every 45 frames
-        if (frameCount % 45 === 0) spawnParticle('hit', 0);
       }
 
       // 3. Render Shockwaves

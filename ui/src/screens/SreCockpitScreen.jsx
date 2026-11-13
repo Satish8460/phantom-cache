@@ -246,7 +246,7 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
         <div style={{ background: 'var(--surface)', padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line)' }}>
           <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>Database Saturation</span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: 800, color: 'var(--ok)' }}>
-            1.2% Pool <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>(1 conn)</span>
+            {currentRps > 0 ? '1.2% Pool' : '0.0% Pool'} <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>({currentRps > 0 ? '1 conn' : '0 conn'})</span>
           </span>
         </div>
 
