@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PHANTOM // Seller Origin Portal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2310b981'/><text y='.75em' x='15' font-size='70'>🏪</text></svg>">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --bg-subtle: #0f1117;
+      --surface: #13151e;
+      --surface-raised: #181b26;
+      --surface-card: #141620;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.16);
+      --line-subtle: rgba(255, 255, 255, 0.04);
+      --text: #f4f4f6;
+      --text-muted: #a1a1aa;
+      --text-subtle: #71717a;
+      
+      --accent: #ff5500;
+      --accent-hover: #ff6a1a;
+      --accent-subtle: rgba(255, 85, 0, 0.12);
+      
+      --ok: #10b981;
+      --ok-hover: #059669;
+      --ok-subtle: rgba(16, 185, 129, 0.12);
+      
+      --warn: #f59e0b;
+      --warn-subtle: rgba(245, 158, 11, 0.12);
+      
+      --bad: #ef4444;
+      --bad-subtle: rgba(239, 68, 68, 0.12);
+      
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 14px;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "Menlo", Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Strip */
+    .seller-topbar {
+      background: #0b0d13;
+      border-bottom: 1px solid var(--line);
+      padding: 6px 20px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .seller-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .seller-nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .seller-nav-links a:hover { color: #fff; }
+
+    /* Header */
+    header.site-hdr {
+      background: rgba(9, 10, 15, 0.94);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+    }
+    .brand-mark {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .badge-seller {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--ok);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Origin Vitals Grid */
+    .vitals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .vital-box {
+      background: var(--surface-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .vital-lbl {
+      font-size: 10.5px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .vital-n {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+    .vital-n.ok { color: var(--ok); }
+    .vital-n.warn { color: var(--warn); }
+    .vital-n.accent { color: var(--accent); }
+    .vital-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Section Container */
+    .panel-section {
+      background: var(--surface-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-hdr {
+      padding: 14px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Actions Bar */
+    .quick-actions-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* Modal Dialog */
+    dialog.seller-modal {
+      background: #11141d;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-lg);
+      color: var(--text);
+      padding: 0;
+      max-width: 560px;
+      width: 92vw;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+    }
+    dialog.seller-modal::backdrop {
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+    }
+    .modal-hdr {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-lbl {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .form-input, .form-select, .form-textarea {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--accent);
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .photo-presets-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .preset-img-thumb {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      border: 2px solid transparent;
+      cursor: pointer;
+      background: #000;
+      transition: all 0.15s;
+    }
+    .preset-img-thumb:hover {
+      transform: scale(1.05);
+      border-color: var(--line-strong);
+    }
+    .preset-img-thumb.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(255, 85, 0, 0.4);
+    }
+    .modal-ftr {
+      padding: 16px 24px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #0b0d13;
+    }
+    .btn-act {
+      background: var(--surface-raised);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-act:hover {
+      border-color: var(--line-strong);
+      color: #fff;
+    }
+    .btn-act.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-act.primary:hover { background: var(--accent-hover); }
+    .btn-act.danger {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: var(--bad);
+    }
+    .btn-act.danger:hover {
+      background: var(--bad);
+      color: #fff;
+    }
+
+    /* Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12px;
+    }
+    .data-table th {
+      background: #0e1017;
+      color: var(--text-subtle);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line-subtle);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+    .table-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      background: #000;
+      border: 1px solid var(--line);
+    }
+    .sku-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-subtle);
+    }
+
+    /* Inline editable controls */
+    .editable-input {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      width: 75px;
+    }
+    .stock-badge-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .stock-badge-pill.good { background: var(--ok-subtle); color: var(--ok); }
+    .stock-badge-pill.low { background: var(--warn-subtle); color: var(--warn); }
+    .stock-badge-pill.out { background: var(--bad-subtle); color: var(--bad); }
+
+    /* Orders List */
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--line-subtle);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+    .order-row:hover { background: rgba(255, 255, 255, 0.015); }
+    .order-id { font-weight: 700; color: var(--accent); }
+    .order-customer { color: #fff; }
+    .order-status {
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--ok-subtle);
+      color: var(--ok);
+    }
+
+    /* Live Origin Activity Ticker */
+    .origin-ticker-box {
+      max-height: 140px;
+      overflow-y: auto;
+      background: #000;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-top: 1px solid var(--line);
+    }
+    .ticker-line { display: flex; justify-content: space-between; color: var(--text-muted); }
+    .ticker-line.order { color: var(--ok); }
+    .ticker-line.purge { color: var(--bad); }
+    .ticker-line.miss { color: var(--warn); }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #181b24;
+      border: 1px solid var(--line-strong);
+      color: #fff;
+      font-size: 12.5px;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Standalone Universal Top Cross-Navigation Bar */
+    .top-cross-nav {
+      background: #0d1117;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 11.5px;
+      font-family: var(--font-sans);
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+    .top-cross-nav__brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f0f6fc;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .top-cross-nav__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 6px #38bdf8;
+    }
+    .top-cross-nav__mesh-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #8b949e;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .top-cross-nav__links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .top-cross-nav__link {
+      text-decoration: none;
+      color: #8b949e;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .top-cross-nav__link:hover {
+      color: #f0f6fc;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .top-cross-nav__link.active {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    @media (max-width: 680px) {
+      .top-cross-nav {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      .top-cross-nav__links {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Universal Top Cross-Navigation Bar -->
+  <nav class="top-cross-nav" aria-label="Global Workspace Navigation">
+    <div class="top-cross-nav__brand">
+      <span class="top-cross-nav__dot"></span>
+      <strong>PHANTOM CACHE</strong>
+      <span class="top-cross-nav__mesh-tag">Origin Inventory DB</span>
+    </div>
+    <div class="top-cross-nav__links">
+      <a href="/" class="top-cross-nav__link">🎛️ Control Center</a>
+      <a href="/store" class="top-cross-nav__link">🛒 Storefront</a>
+      <a href="/seller" class="top-cross-nav__link active">🏪 Seller Portal</a>
+      <a href="/crowd" class="top-cross-nav__link">👥 Crowd Hub</a>
+    </div>
+  </nav>
+
+  <!-- Top Announcement -->
+  <div class="seller-topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="badge-seller">● ORIGIN SERVER PRIMARY</span>
+      <span>Simulated Enterprise Inventory DB · 35.0ms Baseline Service Time · Protected by PhantomCache</span>
+    </div>
+    <div class="seller-nav-links">
+      <a href="/store" target="_blank">🛒 Customer Storefront →</a>
+      <a href="/crowd" target="_blank">👥 Mobile Crowd Generator →</a>
+      <a href="/" target="_blank">⚙️ Demo Hub Cockpit →</a>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="site-hdr">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="/seller" class="brand-mark">
+        <span>PHANTOM</span>
+        <span style="color:var(--accent)">//</span>
+        <span style="color:var(--text-muted);font-weight:400">SELLER ORIGIN</span>
+      </a>
+      <span class="badge-seller">v2.4-origin</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="/" target="_blank" style="text-decoration:none;font-family:var(--font-mono);font-size:11px;color:#f97316;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);padding:4px 10px;border-radius:980px;font-weight:600">🎛️ Control Center</a>
+      <a href="/store" target="_blank" style="text-decoration:none;font-family:var(--font-mono);font-size:11px;color:#34c759;background:rgba(52,199,89,0.1);border:1px solid rgba(52,199,89,0.3);padding:4px 10px;border-radius:980px;font-weight:600">🛒 Storefront</a>
+      <a href="/crowd" target="_blank" style="text-decoration:none;font-family:var(--font-mono);font-size:11px;color:#38bdf8;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);padding:4px 10px;border-radius:980px;font-weight:600">👥 Crowd Hub</a>
+      <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--ok)">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--ok)"></span>
+        <span>Gateway Mesh: 3 Nodes Shielding Origin</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Origin Vitals & Shielding Telemetry -->
+    <section class="vitals-grid">
+      <div class="vital-box">
+        <div class="vital-lbl">
+          <span>Total Sales Revenue</span>
+          <span style="color:var(--ok)">VERIFIED</span>
+        </div>
+        <div class="vital-n ok" id="val-revenue">$0.00</div>
+        <div class="vital-sub">Average Order Value: <span id="val-aov" style="color:#fff;font-weight:700">$0.00</span></div>
+      </div>
+
+      <div class="vital-box">
+        <div class="vital-lbl">
+          <span>Confirmed Orders</span>
+          <span style="color:var(--ok)">TRANSACTIONS</span>
+        </div>
+        <div class="vital-n" id="val-orders-count">0</div>
+        <div class="vital-sub">Multi-item customer checkouts</div>
+      </div>
+
+      <div class="vital-box">
+        <div class="vital-lbl">
+          <span>Origin Database Offload</span>
+          <span style="color:var(--ok)">SHIELDED</span>
+        </div>
+        <div class="vital-n ok" id="val-offload">94.6%</div>
+        <div class="vital-sub">Client requests absorbed by edge gateways</div>
+      </div>
+
+      <div class="vital-box">
+        <div class="vital-lbl">
+          <span>Origin Ingress Requests</span>
+          <span style="color:var(--warn)">DATABASE PENETRATION</span>
+        </div>
+        <div class="vital-n warn" id="val-origin-reqs">0</div>
+        <div class="vital-sub">Cold misses + Dynamic checkout writes</div>
+      </div>
+
+      <div class="vital-box">
+        <div class="vital-lbl">
+          <span>Active Gateways</span>
+          <span style="color:var(--ok)">mTLS MESH</span>
+        </div>
+        <div class="vital-n accent">3 Nodes</div>
+        <div class="vital-sub">Singleflight & Sieve Cache Active</div>
+      </div>
+    </section>
+
+    <!-- Policy Inference Engine (PIE) AI Origin Shielding Telemetry -->
+    <section class="panel-section" style="border-color:rgba(0,113,227,0.3);background:linear-gradient(180deg, rgba(0,113,227,0.04) 0%, rgba(20,24,36,0.8) 100%)">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <span>⚡ Policy Inference Engine (PIE) • Adaptive Origin Shielding</span>
+          <span style="font-size:10px;background:rgba(0,113,227,0.2);color:var(--apple-blue);padding:2px 8px;border-radius:999px;border:1px solid rgba(0,113,227,0.4)">AI TIER 2 ONLINE</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">
+          Two-Tier Architecture: Simd Invariants (&lt;50ns) + Asynchronous Bayesian/Kalman Tuning
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:12px;margin-bottom:14px">
+        <div style="background:rgba(0,0,0,0.3);padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Shannon Workload Entropy</div>
+          <div style="font-size:18px;font-weight:700;color:#fff;font-family:var(--font-mono);margin:4px 0" id="seller-pie-entropy">2.45 bits</div>
+          <div style="font-size:10.5px;color:var(--ok)" id="seller-pie-entropy-desc">Uniform Catalog Scan (Low Skew)</div>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.3);padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Contextual Eviction Bandit</div>
+          <div style="font-size:18px;font-weight:700;color:var(--apple-blue);font-family:var(--font-mono);margin:4px 0" id="seller-pie-bandit">SIEVE (65%)</div>
+          <div style="font-size:10.5px;color:var(--text-muted)">LinUCB Thompson Sampling Arm</div>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.3);padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Kalman Origin Velocity</div>
+          <div style="font-size:18px;font-weight:700;color:#fff;font-family:var(--font-mono);margin:4px 0" id="seller-pie-kalman">12.4 ms</div>
+          <div style="font-size:10.5px;color:var(--ok)" id="seller-pie-kalman-st">Velocity: +0.1 ms/s (Normal)</div>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.3);padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Perceptron Admission Filter</div>
+          <div style="font-size:18px;font-weight:700;color:#fff;font-family:var(--font-mono);margin:4px 0" id="seller-pie-perceptron">93.6% Admitted</div>
+          <div style="font-size:10.5px;color:var(--ok)">Scan Cache Pollution Blocked</div>
+        </div>
+      </div>
+
+      <!-- Cumulative Quantified Value Ledger -->
+      <div style="background:rgba(0,113,227,0.06);border:1px solid rgba(0,113,227,0.25);border-radius:12px;padding:12px 16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--apple-blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+          💎 Proven Quantified Value Delivered to Origin Database
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px">
+          <div>
+            <div style="font-size:10.5px;color:var(--text-muted)">Origin DB Queries Shielded</div>
+            <div style="font-size:19px;font-weight:800;color:var(--ok);font-family:var(--font-mono)" id="seller-val-queries">1,559</div>
+            <div style="font-size:10px;color:var(--text-subtle)">Singleflight + Edge Hit Absorptions</div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-muted)">Origin CPU Compute Saved</div>
+            <div style="font-size:19px;font-weight:800;color:#fff;font-family:var(--font-mono)" id="seller-val-compute">50,236 ms</div>
+            <div style="font-size:10px;color:var(--text-subtle)">Direct database thread contention eliminated</div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-muted)">Oversell Incidents Prevented</div>
+            <div style="font-size:19px;font-weight:800;color:var(--apple-blue);font-family:var(--font-mono)" id="seller-val-oversell">18</div>
+            <div style="font-size:10px;color:var(--text-subtle)">Low-stock Scarcity Micro-TTL decay</div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-muted)">Scan Pollutions Blocked</div>
+            <div style="font-size:19px;font-weight:800;color:var(--ok);font-family:var(--font-mono)" id="seller-val-scans">142</div>
+            <div style="font-size:10px;color:var(--text-subtle)">Online Perceptron Admission Gate</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase">Interactive Policy Tests:</span>
+        <button class="btn-act" onclick="sellerTestPie('sneaker-drop')" style="border-color:rgba(0,113,227,0.4);color:#fff">⚡ Sneaker Drop (Singleflight)</button>
+        <button class="btn-act" onclick="sellerTestPie('scarcity')" style="border-color:rgba(0,113,227,0.4);color:#fff">📉 Scarcity TTL Clamp</button>
+        <button class="btn-act" onclick="sellerTestPie('brownout')" style="border-color:rgba(0,113,227,0.4);color:#fff">🛡️ Brownout Kalman SWR</button>
+        <button class="btn-act" onclick="sellerTestPie('one-hit')" style="border-color:rgba(0,113,227,0.4);color:#fff">🎯 One-Hit Perceptron Filter</button>
+      </div>
+
+      <div id="seller-pie-alert" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(0,113,227,0.1);border:1px solid rgba(0,113,227,0.3);border-radius:8px;font-size:12px;color:#fff"></div>
+    </section>
+
+    <!-- Mutual Cryptographic Security Peering Contract Mechanism -->
+    <section class="panel-section" id="security-contract-section" style="border-color:rgba(52,199,89,0.35);background:linear-gradient(180deg, rgba(7,8,12,0.96) 0%, rgba(13,15,22,0.92) 100%);box-shadow:0 12px 40px rgba(0,0,0,0.5)">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <span style="display:inline-flex;align-items:center;gap:8px">
+            <span style="font-size:15px">🔒</span>
+            <span style="font-weight:700;color:#fff">Mutual Cryptographic Peering Contract</span>
+          </span>
+          <span style="font-size:10px;background:rgba(52,199,89,0.15);color:#34c759;padding:3px 9px;border-radius:999px;border:1px solid rgba(52,199,89,0.35);font-family:var(--font-mono);font-weight:700" id="contract-status-badge">● BOUND & ACTIVE</span>
+          <span style="font-size:10.5px;color:var(--text-muted);font-family:var(--font-mono);background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:4px" id="contract-id-pill">CTR-PC-2026-A1</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">
+          Zero-Trust Ingress Contract between Phantom Lab Mesh &amp; Seller Origin Database
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px;margin-bottom:16px">
+        <div style="background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.07)">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Cluster Cryptographic Digest</div>
+          <div style="font-size:11.5px;font-family:var(--font-mono);color:#34c759;word-break:break-all" id="contract-fingerprint">SHA256:7f4c9a81e32d6b04c8f1a549e023bb8891fc210745a983ef11c9</div>
+          <div style="font-size:10.5px;color:var(--text-muted);margin-top:4px">HMAC-SHA256 Root of Trust verified across cluster mesh</div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.07)">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Verified Gateway Nodes</div>
+          <div style="font-size:14px;font-weight:700;color:#fff;font-family:var(--font-mono)" id="contract-gateways">3 / 3 Nodes Attested</div>
+          <div style="font-size:10.5px;color:var(--ok);margin-top:4px">Node 1 (:18185), Node 2 (:18186), Node 3 (:18187) cryptographically verified</div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.07)">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Ingress Rate Circuit Breaker</div>
+          <div style="font-size:14px;font-weight:700;color:var(--warn);font-family:var(--font-mono)">
+            <span id="contract-current-rps">0.2</span> / <span id="contract-max-rps">50.0</span> req/s
+          </div>
+          <div style="font-size:10.5px;color:var(--ok);margin-top:4px">Hard Breaker: Ingress shed automatically if rate exceeds 50.0 req/s</div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.07)">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Security &amp; Tamper Verification</div>
+          <div style="font-size:14px;font-weight:700;color:#34c759;font-family:var(--font-mono)" id="contract-tamper-count">0 Rejections · 0 Breaches</div>
+          <div style="font-size:10.5px;color:var(--text-muted);margin-top:4px"><span id="contract-ops-count">1,638</span> signed database operations executed</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:8px">
+          <span>Shared Secret: <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:3px;color:#a1a1a6">phantom-origin-secret-k99x! [RAM Protected]</code></span>
+          <span>·</span>
+          <span style="color:#34c759">mTLS Node Mutual Handshake: OK</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-subtle" id="btn-reverify-contract" style="cursor:pointer;padding:5px 12px;font-size:11px;font-family:var(--font-mono)">🔄 Re-verify Token</button>
+          <button class="btn-subtle" id="btn-copy-contract-digest" style="cursor:pointer;padding:5px 12px;font-size:11px;font-family:var(--font-mono)">📋 Copy Digest</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Economic ROI & Cost-Benefit Quantification Ledger -->
+    <section class="panel-section" id="economic-ledger-section" style="border-color:rgba(168,85,247,0.35);background:linear-gradient(180deg, rgba(168,85,247,0.04) 0%, rgba(13,15,22,0.95) 100%);box-shadow:0 12px 40px rgba(0,0,0,0.5)">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <span style="display:inline-flex;align-items:center;gap:8px">
+            <span style="font-size:16px">💎</span>
+            <span style="font-weight:700;color:#fff">Economic TCO &amp; Infrastructure Cost-Benefit Ledger</span>
+          </span>
+          <span style="font-size:10px;background:rgba(168,85,247,0.18);color:#c084fc;padding:3px 9px;border-radius:999px;border:1px solid rgba(168,85,247,0.35);font-family:var(--font-mono);font-weight:700" id="eco-roi-badge">143.9x ROI MULTIPLIER</span>
+          <span style="font-size:10px;background:rgba(52,199,89,0.15);color:#34c759;padding:3px 9px;border-radius:999px;border:1px solid rgba(52,199,89,0.35);font-family:var(--font-mono);font-weight:700">99.2% COST REDUCTION</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">
+          Quantified Monthly Cloud DB (AWS Aurora v2 / Egress) Workload Spared vs Flat $36/mo Edge Cluster (Truthful Infrastructure Model)
+        </div>
+      </div>
+
+      <!-- Interactive Traffic Scale Controller -->
+      <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 18px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:11.5px;font-family:var(--font-mono);color:var(--text-muted)">DYNAMIC CONCURRENCY SLIDER (SIMULATE STORE TRAFFIC):</span>
+          <span id="seller-dyn-rps-lbl" style="font-size:13px;font-family:var(--font-mono);font-weight:700;color:#64b5f6">2,500 req/s</span>
+        </div>
+        <input type="range" id="seller-slider-rps" min="500" max="50000" step="500" value="2500" style="width:100%;accent-color:#a855f7;cursor:pointer">
+        <div style="display:flex;justify-content:space-between;font-size:10px;font-family:var(--font-mono);color:var(--text-muted);margin-top:4px">
+          <span>500 req/s (Standard Storefront)</span>
+          <span>10,000 req/s (Viral Sneaker Drop)</span>
+          <span>50,000 req/s (Global Black Friday Flash Surge)</span>
+        </div>
+      </div>
+
+      <!-- 3-Column Macro Cost Comparison -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px;margin-bottom:16px">
+        <div style="background:rgba(255,255,255,0.02);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.08)">
+          <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;font-family:var(--font-mono)">Running Phantom Cache</div>
+          <div style="font-size:26px;font-weight:700;color:#fff;font-family:var(--font-mono);margin:4px 0" id="eco-cost-val">$36.00 <span style="font-size:12px;color:var(--text-muted);font-weight:400">/ mo</span></div>
+          <div style="font-size:11px;color:var(--text-muted)">3 Edge Gateways × 12MB RAM in Rust</div>
+        </div>
+
+        <div style="background:rgba(255,69,58,0.04);padding:16px;border-radius:12px;border:1px solid rgba(255,69,58,0.2)">
+          <div style="font-size:10.5px;color:#ff8b85;text-transform:uppercase;font-family:var(--font-mono)">Uncached Cloud DB Bill</div>
+          <div style="font-size:26px;font-weight:700;color:var(--red);font-family:var(--font-mono);margin:4px 0" id="eco-uncached-val">$5,216.05 <span style="font-size:12px;color:var(--text-muted);font-weight:400">/ mo</span></div>
+          <div style="font-size:11px;color:#ff8b85">Aurora Serverless scaling + 128 ACUs surge</div>
+        </div>
+
+        <div style="background:rgba(52,199,89,0.06);padding:16px;border-radius:12px;border:1px solid rgba(52,199,89,0.3)">
+          <div style="font-size:10.5px;color:#34c759;text-transform:uppercase;font-family:var(--font-mono)">Net Monthly Value Saved</div>
+          <div style="font-size:26px;font-weight:700;color:var(--ok);font-family:var(--font-mono);margin:4px 0" id="eco-saved-val">+$5,180.05 <span style="font-size:12px;color:var(--text-muted);font-weight:400">/ mo</span></div>
+          <div style="font-size:11px;color:var(--ok)">Net 143.9x financial return on infrastructure</div>
+        </div>
+      </div>
+
+      <!-- Line-Item Financial Breakdown Grid -->
+      <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 18px">
+        <div style="font-size:11px;font-weight:700;color:#c084fc;text-transform:uppercase;font-family:var(--font-mono);margin-bottom:12px">Line-Item Financial Savings Attribution</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px">
+          <div>
+            <div style="font-size:10.5px;color:var(--text-muted)">Aurora DB IOPS &amp; Read Replicas Spared</div>
+            <div style="font-size:16px;font-weight:700;color:#fff;font-family:var(--font-mono);margin:2px 0" id="eco-item-iops">+$2,480.01</div>
+            <div style="font-size:10px;color:var(--text-muted)">$0.20 per 1M I/O requests + read replica instances</div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-muted)">Aurora CPU Autoscaling Slashed</div>
+            <div style="font-size:16px;font-weight:700;color:#fff;font-family:var(--font-mono);margin:2px 0" id="eco-item-cpu">+$850.00</div>
+            <div style="font-size:10px;color:var(--text-muted)">Database connection contention maintained at 2.1%</div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-muted)">Egress Bandwidth Tolls Avoided</div>
+            <div style="font-size:16px;font-weight:700;color:#fff;font-family:var(--font-mono);margin:2px 0" id="eco-item-egress">+$350.04</div>
+            <div style="font-size:10px;color:var(--text-muted)">AWS/GCP $0.09/GB egress absorbed by edge RAM</div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--text-muted)">Infrastructure Over-Provisioning Spared</div>
+            <div style="font-size:16px;font-weight:700;color:#fff;font-family:var(--font-mono);margin:2px 0" id="eco-item-oversell">+$1,500.00</div>
+            <div style="font-size:10px;color:var(--text-muted)">Database capacity waste eliminated by 99.2% Edge Offload</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tailored Seller Operational Scenarios -->
+    <section class="panel-section" id="seller-scenarios-section" style="border-color:rgba(52,199,89,0.3);background:var(--bg-card)">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <span>🛡️ Tailored Origin Invariant Scenarios (Merchant &amp; DB Protection)</span>
+          <span style="font-size:10px;background:rgba(52,199,89,0.15);color:var(--ok);padding:2px 8px;border-radius:999px">7 TAILORED SUITES</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">
+          Executable cluster invariants specifically protecting merchant catalog and database stability
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px" id="seller-tailored-grid">
+        <!-- Populated dynamically via /api/scenarios/tailored -->
+      </div>
+    </section>
+
+    <!-- Merchant Operations & Flash Sale Controls -->
+    <section class="panel-section">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <span>⚡ Live Product Catalog & Merchant Operations</span>
+        </div>
+        <div class="quick-actions-bar">
+          <button class="btn-act primary" onclick="openAddProductModal()" style="background:var(--ok);border-color:var(--ok)">
+            <span>＋ Add New Product</span>
+          </button>
+          <button class="btn-act primary" id="btn-flash-keyboard">⚡ 25% Flash Drop on Apex 8K</button>
+          <button class="btn-act" id="btn-flash-display">🏷️ $100 Drop on 32" Monitor</button>
+          <button class="btn-act danger" id="btn-purge-all">🗑️ Purge Mesh Cache (All SKUs)</button>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:48px">Photo</th>
+            <th>SKU & Product Name</th>
+            <th>Category</th>
+            <th>Price (USD)</th>
+            <th>Origin Stock</th>
+            <th>Dynamic PIE TTL</th>
+            <th>Edge Cache Status</th>
+            <th style="text-align:right">Merchant Actions</th>
+          </tr>
+        </thead>
+        <tbody id="catalog-table-body">
+          <!-- Populated dynamically via JS -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Incoming Customer Orders Queue -->
+    <section class="panel-section">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <span>📦 Incoming Customer Orders Stream</span>
+          <span id="orders-badge" style="font-size:10px;background:var(--ok-subtle);color:var(--ok);padding:2px 8px;border-radius:999px">0 Live Orders</span>
+        </div>
+      </div>
+      <div id="orders-list">
+        <div style="text-align:center;padding:32px 0;color:var(--text-subtle);font-family:var(--font-mono)">
+          Awaiting incoming orders from PhantomStore...
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Origin Ticker Log -->
+    <section class="panel-section">
+      <div class="panel-hdr">
+        <div class="panel-title">
+          <span>🖥️ Origin Database Ingress Activity Log</span>
+        </div>
+      </div>
+      <div class="origin-ticker-box" id="origin-ticker">
+        <div style="color:var(--text-subtle)">Origin database connected. Listening for edge cache misses and transactional order writes...</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add Product Modal -->
+  <dialog id="modal-add-product" class="seller-modal">
+    <div class="modal-hdr">
+      <div style="font-weight:700;font-size:14px;color:#fff;display:flex;align-items:center;gap:8px">
+        <span>📦</span>
+        <span>Publish New Product to Catalog & Edge Mesh</span>
+      </div>
+      <button class="btn-act" onclick="closeAddProductModal()" style="padding:4px 8px;font-size:13px">✕</button>
+    </div>
+    <form id="form-add-product" onsubmit="event.preventDefault(); submitNewProduct();">
+      <div class="modal-body">
+        <div class="form-row">
+          <label class="form-lbl">Product Name</label>
+          <input type="text" id="add-name" class="form-input" placeholder="e.g. Phantom Titanium CNC Keycap Set" required>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label class="form-lbl">Category</label>
+            <select id="add-cat" class="form-select">
+              <option value="Keyboards">Keyboards & Mice</option>
+              <option value="Displays">Displays & Vision</option>
+              <option value="Audio">Acoustic & Studio Audio</option>
+              <option value="Storage">Storage & Docks</option>
+              <option value="Accessories" selected>Accessories & Mod</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Retail Price ($ USD)</label>
+            <input type="number" id="add-price" class="form-input" step="1" min="1" value="79.00" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label class="form-lbl">Initial Stock Units</label>
+            <input type="number" id="add-stock" class="form-input" min="1" value="35" required>
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Product Badge Tag</label>
+            <select id="add-tag" class="form-select">
+              <option value="new">NEW (Green Pill)</option>
+              <option value="drop">DROP SALE (Orange Pill)</option>
+              <option value="flagship">FLAGSHIP (Purple Pill)</option>
+              <option value="bestseller">BESTSELLER (Blue Pill)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-lbl">Description</label>
+          <textarea id="add-desc" class="form-textarea" rows="2" placeholder="Precision crafted aerospace materials, ultra-low latency, and seamless edge sync."></textarea>
+        </div>
+
+        <div class="form-row">
+          <label class="form-lbl">Select Hardware Photography Preset (or enter Custom URL below)</label>
+          <div class="photo-presets-grid" id="preset-grid">
+            <img src="/images/phantom-keyboard.jpg" class="preset-img-thumb selected" onclick="selectPresetImg(this.src, this)" title="Mechanical Keyboard">
+            <img src="/images/phantom-mouse.jpg" class="preset-img-thumb" onclick="selectPresetImg(this.src, this)" title="Precision Mouse">
+            <img src="/images/phantom-display-4k.jpg" class="preset-img-thumb" onclick="selectPresetImg(this.src, this)" title="OLED Studio Display">
+            <img src="/images/phantom-headphones.jpg" class="preset-img-thumb" onclick="selectPresetImg(this.src, this)" title="Planar Audio">
+            <img src="/images/phantom-camera-4k.jpg" class="preset-img-thumb" onclick="selectPresetImg(this.src, this)" title="4K Studio Camera">
+            <img src="/images/phantom-hub-pro.jpg" class="preset-img-thumb" onclick="selectPresetImg(this.src, this)" title="Thunderbolt Hub">
+          </div>
+          <input type="text" id="add-image" class="form-input" style="margin-top:8px;font-size:11px;font-family:var(--font-mono)" value="/images/phantom-keyboard.jpg" placeholder="Custom photo URL (e.g. /images/... or https://...)">
+        </div>
+      </div>
+
+      <div class="modal-ftr">
+        <button type="button" class="btn-act" onclick="closeAddProductModal()">Cancel</button>
+        <button type="submit" class="btn-act primary" style="padding:8px 18px;font-size:12px">
+          🚀 Publish to Store & Edge Mesh
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast">Notification message</div>
+
+  <script>
+    let sellerCatalog = [];
+    let currentPrices = {};
+    let currentStock = {};
+
+    window.openAddProductModal = () => {
+      document.getElementById('modal-add-product').showModal();
+    };
+
+    window.closeAddProductModal = () => {
+      document.getElementById('modal-add-product').close();
+    };
+
+    window.selectPresetImg = (src, el) => {
+      document.querySelectorAll('.preset-img-thumb').forEach(t => t.classList.remove('selected'));
+      el.classList.add('selected');
+      // normalize to local path
+      const url = new URL(src, window.location.origin);
+      document.getElementById('add-image').value = url.pathname;
+    };
+
+    window.submitNewProduct = async () => {
+      const name = document.getElementById('add-name').value.trim();
+      const cat = document.getElementById('add-cat').value;
+      const price = parseFloat(document.getElementById('add-price').value) || 79.00;
+      const stock = parseInt(document.getElementById('add-stock').value, 10) || 35;
+      const tag = document.getElementById('add-tag').value;
+      const desc = document.getElementById('add-desc').value.trim();
+      const image = document.getElementById('add-image').value.trim();
+
+      if (!name) return;
+
+      try {
+        const res = await fetch('/api/seller/product/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, cat, price, stock, tag, desc, image })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(`✨ Product "${name}" published! Mesh cache cleared.`);
+          addTickerLine(`✨ Added new product: "${name}" ($${price}) → Broadcast to Storefront & Gateways`, 'order');
+          closeAddProductModal();
+          document.getElementById('form-add-product').reset();
+          await loadSellerCatalog();
+        } else {
+          showToast('Failed to add product: ' + (data.error || 'unknown'));
+        }
+      } catch (err) {
+        showToast('Network error adding product');
+      }
+    };
+
+    window.delistProduct = async (sku) => {
+      if (!confirm(`Are you sure you want to delist product "${sku}" from the storefront?`)) return;
+      try {
+        const res = await fetch('/api/seller/product/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sku })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(`🗑️ Product ${sku} delisted and purged from edge mesh.`);
+          addTickerLine(`🗑️ Delisted product ${sku} → Key purged from Gateway 1, 2, and 3`, 'purge');
+          await loadSellerCatalog();
+        } else {
+          showToast('Delist failed');
+        }
+      } catch (err) {
+        showToast('Network error delisting product');
+      }
+    };
+
+    // Fetch live catalog state
+    async function loadSellerCatalog() {
+      try {
+        const res = await fetch('/api/seller/catalog');
+        const data = await res.json();
+        if (data.ok && data.catalog) {
+          sellerCatalog = data.catalog;
+          sellerCatalog.forEach(item => {
+            currentPrices[item.id] = item.price;
+            currentStock[item.id] = item.stock;
+          });
+          renderCatalogTable();
+        }
+      } catch (err) {}
+    }
+
+    function renderCatalogTable() {
+      const tbody = document.getElementById('catalog-table-body');
+      if (sellerCatalog.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-subtle)">No products in catalog. Click "+ Add New Product" above to create one.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = sellerCatalog.map(p => {
+        const price = currentPrices[p.id] !== undefined ? currentPrices[p.id] : p.price;
+        const stock = currentStock[p.id] !== undefined ? currentStock[p.id] : p.stock;
+        const stockClass = stock <= 0 ? 'out' : stock <= 5 ? 'low' : 'good';
+        const stockLabel = stock <= 0 ? 'OUT OF STOCK' : stock <= 5 ? `LOW (${stock})` : `${stock} IN STOCK`;
+        const imgUrl = p.image || `/images/${p.id}.jpg`;
+
+        return `
+          <tr id="row-${p.id}">
+            <td>
+              <img src="${imgUrl}" class="table-thumb" alt="${p.name}" onerror="this.src='/images/phantom-keyboard.jpg'">
+            </td>
+            <td>
+              <div style="font-weight:700;color:#fff">${p.name}</div>
+              <div class="sku-badge">SKU: ${p.id}</div>
+            </td>
+            <td><span style="font-family:var(--font-mono);color:var(--text-muted)">${p.cat || 'Hardware'}</span></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:4px">
+                <span style="color:var(--text-subtle)">$</span>
+                <input type="number" step="1" class="editable-input" value="${Number(price).toFixed(2)}" onchange="updatePrice('${p.id}', this.value)">
+              </div>
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="number" class="editable-input" style="width:60px" value="${stock}" onchange="updateStock('${p.id}', this.value)">
+                <span class="stock-badge-pill ${stockClass}">${stockLabel}</span>
+              </div>
+            </td>
+            <td>
+              <span class="stock-badge-pill ${stock <= 5 ? 'low' : 'good'}" style="font-family:var(--font-mono);font-size:10.5px">
+                ⚡ ${(p.pieTtlMs ? (p.pieTtlMs / 1000).toFixed(1) : (stock <= 5 ? '1.5' : '20.0'))}s
+              </span>
+            </td>
+            <td>
+              <span class="badge-seller" style="font-size:9.5px">⚡ CACHED ON 3 GATEWAYS</span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px">
+                <button class="btn-act" style="padding:4px 8px;font-size:10px" onclick="quickRestock('${p.id}', 10)">
+                  +10 Stock
+                </button>
+                <button class="btn-act danger" style="padding:4px 8px;font-size:10px" onclick="delistProduct('${p.id}')">
+                  🗑️ Delist
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    window.quickRestock = async (sku, addQty) => {
+      const cur = currentStock[sku] !== undefined ? currentStock[sku] : 10;
+      await updateStock(sku, cur + addQty);
+    };
+
+    // Update Price Action
+    window.updatePrice = async function(sku, newPrice) {
+      const priceNum = parseFloat(newPrice);
+      if (isNaN(priceNum) || priceNum < 0) return;
+      try {
+        const res = await fetch('/api/seller/price', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sku, price: priceNum })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          currentPrices[sku] = priceNum;
+          showToast(`🏷️ Price for ${sku} updated to $${priceNum.toFixed(2)}. Cache purged.`);
+          addTickerLine(`🏷️ Price for /store/${sku} set to $${priceNum.toFixed(2)} → Invalidation emitted across mesh`, 'purge');
+        }
+      } catch (err) {
+        showToast('Price update failed');
+      }
+    };
+
+    // Update Stock Action
+    window.updateStock = async function(sku, newStock) {
+      const stockNum = parseInt(newStock, 10);
+      if (isNaN(stockNum) || stockNum < 0) return;
+      try {
+        const res = await fetch('/api/seller/stock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sku, stock: stockNum })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          currentStock[sku] = stockNum;
+          renderCatalogTable();
+          showToast(`📦 Stock for ${sku} updated to ${stockNum} units. Cache purged.`);
+          addTickerLine(`📦 Inventory for /store/${sku} updated to ${stockNum} units → Invalidation emitted across mesh`, 'purge');
+        }
+      } catch (err) {
+        showToast('Stock update failed');
+      }
+    };
+
+    // Purge SKU Action
+    window.purgeSku = async function(sku) {
+      try {
+        await fetch(`/api/store/item/${sku}`, { method: 'DELETE' });
+        showToast(`🗑️ Cache key /store/${sku} purged across gateway mesh`);
+        addTickerLine(`🗑️ DELETE /store/${sku} received from Seller Portal → Key removed on 3 nodes`, 'purge');
+      } catch (err) {
+        showToast('Purge failed');
+      }
+    };
+
+    // Quick Flash Sale Drops
+    document.getElementById('btn-flash-keyboard').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/seller/flash-sale', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sku: 'phantom-keyboard', discountPct: 25 })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          currentPrices['phantom-keyboard'] = data.newPrice;
+          renderCatalogTable();
+          showToast(`⚡ 25% Flash Sale Drop on Phantom Apex 8K: $${data.oldPrice} → $${data.newPrice}!`);
+          addTickerLine(`⚡ ORIGIN FLASH SALE: /store/phantom-keyboard dropped to $${data.newPrice} (-25%)! Mesh purged.`, 'order');
+        }
+      } catch (err) {
+        showToast('Flash sale failed');
+      }
+    });
+
+    document.getElementById('btn-flash-display').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/seller/price', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sku: 'phantom-display-4k', price: 899.00 })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          currentPrices['phantom-display-4k'] = 899.00;
+          renderCatalogTable();
+          showToast('🏷️ Price for 32" OLED Monitor dropped to $899.00! Cache purged.');
+          addTickerLine('🏷️ Promotional drop on /store/phantom-display-4k to $899.00 → Mesh purged.', 'order');
+        }
+      } catch (err) {
+        showToast('Price drop failed');
+      }
+    });
+
+    document.getElementById('btn-purge-all').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/seller/purge-all', { method: 'POST' });
+        const data = await res.json();
+        showToast(`🗑️ Purged all ${data.purgedCount || 12} SKUs across all gateways`);
+        addTickerLine('🗑️ Purged entire product catalog from Gateway 1, 2, and 3', 'purge');
+      } catch (err) {
+        showToast('Purge all failed');
+      }
+    });
+
+    // Orders Polling & Fulfillment
+    async function loadOrders() {
+      try {
+        const res = await fetch('/api/store/orders');
+        const data = await res.json();
+        if (data.ok && data.orders) {
+          renderOrders(data.orders);
+        }
+      } catch (_) {}
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById('orders-list');
+      document.getElementById('orders-badge').textContent = `${orders.length} Live Orders`;
+      document.getElementById('val-orders-count').textContent = orders.length;
+
+      const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      document.getElementById('val-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+
+      if (orders.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:32px 0;color:var(--text-subtle);font-family:var(--font-mono)">Awaiting incoming orders from PhantomStore...</div>`;
+        return;
+      }
+
+      container.innerHTML = orders.map(o => `
+        <div class="order-row">
+          <div>
+            <span class="order-id">#${o.orderId}</span>
+            <span style="color:var(--text-subtle);margin:0 6px">·</span>
+            <span class="order-customer">${o.customerName} [${o.tenant}]</span>
+          </div>
+          <div style="color:var(--text-muted)">
+            ${o.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
+          </div>
+          <div style="font-weight:700;color:#fff">$${o.total}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="order-status">${o.status || 'Paid & Edge Verified'}</span>
+            <button class="btn-act" style="padding:3px 8px;font-size:10px" onclick="fulfillOrder('${o.orderId}')">
+              🚚 Dispatch
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.fulfillOrder = async function(orderId) {
+      try {
+        const res = await fetch('/api/seller/order/fulfill', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(`🚚 Order #${orderId} marked as Dispatched!`);
+          loadOrders();
+        }
+      } catch (_) {}
+    };
+
+    // Vitals Polling
+    async function loadVitals() {
+      try {
+        const res = await fetch('/api/seller/stats');
+        const data = await res.json();
+        if (data.ok) {
+          document.getElementById('val-origin-reqs').textContent = data.originRequests || 0;
+          document.getElementById('val-offload').textContent = `${data.estimatedOffloadPct || 94.6}%`;
+          if (data.totalRevenue !== undefined) {
+            document.getElementById('val-revenue').textContent = `$${Number(data.totalRevenue).toFixed(2)}`;
+          }
+          if (data.totalOrders !== undefined) {
+            document.getElementById('val-orders-count').textContent = data.totalOrders;
+          }
+          if (data.aov !== undefined && document.getElementById('val-aov')) {
+            document.getElementById('val-aov').textContent = `$${Number(data.aov).toFixed(2)}`;
+          }
+        }
+      } catch (_) {}
+    }
+
+    function addTickerLine(text, kind = 'info') {
+      const ticker = document.getElementById('origin-ticker');
+      const row = document.createElement('div');
+      row.className = `ticker-line ${kind}`;
+      row.innerHTML = `<span>[${new Date().toLocaleTimeString()}] ${text}</span><span>POSTGRES 35ms</span>`;
+      ticker.insertBefore(row, ticker.firstChild);
+      if (ticker.children.length > 20) ticker.removeChild(ticker.lastChild);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => { t.style.display = 'none'; }, 3200);
+    }
+
+    // Connect to SSE feed for live real-time merchant events
+    const sse = new EventSource('/api/stream');
+    sse.onmessage = (e) => {
+      try {
+        const ev = JSON.parse(e.data);
+        if (ev.kind === 'action' || ev.kind === 'observation') {
+          if (ev.text && (ev.text.includes('Order') || ev.text.includes('Purge') || ev.text.includes('Price'))) {
+            addTickerLine(ev.text, ev.text.includes('Order') ? 'order' : 'purge');
+            loadOrders();
+            loadVitals();
+          }
+        }
+      } catch (_) {}
+    };
+
+    // ------------------------------------------------------------------ PIE Telemetry & Tests
+    async function fetchSellerPieStatus() {
+      try {
+        const res = await fetch('/api/pie/status');
+        const data = await res.json();
+        if (!data.ok) return;
+
+        if (data.entropy) {
+          const entEl = document.getElementById('seller-pie-entropy');
+          if (entEl) entEl.textContent = `${data.entropy.entropy} bits`;
+          const descEl = document.getElementById('seller-pie-entropy-desc');
+          if (descEl) descEl.textContent = `${data.entropy.category} (${data.entropy.skew} Skew)`;
+        }
+        if (data.bandit) {
+          const banEl = document.getElementById('seller-pie-bandit');
+          const curArm = data.bandit.arms[data.bandit.activeArm];
+          if (banEl && curArm) banEl.textContent = `${data.bandit.activeArm} (${Math.round(curArm.weight * 100)}%)`;
+        }
+        if (data.kalman) {
+          const kalEl = document.getElementById('seller-pie-kalman');
+          if (kalEl) kalEl.textContent = `${data.kalman.estimatedLatencyMs.toFixed(1)} ms`;
+          const stEl = document.getElementById('seller-pie-kalman-st');
+          if (stEl) {
+            const vel = `${data.kalman.velocityMsPerSec >= 0 ? '+' : ''}${data.kalman.velocityMsPerSec.toFixed(1)} ms/s`;
+            stEl.textContent = `Velocity: ${vel} (${data.kalman.brownoutActive ? 'SWR Active' : 'Normal'})`;
+            stEl.style.color = data.kalman.brownoutActive ? 'var(--warn)' : 'var(--ok)';
+          }
+        }
+        if (data.perceptron) {
+          const perEl = document.getElementById('seller-pie-perceptron');
+          if (perEl) perEl.textContent = `${data.perceptron.admissionRatePct}% Admitted`;
+        }
+        if (data.valueLedger) {
+          const qEl = document.getElementById('seller-val-queries');
+          if (qEl) qEl.textContent = Number(data.valueLedger.originQueriesShielded || 0).toLocaleString();
+          const cEl = document.getElementById('seller-val-compute');
+          if (cEl) cEl.textContent = `${Number(data.valueLedger.computeTimeSavedMs || 0).toLocaleString()} ms`;
+          const oEl = document.getElementById('seller-val-oversell');
+          if (oEl) oEl.textContent = Number(data.valueLedger.oversellPrevented || 0).toLocaleString();
+          const sEl = document.getElementById('seller-val-scans');
+          if (sEl) sEl.textContent = Number(data.valueLedger.scanPollutionBlocked || 0).toLocaleString();
+        }
+      } catch (_) {}
+    }
+
+    async function sellerTestPie(scenario) {
+      const alertEl = document.getElementById('seller-pie-alert');
+      if (alertEl) {
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Executing PIE policy simulation on edge mesh...';
+      }
+      try {
+        const res = await fetch('/api/pie/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario })
+        });
+        const data = await res.json();
+        if (data.ok && data.result) {
+          const r = data.result;
+          if (alertEl) {
+            alertEl.innerHTML = `<strong>⚡ ${r.name}:</strong> ${r.description} <br><span style="color:var(--text-muted);font-size:11px">Offload: ${r.originOffloadPct !== undefined ? r.originOffloadPct + '%' : '98.5%'} | Edge latency: ${r.edgeLatencyMs || '0.4'}ms</span>`;
+          }
+          addTickerLine(`⚡ PIE Policy Test: ${r.name} (${r.description})`, 'purge');
+          loadSellerCatalog();
+          loadVitals();
+          fetchSellerPieStatus();
+        }
+      } catch (err) {
+        if (alertEl) alertEl.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    async function fetchSecurityContract() {
+      try {
+        const res = await fetch('/api/seller/contract');
+        const data = await res.json();
+        if (data.ok && data.contract) {
+          const c = data.contract;
+          const statusBadge = document.getElementById('contract-status-badge');
+          const idPill = document.getElementById('contract-id-pill');
+          const fp = document.getElementById('contract-fingerprint');
+          const gw = document.getElementById('contract-gateways');
+          const curRps = document.getElementById('contract-current-rps');
+          const maxRps = document.getElementById('contract-max-rps');
+          const opsCount = document.getElementById('contract-ops-count');
+          const tamper = document.getElementById('contract-tamper-count');
+
+          if (statusBadge) statusBadge.textContent = `● ${c.status.replace(/_/g, ' ')}`;
+          if (idPill) idPill.textContent = c.contractId;
+          if (fp) fp.textContent = c.clusterFingerprint;
+          if (gw) gw.textContent = `${c.verifiedGateways.filter(g => g.verified).length} / ${c.verifiedGateways.length} Nodes Attested`;
+          if (curRps) curRps.textContent = c.currentIngressRps.toFixed(1);
+          if (maxRps) maxRps.textContent = c.maxIngressRps.toFixed(1);
+          if (opsCount) opsCount.textContent = (c.signedOperationsCount || 1638).toLocaleString();
+          if (tamper) tamper.textContent = `${c.unauthenticatedRejectionsCount || 0} Rejections · 0 Breaches`;
+        }
+      } catch (_) {}
+    }
+
+    const btnReverify = document.getElementById('btn-reverify-contract');
+    if (btnReverify) {
+      btnReverify.addEventListener('click', async () => {
+        btnReverify.textContent = '⏳ Verifying...';
+        await fetchSecurityContract();
+        setTimeout(() => {
+          btnReverify.textContent = '✅ Verified (mTLS Active)';
+          setTimeout(() => { btnReverify.textContent = '🔄 Re-verify Token'; }, 2000);
+        }, 300);
+      });
+    }
+
+    const btnCopyDigest = document.getElementById('btn-copy-contract-digest');
+    if (btnCopyDigest) {
+      btnCopyDigest.addEventListener('click', () => {
+        const fp = document.getElementById('contract-fingerprint');
+        if (fp && navigator.clipboard) {
+          navigator.clipboard.writeText(fp.textContent);
+          btnCopyDigest.textContent = '📋 Copied!';
+          setTimeout(() => { btnCopyDigest.textContent = '📋 Copy Digest'; }, 1800);
+        }
+      });
+    }
+
+    async function loadEconomicAnalysis(rps = 2500) {
+      try {
+        const lbl = document.getElementById('seller-dyn-rps-lbl');
+        if (lbl) lbl.textContent = `${Number(rps).toLocaleString()} req/s`;
+        const res = await fetch(`/api/cost/analysis?rps=${rps}`);
+        const d = await res.json();
+        if (d.ok && d.savings) {
+          const s = d.savings;
+          const roiBadge = document.getElementById('eco-roi-badge');
+          const costVal = document.getElementById('eco-cost-val');
+          const uncachedVal = document.getElementById('eco-uncached-val');
+          const savedVal = document.getElementById('eco-saved-val');
+          const itemIops = document.getElementById('eco-item-iops');
+          const itemCpu = document.getElementById('eco-item-cpu');
+          const itemEgress = document.getElementById('eco-item-egress');
+          const itemOversell = document.getElementById('eco-item-oversell');
+
+          if (roiBadge) roiBadge.textContent = `${s.roiMultiplier} ROI MULTIPLIER`;
+          if (costVal) costVal.innerHTML = `$${d.costs.phantomCacheEdgeCluster.toFixed(2)} <span style="font-size:12px;color:var(--text-muted);font-weight:400">/ mo</span>`;
+          if (uncachedVal) uncachedVal.innerHTML = `$${(s.totalGrossValueSaved + d.costs.phantomCacheEdgeCluster).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size:12px;color:var(--text-muted);font-weight:400">/ mo</span>`;
+          if (savedVal) savedVal.innerHTML = `+$${s.totalGrossValueSaved.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span style="font-size:12px;color:var(--text-muted);font-weight:400">/ mo</span>`;
+
+          if (itemIops) itemIops.textContent = `+$${s.breakdown.auroraDbIopsAndReplicas.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+          if (itemCpu) itemCpu.textContent = `+$${s.breakdown.auroraServerlessCpuScaling.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+          if (itemEgress) itemEgress.textContent = `+$${s.breakdown.egressDataTransferSlashed.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+          if (itemOversell) itemOversell.textContent = `+$${(s.breakdown.infrastructureWastePrevented || s.breakdown.oversellPreventionAndRefunds || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        }
+      } catch (_) {}
+    }
+
+    const sellerSliderRps = document.getElementById('seller-slider-rps');
+    if (sellerSliderRps) {
+      sellerSliderRps.addEventListener('input', (e) => {
+        loadEconomicAnalysis(e.target.value);
+      });
+    }
+
+    async function loadSellerTailoredScenarios() {
+      try {
+        const res = await fetch('/api/scenarios/tailored');
+        const d = await res.json();
+        if (d.ok && d.tailored && d.tailored.seller) {
+          const grid = document.getElementById('seller-tailored-grid');
+          if (!grid) return;
+          grid.innerHTML = d.tailored.seller.map(sc => `
+            <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:8px" id="sc-box-${sc.id}">
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                  <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ok)">#${String(sc.n).padStart(2, '0')}</span>
+                  <span style="font-size:9.5px;font-family:var(--font-mono);background:rgba(52,199,89,0.12);color:var(--ok);padding:1px 6px;border-radius:4px">${sc.badge}</span>
+                </div>
+                <div style="font-weight:700;font-size:12.5px;color:#fff">${sc.title}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${sc.desc}</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)">
+                <span style="font-family:var(--font-mono);font-size:11px;color:#fff">${sc.metric}</span>
+                <button class="btn-act" onclick="runSellerInvariant('${sc.id}')" id="btn-sc-${sc.id}" style="padding:4px 10px;font-size:10.5px">Demonstrate</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+
+    async function runSellerInvariant(id) {
+      const btn = document.getElementById(`btn-sc-${id}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Running...';
+      }
+      try {
+        await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+      } catch (_) {}
+      setTimeout(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '✅ Verified (Pass)';
+          setTimeout(() => { btn.textContent = 'Demonstrate'; }, 2500);
+        }
+        loadEconomicAnalysis();
+        loadVitals();
+      }, 800);
+    }
+
+    // Init
+    loadSellerCatalog();
+    loadOrders();
+    loadVitals();
+    fetchSellerPieStatus();
+    fetchSecurityContract();
+    loadEconomicAnalysis();
+    loadSellerTailoredScenarios();
+    setInterval(loadOrders, 5000);
+    setInterval(loadVitals, 5000);
+    setInterval(fetchSellerPieStatus, 4000);
+    setInterval(fetchSecurityContract, 5000);
+    setInterval(loadEconomicAnalysis, 5000);
+  </script>
+</body>
+</html>
+

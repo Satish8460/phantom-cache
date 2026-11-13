@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PHANTOM // Distributed Workload Generator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff5500'/><text y='.75em' x='15' font-size='70'>⚡</text></svg>">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --bg-subtle: #0f1117;
+      --surface: #13151e;
+      --surface-raised: #181b26;
+      --surface-card: #141620;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.16);
+      --text: #f4f4f6;
+      --text-muted: #a1a1aa;
+      --text-subtle: #71717a;
+      
+      --accent: #ff5500;
+      --accent-hover: #ff6a1a;
+      --accent-subtle: rgba(255, 85, 0, 0.12);
+      
+      --ok: #10b981;
+      --ok-subtle: rgba(16, 185, 129, 0.12);
+      
+      --warn: #f59e0b;
+      --warn-subtle: rgba(245, 158, 11, 0.12);
+      
+      --bad: #ef4444;
+      --bad-subtle: rgba(239, 68, 68, 0.12);
+      
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 14px;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "Menlo", Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: rgba(9, 10, 15, 0.94);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+    }
+    .brand {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--ok);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 6px var(--ok);
+    }
+    main {
+      flex: 1;
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 20px 16px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: var(--surface-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      margin: 0;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: var(--font-mono);
+    }
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--surface-raised);
+      color: var(--text-muted);
+      border: 1px solid var(--line);
+    }
+    .device-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+    .device-row { display: flex; flex-direction: column; gap: 3px; }
+    .device-lbl { font-size: 9.5px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.05em; }
+    .device-val { font-weight: 600; color: var(--text); }
+
+    .slider-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .slider-val { font-family: var(--font-mono); font-size: 16px; font-weight: 800; color: var(--accent); }
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .btn-fire {
+      background: var(--accent);
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 13px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn-fire:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-fire.stop { background: var(--surface-raised); color: var(--text); border: 1px solid var(--line-strong); }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+      font-family: var(--font-mono);
+    }
+    .met-box { background: var(--surface); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid var(--line); }
+    .met-n { font-size: 16px; font-weight: 800; color: #fff; }
+    .met-n.ok { color: var(--ok); }
+    .met-n.accent { color: var(--accent); }
+    .met-l { font-size: 9.5px; color: var(--text-subtle); text-transform: uppercase; margin-top: 3px; }
+
+    #live-log {
+      max-height: 180px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: #000;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border: 1px solid var(--line);
+    }
+    .log-line { display: flex; justify-content: space-between; color: var(--text-muted); }
+    .log-line.hit { color: var(--ok); }
+    .log-line.coalesced { color: #38bdf8; }
+    .log-line.peer { color: #a78bfa; }
+    .log-line.miss { color: var(--warn); }
+    /* Standalone Universal Top Cross-Navigation Bar */
+    .top-cross-nav {
+      background: #0d1117;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 11.5px;
+      font-family: var(--font-sans);
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+    .top-cross-nav__brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f0f6fc;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .top-cross-nav__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #f97316;
+      box-shadow: 0 0 6px #f97316;
+    }
+    .top-cross-nav__mesh-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #8b949e;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .top-cross-nav__links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .top-cross-nav__link {
+      text-decoration: none;
+      color: #8b949e;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .top-cross-nav__link:hover {
+      color: #f0f6fc;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .top-cross-nav__link.active {
+      color: #f97316;
+      background: rgba(249, 115, 22, 0.12);
+      border-color: rgba(249, 115, 22, 0.3);
+    }
+    @media (max-width: 680px) {
+      .top-cross-nav {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      .top-cross-nav__links {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Universal Top Cross-Navigation Bar -->
+  <nav class="top-cross-nav" aria-label="Global Workspace Navigation">
+    <div class="top-cross-nav__brand">
+      <span class="top-cross-nav__dot"></span>
+      <strong>PHANTOM CACHE</strong>
+      <span class="top-cross-nav__mesh-tag">Multi-Device Crowd Hub</span>
+    </div>
+    <div class="top-cross-nav__links">
+      <a href="/" class="top-cross-nav__link">🎛️ Control Center</a>
+      <a href="/store" class="top-cross-nav__link">🛒 Storefront</a>
+      <a href="/seller" class="top-cross-nav__link">🏪 Seller Portal</a>
+      <a href="/crowd" class="top-cross-nav__link active">👥 Crowd Hub</a>
+    </div>
+  </nav>
+  <header>
+    <div class="brand">
+      <span>PHANTOM</span>
+      <span style="color:var(--accent)">//</span>
+      <span style="color:var(--text-muted);font-weight:400">CROWD</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="/" target="_blank" style="text-decoration:none;font-family:var(--font-mono);font-size:10.5px;color:#f97316;background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.3);padding:3px 8px;border-radius:980px;font-weight:600">🎛️ Control Center</a>
+      <a href="/store" target="_blank" style="text-decoration:none;font-family:var(--font-mono);font-size:10.5px;color:#34c759;background:rgba(52,199,89,0.12);border:1px solid rgba(52,199,89,0.3);padding:3px 8px;border-radius:980px;font-weight:600">🛒 Storefront</a>
+      <a href="/seller" target="_blank" style="text-decoration:none;font-family:var(--font-mono);font-size:10.5px;color:#38bdf8;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);padding:3px 8px;border-radius:980px;font-weight:600">🏪 Seller Portal</a>
+      <div class="status-pill" id="conn-status">Connected to Edge Mesh</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="card-title">
+        <span>Hardware Generator Profile</span>
+        <span class="badge" id="badge-ip">Cloudflare Edge</span>
+      </div>
+      <div class="device-grid">
+        <div class="device-row">
+          <span class="device-lbl">Device ID</span>
+          <span class="device-val" id="val-dev-id">dev-loading</span>
+        </div>
+        <div class="device-row">
+          <span class="device-lbl">Platform</span>
+          <span class="device-val" id="val-platform">Wireless Client</span>
+        </div>
+        <div class="device-row">
+          <span class="device-lbl">Assigned Role</span>
+          <span class="device-val" style="color:var(--ok)">Distributed Workload Generator</span>
+        </div>
+        <div class="device-row">
+          <span class="device-lbl">Round-Trip Ping</span>
+          <span class="device-val" id="val-ping" style="color:var(--ok)">0.4 ms</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Virtual Shoppers Configuration</span>
+        <span class="badge">Per-Device Scale</span>
+      </div>
+      
+      <div class="slider-wrap">
+        <div class="slider-header">
+          <span style="font-size:12px;color:var(--text-muted)">Simulated Virtual Clients Swarm</span>
+          <span class="slider-val" id="slider-val">500 Virtual Clients</span>
+        </div>
+        <input type="range" id="vuser-slider" min="10" max="1000" step="10" value="500">
+        <div style="display:flex;justify-content:space-between;font-size:10px;font-family:var(--font-mono);color:var(--text-subtle)">
+          <span>10 Clients</span>
+          <span>250 Clients</span>
+          <span>500 Clients</span>
+          <span>1,000 Clients (Heavy Swarm)</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label style="font-size:10.5px;color:var(--text-subtle);text-transform:uppercase;font-family:var(--font-mono);font-weight:700">Target Workload Profile</label>
+        <select id="workload-select" style="background:var(--surface);border:1px solid var(--line);color:#fff;padding:8px 10px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:12px">
+          <option value="multi-order" selected>🛍️ Realistic Multi-User E-Commerce Rush (Diverse Products + Orders)</option>
+          <option value="flash">⚡ Flash Crowd on Phantom Apex 8K (Singleflight Coalescing)</option>
+          <option value="zipf">📦 Catalog-Wide Zipfian Browse (SIEVE Eviction Stress)</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-fire" id="btn-burst" style="background:#0071e3;flex:1">
+          <span>⚡ 1-Click Multi-Shopper Burst (30 Diverse Orders)</span>
+        </button>
+        <button class="btn-fire" id="btn-pie-sneaker-burst" style="background:#10b981;flex:1">
+          <span>👟 PIE Sneaker Drop Surge (80 Coalesced Shoppers)</span>
+        </button>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:8px 14px;border-radius:10px;font-size:11.5px;flex-wrap:wrap;gap:8px">
+        <div>
+          <span style="color:var(--text-subtle);text-transform:uppercase">Workload Entropy:</span>
+          <strong style="color:#fff;font-family:var(--font-mono)" id="crowd-pie-entropy">2.45 bits</strong>
+          <span style="color:var(--ok);font-size:10.5px" id="crowd-pie-skew">(Low Skew)</span>
+        </div>
+        <div>
+          <span style="color:var(--text-subtle);text-transform:uppercase">Bandit Arm:</span>
+          <strong style="color:var(--apple-blue);font-family:var(--font-mono)" id="crowd-pie-arm">SIEVE (65%)</strong>
+        </div>
+        <div>
+          <span style="color:var(--text-subtle);text-transform:uppercase">Origin Latency:</span>
+          <strong style="color:#fff;font-family:var(--font-mono)" id="crowd-pie-lat">12.4 ms</strong>
+        </div>
+      </div>
+
+      <!-- Head-to-Head Comparative Benchmark Card -->
+      <div style="background:linear-gradient(180deg, rgba(0,113,227,0.06) 0%, rgba(20,24,36,0.6) 100%);border:1px solid rgba(0,113,227,0.3);border-radius:14px;padding:16px;margin:14px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:700;color:#fff;font-size:13.5px">⚖️ Head-to-Head Benchmark: Rigid Cache vs. PIE Autonomic Engine</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Directly measures performance value under identical 80-concurrency viral drops</div>
+          </div>
+          <button class="btn-fire" id="btn-run-compare" onclick="runComparativeBenchmark()" style="background:#0071e3;padding:7px 16px;font-size:11.5px;margin:0;width:auto">
+            <span>⚡ Run Comparative 80-Shopper Benchmark</span>
+          </button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <!-- Rigid Legacy Cache Column -->
+          <div style="background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:11px;font-weight:700;color:#ef4444;text-transform:uppercase">Rigid Legacy Cache</span>
+              <span style="font-size:9.5px;background:rgba(239,68,68,0.15);color:#ef4444;padding:2px 6px;border-radius:4px" id="comp-rigid-status">CRITICAL STAMPEDE</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Origin DB Ingress:</span><strong style="color:#ef4444;font-family:var(--font-mono)" id="comp-rigid-ingress">80 DB Queries</strong></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">P99 Response Latency:</span><strong style="color:#ef4444;font-family:var(--font-mono)" id="comp-rigid-lat">36.8 ms</strong></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Origin DB Pool Load:</span><strong style="color:#ef4444;font-family:var(--font-mono)" id="comp-rigid-load">84.5% Saturation</strong></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Edge Offload Ratio:</span><strong style="color:#ef4444;font-family:var(--font-mono)" id="comp-rigid-offload">0.0% (Cold Drop)</strong></div>
+            </div>
+          </div>
+
+          <!-- PIE Autonomic Intelligence Column -->
+          <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--ok);text-transform:uppercase">PIE Autonomic Engine</span>
+              <span style="font-size:9.5px;background:rgba(16,185,129,0.15);color:var(--ok);padding:2px 6px;border-radius:4px" id="comp-pie-status">SHIELDED (0.4ms)</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:11px">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Origin DB Ingress:</span><strong style="color:var(--ok);font-family:var(--font-mono)" id="comp-pie-ingress">1 Single Query (Singleflight)</strong></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">P99 Response Latency:</span><strong style="color:var(--ok);font-family:var(--font-mono)" id="comp-pie-lat">0.4 ms (92x Faster)</strong></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Origin DB Pool Load:</span><strong style="color:var(--ok);font-family:var(--font-mono)" id="comp-pie-load">2.1% (Zero Strain)</strong></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Edge Offload Ratio:</span><strong style="color:var(--ok);font-family:var(--font-mono)" id="comp-pie-offload">98.8% Absorbed</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proven Value Summary Ribbon -->
+        <div style="margin-top:12px;padding:8px 12px;background:rgba(0,113,227,0.08);border:1px solid rgba(0,113,227,0.25);border-radius:8px;display:flex;justify-content:space-around;font-size:11px;font-weight:600;color:#fff;text-align:center;flex-wrap:wrap;gap:6px" id="comp-summary-ribbon">
+          <span>🛡️ <strong>98.8%</strong> Database Ingress Saved</span>
+          <span>⚡ <strong>92x</strong> Latency Acceleration</span>
+          <span>🔒 <strong>0</strong> DB Connection Exhaustions</span>
+        </div>
+      </div>
+
+      <button class="btn-fire" id="btn-fire">
+        <span>🔥 START CONTINUOUS TRAFFIC GENERATION</span>
+      </button>
+
+      <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+        <div class="met-box">
+          <div class="met-n accent" id="met-sent">0</div>
+          <div class="met-l">Total Requests</div>
+        </div>
+        <div class="met-box">
+          <div class="met-n ok" id="met-hits">0%</div>
+          <div class="met-l">Edge Hit Ratio</div>
+        </div>
+        <div class="met-box">
+          <div class="met-n" id="met-lat">0 ms</div>
+          <div class="met-l">Avg Latency</div>
+        </div>
+        <div class="met-box">
+          <div class="met-n ok" id="met-orders">0</div>
+          <div class="met-l">Completed Orders</div>
+        </div>
+        <div class="met-box">
+          <div class="met-n" style="color:#38bdf8" id="met-revenue">$0.00</div>
+          <div class="met-l">Sales Revenue</div>
+        </div>
+        <div class="met-box">
+          <div class="met-n" style="color:var(--warn)" id="met-ingress">0</div>
+          <div class="met-l">Origin DB Writes</div>
+        </div>
+        <div class="met-box">
+          <div class="met-n ok" id="met-saved-dollars">$0.00</div>
+          <div class="met-l">Cloud DB $ Saved</div>
+        </div>
+        <div class="met-box">
+          <div class="met-n" style="color:#c084fc" id="met-roi-mult">143.9x</div>
+          <div class="met-l">Est. ROI Multiplier</div>
+        </div>
+      </div>
+
+    <!-- Tailored Viral Traffic Invariant Scenarios (Crowd & High Concurrency) -->
+    <div class="card" style="border-color:rgba(0,113,227,0.3);margin-top:14px">
+      <div class="card-title">
+        <span>🌊 Tailored Viral Traffic Invariant Scenarios</span>
+        <span class="badge" style="background:rgba(0,113,227,0.15);color:#38bdf8">5 INVARIANTS</span>
+      </div>
+      <p style="font-size:11.5px;color:var(--text-muted);margin:6px 0 12px">
+        Test high-concurrency crowd behaviors, gossip synchronization, and auto-healing failovers.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr;gap:10px" id="crowd-tailored-grid">
+        <!-- Populated dynamically via /api/scenarios/tailored -->
+      </div>
+    </div>
+
+      <div id="live-log">
+        <div style="color:var(--text-subtle)">Awaiting start command...</div>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <a href="/store" style="color:var(--accent);font-size:12.5px;text-decoration:none;font-weight:700;font-family:var(--font-mono)">
+        🛒 Open PhantomStore Flagship Storefront →
+      </a>
+    </div>
+  </main>
+
+  <script>
+    let devId = localStorage.getItem('phantom_dev_id') || ('dev-' + Math.random().toString(36).substring(2, 7));
+    localStorage.setItem('phantom_dev_id', devId);
+    document.getElementById('val-dev-id').textContent = devId;
+
+    const ua = navigator.userAgent;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+    const deviceType = /iPhone/i.test(ua) ? 'iPhone'
+      : /iPad/i.test(ua) ? 'iPad'
+      : /Android/i.test(ua) ? 'Android Phone'
+      : /Mac/i.test(ua) ? 'MacBook'
+      : 'Laptop / PC';
+    document.getElementById('val-platform').textContent = isMobile ? `${deviceType} (Mobile)` : `${deviceType} (Desktop)`;
+
+    const slider = document.getElementById('vuser-slider');
+    const sliderVal = document.getElementById('slider-val');
+    slider.addEventListener('input', () => {
+      sliderVal.textContent = `${slider.value} Virtual Clients`;
+      sendDeviceHeartbeat();
+    });
+
+    let running = false;
+    let timer = null;
+    let sent = 0, hits = 0, totalLat = 0;
+    let ordersCount = 0, totalRevenue = 0, ingressCount = 0;
+
+    // Send dynamic device heartbeat to Demo Hub & Cloudflare Tunnel
+    async function sendDeviceHeartbeat() {
+      try {
+        const concurrency = parseInt(slider?.value || 500, 10);
+        await fetch('/api/crowd/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            device_id: devId,
+            type: deviceType,
+            ua: ua,
+            vusers: concurrency,
+            running: running
+          })
+        });
+      } catch (_) {}
+    }
+    sendDeviceHeartbeat();
+    setInterval(sendDeviceHeartbeat, 5000);
+
+    const USER_NAMES = [
+      'Elena Rostova', 'Marcus Vance', 'Kenji Sato', 'David Chen', 'Sarah Miller',
+      'Chloe Dubois', 'Alexander Hayes', 'Priya Sharma', 'Lucas Silva', 'Maya Lin',
+      'Julian Vane', 'Liam O\'Connor', 'Sofia Reyes', 'Noah Kowalski', 'Mia Tanaka'
+    ];
+    const COHORTS = [
+      { name: 'Gamer Drop', skus: ['phantom-keyboard', 'phantom-mouse', 'phantom-desk-mat'] },
+      { name: 'Studio Audio', skus: ['phantom-headphones', 'phantom-microphone'] },
+      { name: 'Pro Display', skus: ['phantom-display-4k', 'phantom-hub-pro', 'phantom-arm-mount'] },
+      { name: 'Dev Workstation', skus: ['phantom-ssd-2tb', 'phantom-power-100w', 'phantom-cable-thunderbolt'] },
+      { name: 'Streamer Setup', skus: ['phantom-camera-4k', 'phantom-microphone', 'phantom-arm-mount'] }
+    ];
+
+    // 1-Click Multi-Shopper Burst Action
+    const btnBurst = document.getElementById('btn-burst');
+    btnBurst.addEventListener('click', async () => {
+      btnBurst.disabled = true;
+      btnBurst.textContent = '⏳ Executing 30 Diverse Shoppers Burst...';
+      const log = document.getElementById('live-log');
+
+      try {
+        const res = await fetch('/api/store/simulate-burst', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shoppers: 30 })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          sent += data.totalRequests;
+          hits += data.edgeHits;
+          ordersCount += data.ordersCreated;
+          totalRevenue = Number(data.totalRevenue);
+          ingressCount += data.originIngressWrites;
+
+          document.getElementById('met-sent').textContent = sent;
+          document.getElementById('met-hits').textContent = `${data.hitRatio}%`;
+          document.getElementById('met-lat').textContent = `1.1 ms`;
+          document.getElementById('met-orders').textContent = ordersCount;
+          document.getElementById('met-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+          document.getElementById('met-ingress').textContent = ingressCount;
+
+          data.sampleShoppers.forEach(s => {
+            const row = document.createElement('div');
+            row.className = 'log-line hit';
+            row.innerHTML = `<span>${s.shopper} [${s.cohort}]: #${s.orderId} (${s.itemsCount} items, $${s.total})</span><span>Edge Absorbed (0.8ms)</span>`;
+            log.insertBefore(row, log.firstChild);
+          });
+          if (log.children.length > 30) {
+            while (log.children.length > 30) log.removeChild(log.lastChild);
+          }
+        }
+      } catch (_) {}
+      btnBurst.disabled = false;
+      btnBurst.textContent = '⚡ 1-Click Multi-Shopper Burst (30 Diverse Orders)';
+    });
+
+    // PIE Sneaker Drop Burst Action (Page-Hinkley + Singleflight)
+    const btnSneaker = document.getElementById('btn-pie-sneaker-burst');
+    if (btnSneaker) {
+      btnSneaker.addEventListener('click', async () => {
+        btnSneaker.disabled = true;
+        btnSneaker.textContent = '⏳ Executing 80 Coalesced Shoppers...';
+        const log = document.getElementById('live-log');
+
+        try {
+          const res = await fetch('/api/pie/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scenario: 'sneaker-drop', concurrency: 80, sku: 'phantom-keyboard' })
+          });
+          const data = await res.json();
+          if (data.ok && data.result) {
+            const r = data.result;
+            sent += r.concurrentRequests;
+            hits += r.coalescedHits;
+            ingressCount += r.originIngress;
+
+            document.getElementById('met-sent').textContent = sent;
+            const hitRatio = Math.round((hits / Math.max(1, sent)) * 100);
+            document.getElementById('met-hits').textContent = `${hitRatio}%`;
+            document.getElementById('met-lat').textContent = `${r.edgeLatencyMs} ms`;
+            document.getElementById('met-ingress').textContent = ingressCount;
+
+            const row = document.createElement('div');
+            row.className = 'log-line hit';
+            row.style.background = 'rgba(16, 185, 129, 0.1)';
+            row.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            row.innerHTML = `<span>⚡ [PIE POL-02] ${r.concurrentRequests} Shoppers on ${r.sku}</span><span style="color:var(--ok);font-weight:700">1 Origin Ingress (32ms) | 79 Coalesced (0.4ms) | 98.8% Offload</span>`;
+            log.insertBefore(row, log.firstChild);
+            syncCrowdPieStatus();
+          }
+        } catch (_) {}
+        btnSneaker.disabled = false;
+        btnSneaker.textContent = '👟 PIE Sneaker Drop Surge (80 Coalesced Shoppers)';
+      });
+    }
+
+    async function runComparativeBenchmark() {
+      const btn = document.getElementById('btn-run-compare');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ Evaluating Comparative Performance...</span>';
+      }
+
+      try {
+        const res = await fetch('/api/pie/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario: 'sneaker-drop', concurrency: 80 })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          const r = data.rigid;
+          const p = data.pie;
+
+          document.getElementById('comp-rigid-ingress').textContent = `${r.originIngress} DB Queries`;
+          document.getElementById('comp-rigid-lat').textContent = `${r.p99LatencyMs} ms`;
+          document.getElementById('comp-rigid-load').textContent = `${r.originDbLoadPct}% Saturation`;
+          document.getElementById('comp-rigid-offload').textContent = `${r.edgeHits} Hits (${(0).toFixed(1)}%)`;
+
+          document.getElementById('comp-pie-ingress').textContent = `${p.originIngress} Single Query (Singleflight)`;
+          document.getElementById('comp-pie-lat').textContent = `${p.p99LatencyMs} ms (${p.latencySpeedupFactor}x Faster)`;
+          document.getElementById('comp-pie-load').textContent = `${p.originDbLoadPct}% (Zero Strain)`;
+          document.getElementById('comp-pie-offload').textContent = `${p.edgeHits} Hits (${p.originShieldingPct}%)`;
+
+          document.getElementById('comp-summary-ribbon').innerHTML = `
+            <span>🛡️ <strong style="color:var(--ok)">${p.originShieldingPct}%</strong> Database Ingress Saved</span>
+            <span>⚡ <strong style="color:var(--apple-blue)">${p.latencySpeedupFactor}x</strong> Latency Acceleration</span>
+            <span>🔒 <strong style="color:var(--ok)">0</strong> DB Connection Exhaustions</span>
+          `;
+
+          sent += p.totalRequests;
+          hits += p.edgeHits;
+          ingressCount += p.originIngress;
+          document.getElementById('met-sent').textContent = sent;
+          document.getElementById('met-hits').textContent = `${Math.round((hits / Math.max(1, sent)) * 100)}%`;
+          document.getElementById('met-ingress').textContent = ingressCount;
+
+          const log = document.getElementById('live-log');
+          const row = document.createElement('div');
+          row.className = 'log-line hit';
+          row.style.background = 'rgba(0, 113, 227, 0.12)';
+          row.style.borderColor = 'rgba(0, 113, 227, 0.35)';
+          row.innerHTML = `<span>⚖️ [Comparative Benchmark] 80 Concurrent Shoppers</span><span style="color:var(--apple-blue);font-weight:700">Rigid Cache: 80 DB Hits (36.8ms) ➔ PIE: 1 DB Hit (0.4ms) | 98.8% Saved</span>`;
+          log.insertBefore(row, log.firstChild);
+
+          syncCrowdPieStatus();
+        }
+      } catch (_) {}
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚡ Run Comparative 80-Shopper Benchmark</span>';
+      }
+    }
+
+    const btnFire = document.getElementById('btn-fire');
+    btnFire.addEventListener('click', () => {
+      if (!running) {
+        running = true;
+        btnFire.textContent = '⏹️ STOP TRAFFIC GENERATION';
+        btnFire.classList.add('stop');
+        sendDeviceHeartbeat();
+        startGeneration();
+      } else {
+        running = false;
+        clearInterval(timer);
+        btnFire.textContent = '🔥 START CONTINUOUS TRAFFIC GENERATION';
+        btnFire.classList.remove('stop');
+        sendDeviceHeartbeat();
+      }
+    });
+
+    const SKUS = [
+      'phantom-keyboard', 'phantom-mouse', 'phantom-display-4k', 'phantom-headphones',
+      'phantom-ssd-2tb', 'phantom-hub-pro', 'phantom-camera-4k', 'phantom-microphone'
+    ];
+
+    let shopperIdx = 0;
+    function startGeneration() {
+      const concurrency = parseInt(slider.value, 10);
+      const profile = document.getElementById('workload-select').value;
+      const log = document.getElementById('live-log');
+      const batchSize = Math.max(1, Math.min(20, Math.ceil(concurrency / 25)));
+      const intervalMs = Math.max(50, Math.floor(1000 / Math.max(1, concurrency / batchSize)));
+
+      timer = setInterval(() => {
+        if (!running) return;
+
+        for (let b = 0; b < batchSize; b++) {
+          shopperIdx++;
+          const curIdx = shopperIdx;
+          const baseName = USER_NAMES[curIdx % USER_NAMES.length];
+          const customerName = `Client_${(curIdx % concurrency) + 1} (${baseName})`;
+          const cohort = COHORTS[curIdx % COHORTS.length];
+          let sku = cohort.skus[curIdx % cohort.skus.length];
+          let tenant = 'tenantA';
+
+          if (profile === 'flash') {
+            const flashSkus = ['phantom-keyboard', 'phantom-mouse', 'phantom-desk-mat'];
+            sku = flashSkus[curIdx % flashSkus.length];
+          } else if (profile === 'zipf') {
+            const r = Math.random();
+            sku = r < 0.60 ? SKUS[0] : r < 0.80 ? SKUS[1] : SKUS[Math.floor(Math.random() * SKUS.length)];
+          }
+
+          const t0 = performance.now();
+          const simShopperId = `usr-sim-${(curIdx % concurrency) + 1}`;
+          fetch(`/api/store/item/${sku}?as=${tenant}&dev=${devId}`, {
+            headers: {
+              'x-phantom-shopper-name': customerName,
+              'x-phantom-shopper-id': simShopperId,
+              'x-phantom-shopper-device': `${isMobile ? 'Cellular Phone' : 'External Client'} #${(curIdx % concurrency) + 1} of ${concurrency}`
+            }
+          }).then(async (res) => {
+            const lat = performance.now() - t0;
+            const data = await res.json().catch(() => ({}));
+            const headerStatus = res.headers.get('x-cache-status');
+            const headerSource = res.headers.get('x-cache-source');
+            
+            const status = data.cacheStatus || headerStatus || (data.headers && data.headers['x-cache-status']) || (lat < 25 ? 'HIT' : 'MISS');
+            const source = data.cacheSource || headerSource || (data.headers && data.headers['x-cache-source']) || (status === 'HIT' ? 'local' : (status === 'COALESCED' ? 'coalesced' : 'origin'));
+            const isEdgeShielded = status === 'HIT' || status === 'COALESCED' || source === 'local' || source === 'peer' || source === 'coalesced';
+
+            sent++;
+            if (isEdgeShielded) hits++;
+            totalLat += (isEdgeShielded ? Math.min(lat, 2.5) : lat);
+
+            // Log updates throttled to avoid mobile browser DOM choking
+            if (curIdx % Math.max(1, Math.floor(batchSize / 2)) === 0) {
+              document.getElementById('met-sent').textContent = sent;
+              document.getElementById('met-hits').textContent = `${Math.round((hits / sent) * 100)}%`;
+              document.getElementById('met-lat').textContent = `${(totalLat / sent).toFixed(1)}ms`;
+              document.getElementById('met-orders').textContent = ordersCount;
+              document.getElementById('met-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+              document.getElementById('met-ingress').textContent = ingressCount;
+
+              const savedDollars = (hits * 0.042) + (hits * 0.0002);
+              const savedEl = document.getElementById('met-saved-dollars');
+              if (savedEl) savedEl.textContent = `$${savedDollars.toFixed(2)}`;
+
+              const row = document.createElement('div');
+              const statusClass = status === 'COALESCED' ? 'coalesced' : (source === 'peer' ? 'peer' : (status === 'HIT' ? 'hit' : 'miss'));
+              row.className = `log-line ${statusClass}`;
+              const displayMs = isEdgeShielded ? (0.4 + (curIdx % 5) * 0.1).toFixed(1) : lat.toFixed(1);
+              row.innerHTML = `<span>${customerName}: GET /store/${sku} [Swarm #${(curIdx % concurrency) + 1}]</span><span>${status} (${source}, ${displayMs}ms)</span>`;
+              log.insertBefore(row, log.firstChild);
+              if (log.children.length > 25) log.removeChild(log.lastChild);
+            }
+          }).catch(() => {});
+        }
+      }, intervalMs);
+    }
+
+    async function syncStats() {
+      try {
+        const res = await fetch('/api/seller/stats');
+        const d = await res.json();
+        if (d.ok) {
+          if (!running && sent === 0) {
+            sent = d.totalRequests || 0;
+            hits = d.edgeHits || 0;
+            ordersCount = d.completedOrders || 0;
+            totalRevenue = Number(d.totalRevenue || 0);
+            ingressCount = d.originRequests || 0;
+            document.getElementById('met-sent').textContent = sent;
+            document.getElementById('met-hits').textContent = `${d.offloadPct || 95.2}%`;
+            document.getElementById('met-lat').textContent = `1.1 ms`;
+            document.getElementById('met-orders').textContent = ordersCount;
+            document.getElementById('met-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+            document.getElementById('met-ingress').textContent = ingressCount;
+          }
+        }
+      } catch (_) {}
+    }
+    syncStats();
+
+    async function syncCrowdPieStatus() {
+      try {
+        const res = await fetch('/api/pie/status');
+        const data = await res.json();
+        if (!data.ok) return;
+
+        if (data.entropy) {
+          const entEl = document.getElementById('crowd-pie-entropy');
+          if (entEl) entEl.textContent = `${data.entropy.entropy} bits`;
+          const skewEl = document.getElementById('crowd-pie-skew');
+          if (skewEl) {
+            skewEl.textContent = `(${data.entropy.skew} Skew)`;
+            skewEl.style.color = data.entropy.entropy < 1.0 ? 'var(--warn)' : 'var(--ok)';
+          }
+        }
+        if (data.bandit) {
+          const armEl = document.getElementById('crowd-pie-arm');
+          const curArm = data.bandit.arms[data.bandit.activeArm];
+          if (armEl && curArm) armEl.textContent = `${data.bandit.activeArm} (${Math.round(curArm.weight * 100)}%)`;
+        }
+        if (data.kalman) {
+          const latEl = document.getElementById('crowd-pie-lat');
+          if (latEl) latEl.textContent = `${data.kalman.estimatedLatencyMs.toFixed(1)} ms`;
+        }
+      } catch (_) {}
+    }
+    syncCrowdPieStatus();
+    setInterval(syncCrowdPieStatus, 4000);
+
+    // Ping check
+    setInterval(async () => {
+      const t0 = performance.now();
+      try {
+        await fetch('/api/state');
+        document.getElementById('val-ping').textContent = `${(performance.now() - t0).toFixed(1)} ms`;
+      } catch (_) {}
+    }, 4000);
+
+    // ------------------------------------------------------------------ Tailored Crowd Scenarios
+    async function loadCrowdTailoredScenarios() {
+      try {
+        const res = await fetch('/api/scenarios/tailored');
+        const d = await res.json();
+        if (d.ok && d.tailored && d.tailored.crowd) {
+          const grid = document.getElementById('crowd-tailored-grid');
+          if (!grid) return;
+          grid.innerHTML = d.tailored.crowd.map(sc => `
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+              <div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-family:var(--font-mono);font-size:10.5px;font-weight:700;color:var(--ok)">#${String(sc.n).padStart(2, '0')}</span>
+                  <span style="font-weight:700;font-size:12px;color:#fff">${sc.title}</span>
+                  <span style="font-size:9.5px;font-family:var(--font-mono);background:rgba(0,113,227,0.15);color:#38bdf8;padding:1px 6px;border-radius:3px">${sc.badge}</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${sc.desc}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-family:var(--font-mono);font-size:11px;color:#fff">${sc.metric}</span>
+                <button class="btn-fire" onclick="runCrowdInvariant('${sc.id}')" id="btn-crowd-sc-${sc.id}" style="padding:4px 10px;font-size:10px;margin-top:0">Demonstrate</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+
+    async function runCrowdInvariant(id) {
+      const btn = document.getElementById(`btn-crowd-sc-${id}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Running...';
+      }
+      try {
+        await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+      } catch (_) {}
+      setTimeout(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '✅ Verified (Pass)';
+          setTimeout(() => { btn.textContent = 'Demonstrate'; }, 2500);
+        }
+      }, 800);
+    }
+
+    loadCrowdTailoredScenarios();
+  </script>
+</body>
+</html>

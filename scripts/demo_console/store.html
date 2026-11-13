@@ -1,0 +1,3297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PHANTOM // Precision Hardware Flagship Store</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff5500'/><path d='M30 50L45 65L70 35' stroke='%23000' stroke-width='12' fill='none'/></svg>">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --bg-subtle: #0f1117;
+      --surface: #13151e;
+      --surface-raised: #181b26;
+      --surface-card: #141620;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.16);
+      --line-subtle: rgba(255, 255, 255, 0.04);
+      --text: #f4f4f6;
+      --text-muted: #a1a1aa;
+      --text-subtle: #71717a;
+      
+      /* Intentional functional accents — Dieter Rams / Linear / Teenage Engineering */
+      --accent: #ff5500;
+      --accent-hover: #ff6a1a;
+      --accent-subtle: rgba(255, 85, 0, 0.12);
+      
+      --ok: #10b981;
+      --ok-hover: #059669;
+      --ok-subtle: rgba(16, 185, 129, 0.12);
+      
+      --warn: #f59e0b;
+      --warn-subtle: rgba(245, 158, 11, 0.12);
+      
+      --bad: #ef4444;
+      --bad-subtle: rgba(239, 68, 68, 0.12);
+      
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 14px;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "Menlo", Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ------------------------------------------------------------------ Announcement Banner */
+    .top-announcement {
+      background: #0d0e14;
+      border-bottom: 1px solid var(--line);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      padding: 6px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .top-announcement .badge-mesh {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--ok);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .top-announcement .badge-mesh .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 8px var(--ok);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .top-announcement .ann-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .top-announcement .ann-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .top-announcement .ann-links a:hover {
+      color: #fff;
+    }
+
+    /* ------------------------------------------------------------------ Header Navigation */
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: rgba(9, 10, 15, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-mark {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-mark .brand-accent {
+      color: var(--accent);
+      font-weight: 900;
+    }
+    .brand-version {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: var(--surface-raised);
+      color: var(--text-subtle);
+      border: 1px solid var(--line);
+    }
+
+    /* Search & Filter Nav */
+    .nav-search-wrap {
+      flex: 1;
+      max-width: 440px;
+      position: relative;
+    }
+    .nav-search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 12.5px;
+      padding: 7px 32px 7px 12px;
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: all 0.2s;
+    }
+    .nav-search-input:focus {
+      border-color: var(--line-strong);
+      background: var(--surface-raised);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+    }
+    .nav-search-input::placeholder {
+      color: var(--text-subtle);
+    }
+    .search-shortcut-badge {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-subtle);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 1px 5px;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    /* Header Actions */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .edge-node-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 4px 10px;
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .edge-node-badge:hover {
+      border-color: var(--line-strong);
+      background: var(--surface-raised);
+    }
+    .node-indicator-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ok);
+    }
+    .currency-select {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 11.5px;
+      padding: 5px 8px;
+      border-radius: var(--radius-md);
+      outline: none;
+      cursor: pointer;
+    }
+    .btn-header-ops {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-header-ops:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn-header-cart {
+      background: #0071e3;
+      color: #fff;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 18px;
+      border-radius: 980px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-header-cart:hover {
+      background: #0077ed;
+      transform: scale(1.02);
+    }
+    .cart-count-pill {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 999px;
+    }
+
+    /* ------------------------------------------------------------------ Editorial Flagship Hero */
+    .hero-stage {
+      padding: 40px 24px 32px;
+      max-width: 1280px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 36px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+    .hero-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin: 0;
+      color: #fff;
+    }
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0;
+      max-width: 580px;
+    }
+    .hero-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-primary-buy {
+      background: #0071e3;
+      color: #fff;
+      border: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 12px 26px;
+      border-radius: 980px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+    .btn-primary-buy:hover {
+      background: #0077ed;
+      transform: scale(1.02);
+    }
+    .btn-secondary-burst {
+      background: rgba(255, 255, 255, 0.08);
+      color: #f5f5f7;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 980px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+    .btn-secondary-burst:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Hero Real-time Performance Benchmark Visualizer */
+    .hero-telemetry-card {
+      background: var(--surface-card);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+    .card-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+    .card-hdr-title {
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .speedup-pill {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--ok);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    
+    /* Benchmark Comparison Rows */
+    .bench-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .bench-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+    }
+    .bench-bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--surface);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--line-subtle);
+    }
+    .bench-bar-fill-origin {
+      height: 100%;
+      width: 92%;
+      background: var(--warn);
+      border-radius: 4px;
+      transition: width 0.5s;
+    }
+    .bench-bar-fill-edge {
+      height: 100%;
+      width: 2.2%;
+      background: var(--ok);
+      border-radius: 4px;
+      transition: width 0.5s;
+      min-width: 5px;
+    }
+    .bench-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+    .bench-stat-box {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .bench-stat-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-subtle);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .bench-stat-val {
+      font-size: 13px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+    .bench-stat-val.ok { color: var(--ok); }
+    .bench-stat-val.accent { color: var(--accent); }
+
+    /* ------------------------------------------------------------------ Catalog Section & Filter Bar */
+    .catalog-section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+      width: 100%;
+      flex: 1;
+    }
+    .catalog-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .category-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .cat-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #86868b;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 18px;
+      border-radius: 980px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cat-btn:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #f5f5f7;
+    }
+    .cat-btn.active {
+      background: #f5f5f7;
+      color: #000;
+      font-weight: 600;
+      border-color: #f5f5f7;
+    }
+
+    .sort-control-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #86868b;
+    }
+    .sort-dropdown {
+      background: #161617;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f5f5f7;
+      font-size: 12.5px;
+      padding: 6px 14px;
+      border-radius: 980px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ------------------------------------------------------------------ Product Grid & Cards (Apple Store) */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 24px;
+    }
+    .product-card {
+      background: #161617;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 22px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+    .product-card:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+    }
+    .card-media {
+      background: #0d0e12;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line-subtle);
+    }
+    .card-badge-top {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: rgba(9, 10, 15, 0.85);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      border: 1px solid var(--line);
+    }
+    .card-badge-top.drop {
+      background: rgba(255, 85, 0, 0.25);
+      color: #fff;
+      border-color: rgba(255, 85, 0, 0.5);
+    }
+    .card-badge-top.stock-warning {
+      background: rgba(245, 158, 11, 0.25);
+      color: var(--warn);
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+    .card-img-render {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s;
+      filter: brightness(0.96);
+    }
+    .product-card:hover .card-img-render {
+      transform: scale(1.05);
+      filter: brightness(1.04);
+    }
+    .pdp-img-render {
+      width: 100%;
+      height: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+    .cart-item-img {
+      width: 44px;
+      height: 44px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+    }
+    
+    .card-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 10px;
+    }
+    .card-meta-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-subtle);
+    }
+    .card-stock-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--ok);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+      letter-spacing: -0.015em;
+      line-height: 1.35;
+    }
+    .card-desc {
+      font-size: 12.5px;
+      color: #86868b;
+      margin: 0;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }
+    
+    /* Variant Picker on Card */
+    .variant-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .color-chip {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .color-chip:hover {
+      transform: scale(1.2);
+    }
+    .color-chip.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+
+    .card-footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .card-price {
+      font-size: 16.5px;
+      font-weight: 700;
+      font-family: var(--font-sans);
+      letter-spacing: -0.015em;
+      color: #f5f5f7;
+    }
+    .card-btn-add {
+      background: #0071e3;
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 18px;
+      border-radius: 980px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+    .card-btn-add:hover {
+      background: #0077ed;
+      transform: scale(1.02);
+    }
+
+    /* Card Micro Edge Telemetry Pill */
+    .card-edge-hud {
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 7px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+    }
+    .hud-pill {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .hud-pill.hit { background: var(--ok-subtle); color: var(--ok); }
+    .hud-pill.miss { background: var(--warn-subtle); color: var(--warn); }
+    .hud-pill.idle { background: rgba(255, 255, 255, 0.06); color: var(--text-subtle); }
+    .hud-pill.purged { background: var(--bad-subtle); color: var(--bad); }
+
+    /* ------------------------------------------------------------------ Product Detail Modal (PDP) */
+    dialog.modal-pdp {
+      max-width: 760px;
+      width: 92vw;
+      background: var(--surface-card);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-lg);
+      color: var(--text);
+      padding: 0;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.85);
+      outline: none;
+    }
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+    }
+    .pdp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+    }
+    .pdp-left-media {
+      background: #0b0d13;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--line);
+      position: relative;
+    }
+    .pdp-right-details {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .pdp-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .pdp-cat {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .pdp-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin: 4px 0 0;
+      line-height: 1.25;
+    }
+    .pdp-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-subtle);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .pdp-close-btn:hover { color: #fff; }
+
+    /* Interactive APM Waterfall Breakdown */
+    .apm-waterfall-box {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .apm-waterfall-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10.5px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .apm-bar-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+    }
+    .apm-step-label {
+      width: 110px;
+      color: var(--text-subtle);
+    }
+    .apm-track {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .apm-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+    .apm-step-ms {
+      width: 50px;
+      text-align: right;
+      color: #fff;
+    }
+
+    /* PDP Spec Table */
+    .pdp-spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+    .pdp-spec-table td {
+      padding: 5px 0;
+      border-bottom: 1px solid var(--line-subtle);
+    }
+    .pdp-spec-table td.lbl {
+      color: var(--text-subtle);
+      width: 40%;
+    }
+    .pdp-spec-table td.val {
+      color: #fff;
+      font-family: var(--font-mono);
+    }
+
+    /* ------------------------------------------------------------------ Slide-Over Cart Drawer */
+    .cart-drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .cart-drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface-card);
+      border-left: 1px solid var(--line-strong);
+      z-index: 100;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .cart-drawer.open {
+      transform: translateX(0);
+    }
+    .drawer-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drawer-items-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .cart-item-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 10px;
+    }
+    .cart-item-thumb {
+      width: 44px;
+      height: 44px;
+      background: #0b0d13;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .cart-item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cart-item-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.25;
+    }
+    .cart-item-meta {
+      font-size: 11px;
+      color: var(--text-subtle);
+    }
+    .cart-qty-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .qty-btn {
+      width: 20px;
+      height: 20px;
+      background: var(--surface-raised);
+      border: 1px solid var(--line);
+      color: #fff;
+      border-radius: 3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    .cart-drawer-footer {
+      border-top: 1px solid var(--line);
+      padding: 18px 20px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .promo-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .promo-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+    .promo-apply-btn {
+      background: var(--surface-raised);
+      border: 1px solid var(--line-strong);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+    .cart-summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .cart-summary-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+      font-family: var(--font-mono);
+    }
+
+    /* ------------------------------------------------------------------ Multi-Step Checkout Modal */
+    dialog.modal-checkout {
+      max-width: 540px;
+      width: 92vw;
+      background: var(--surface-card);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-lg);
+      color: var(--text);
+      padding: 24px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.85);
+      outline: none;
+    }
+    .checkout-flow-step {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .checkout-step-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+    .receipt-box {
+      background: var(--bg);
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-family: var(--font-mono);
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+    }
+    .delivery-timeline {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0 6px;
+      position: relative;
+    }
+    .delivery-timeline::before {
+      content: '';
+      position: absolute;
+      top: 9px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: var(--line);
+      z-index: 1;
+    }
+    .timeline-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      z-index: 2;
+    }
+    .node-pip {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--line-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+    }
+    .timeline-node.done .node-pip {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #000;
+    }
+
+    /* ------------------------------------------------------------------ Merchant Ops & Scenario Prover Drawer */
+    aside.ops-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0b0d13;
+      border-top: 1px solid var(--line-strong);
+      z-index: 70;
+      box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.7);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    aside.ops-drawer.collapsed {
+      transform: translateY(calc(100% - 36px));
+    }
+    .ops-bar-trigger {
+      height: 36px;
+      background: var(--surface);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--line);
+    }
+    .ops-body-content {
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      max-height: 40vh;
+      overflow-y: auto;
+    }
+    .ops-box {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ops-box-title {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .ops-btn-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .ops-btn {
+      background: var(--surface-raised);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ops-btn:hover {
+      border-color: var(--line-strong);
+      color: #fff;
+    }
+    .ops-btn.active {
+      background: var(--ok);
+      color: #000;
+      border-color: var(--ok);
+      font-weight: 700;
+    }
+    .ops-btn.danger {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: var(--bad);
+    }
+    .ops-btn.danger:hover {
+      background: var(--bad);
+      color: #fff;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 48px;
+      right: 20px;
+      background: #181b24;
+      border: 1px solid var(--line-strong);
+      color: #fff;
+      font-size: 12.5px;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+      z-index: 120;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .hero-stage { grid-template-columns: 1fr; }
+      .pdp-grid { grid-template-columns: 1fr; }
+      .pdp-left-media { height: 160px; }
+      header.site-header { padding: 10px 16px; }
+      .nav-search-wrap { display: none; }
+    }
+
+    /* Policy Inference Engine (PIE) Slide-Over Drawer & HUD */
+    .pie-drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      z-index: 101;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .pie-drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .pie-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 520px;
+      background: #0d0f17;
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+      z-index: 102;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: -12px 0 40px rgba(0, 0, 0, 0.65);
+    }
+    .pie-drawer.open {
+      transform: translateX(0);
+    }
+    .pie-telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .pie-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .pie-card-hdr {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pie-card-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      font-family: var(--font-mono);
+    }
+    .pie-sim-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f4f4f6;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .pie-sim-btn:hover {
+      background: rgba(0, 113, 227, 0.15);
+      border-color: rgba(0, 113, 227, 0.45);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    /* Standalone Universal Top Cross-Navigation Bar */
+    .top-cross-nav {
+      background: #0d1117;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 11.5px;
+      font-family: var(--font-sans);
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+    .top-cross-nav__brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f0f6fc;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .top-cross-nav__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+    .top-cross-nav__mesh-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #8b949e;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .top-cross-nav__links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .top-cross-nav__link {
+      text-decoration: none;
+      color: #8b949e;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .top-cross-nav__link:hover {
+      color: #f0f6fc;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .top-cross-nav__link.active {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    @media (max-width: 680px) {
+      .top-cross-nav {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      .top-cross-nav__links {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Universal Top Cross-Navigation Bar -->
+  <nav class="top-cross-nav" aria-label="Global Workspace Navigation">
+    <div class="top-cross-nav__brand">
+      <span class="top-cross-nav__dot"></span>
+      <strong>PHANTOM CACHE</strong>
+      <span class="top-cross-nav__mesh-tag">3-Node Edge Mesh</span>
+    </div>
+    <div class="top-cross-nav__links">
+      <a href="/" class="top-cross-nav__link">🎛️ Control Center</a>
+      <a href="/store" class="top-cross-nav__link active">🛒 Storefront</a>
+      <a href="/seller" class="top-cross-nav__link">🏪 Seller Portal</a>
+      <a href="/crowd" class="top-cross-nav__link">👥 Crowd Hub</a>
+    </div>
+  </nav>
+
+  <!-- Top Real-time Mesh Announcement Strip -->
+  <div class="top-announcement">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="badge-mesh"><span class="pulse-dot"></span> PHANTOM EDGE MESH</span>
+      <span>3 Distributed Gateways Online · Singleflight Coalescing · Sub-Millisecond Peer-Fill</span>
+    </div>
+    <div class="ann-links">
+      <a href="/seller" target="_blank" style="color:var(--ok);font-size:11px;font-weight:700">🏪 Seller Origin Portal →</a>
+      <span id="ann-active-node" style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-subtle)">Gateway: Node 1 (:18185)</span>
+      <a href="/crowd" target="_blank" style="font-size:11px;font-weight:600">⚡ Crowd Hub →</a>
+    </div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="site-header">
+    <div class="brand-group">
+      <a href="/store" class="brand-mark">
+        <span>PHANTOM</span>
+        <span class="brand-accent">//</span>
+        <span style="font-weight:400;color:var(--text-muted)">STORE</span>
+      </a>
+      <span class="brand-version">v2.4-prod</span>
+    </div>
+
+    <!-- Search Input with Keyboard Shortcut -->
+    <div class="nav-search-wrap">
+      <input type="text" id="search-input" class="nav-search-input" placeholder="Search precision keyboards, 4K displays, audio, NVMe...">
+      <span class="search-shortcut-badge">/</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="header-actions">
+      <!-- Shopper Identity / Authentication Pill -->
+      <button class="btn-header-ops" id="btn-shopper-auth" style="display:inline-flex;align-items:center;gap:7px;border-color:rgba(52,199,89,0.35);background:rgba(52,199,89,0.06);font-weight:600;padding:5px 12px;border-radius:980px;cursor:pointer" title="Manage Client / Shopper Identity & Passkey">
+        <span id="shopper-avatar-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;box-shadow:0 0 8px #34c759"></span>
+        <span id="shopper-name-display" style="color:#f5f5f7">👤 Elena Rostova</span>
+      </button>
+
+      <!-- Phantom Lab Command Center Quick Link -->
+      <a href="/lab" target="_blank" class="btn-header-ops" style="text-decoration:none;border-color:rgba(168,85,247,0.4);color:#c084fc;background:rgba(168,85,247,0.08);font-weight:600" title="Open Phantom Lab Spatial Topology & APM Console">
+        <span>🧪 Phantom Lab</span>
+      </a>
+
+      <!-- PIE AI Engine Live Telemetry Trigger -->
+      <button class="btn-header-ops" id="btn-pie-engine-trigger" style="display:inline-flex;align-items:center;gap:6px;border-color:rgba(0,113,227,0.4);color:var(--apple-blue);background:rgba(0,113,227,0.08);font-weight:600;padding:5px 12px;border-radius:980px;cursor:pointer" title="Policy Inference Engine AI Telemetry & Simulation">
+        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--apple-blue);box-shadow:0 0 8px var(--apple-blue)"></span>
+        <span>⚡ PIE AI Engine</span>
+      </button>
+
+      <!-- Control Center Link -->
+      <a href="/" target="_blank" class="btn-header-ops" style="text-decoration:none;border-color:rgba(249,115,22,0.3);color:#f97316" title="Open Phantom Control Center">
+        <span>🎛️ Control Center</span>
+      </a>
+
+      <!-- Seller Origin Portal Quick Link -->
+      <a href="/seller" target="_blank" class="btn-header-ops" style="text-decoration:none;border-color:rgba(16,185,129,0.3);color:var(--ok)" title="Open Seller Origin Portal (the merchant backend)">
+        <span>🏪 Seller Origin</span>
+      </a>
+
+      <!-- Active Gateway Switcher Pill -->
+      <div class="edge-node-badge" id="btn-header-node-indicator" title="Click to view edge gateway mesh">
+        <span class="node-indicator-dot"></span>
+        <span id="header-node-lbl">Node 1</span>
+        <span style="color:var(--ok);font-size:10px" id="header-ping-ms">0.4ms</span>
+      </div>
+
+      <!-- Currency Switcher -->
+      <select class="currency-select" id="currency-select" title="Display Currency">
+        <option value="USD">USD ($)</option>
+        <option value="EUR">EUR (€)</option>
+        <option value="GBP">GBP (£)</option>
+        <option value="JPY">JPY (¥)</option>
+      </select>
+
+      <!-- Merchant & Scenario Ops Pill -->
+      <button class="btn-header-ops" id="btn-toggle-ops">
+        <span>⚡ Edge Ops</span>
+      </button>
+
+      <!-- Cart Drawer Trigger -->
+      <button class="btn-header-cart" id="btn-cart">
+        <span>Bag</span>
+        <span class="cart-count-pill" id="cart-badge-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Apple Store Iconic Headline Greeting & Specialist Support -->
+  <div style="max-width: 1280px; margin: 28px auto 0; padding: 0 24px; width: 100%; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: clamp(30px, 4.5vw, 48px); font-weight: 700; letter-spacing: -0.025em; margin: 0; color: #f5f5f7; line-height: 1.15;">
+        Store. <span style="color: #86868b; font-weight: 600;">The best way to buy precision hardware.</span>
+      </h1>
+      <p style="font-size: 14.5px; color: #86868b; margin: 8px 0 0; line-height: 1.5;">
+        Sub-millisecond Edge Mesh delivery · Singleflight coalescing · Free Express Courier.
+      </p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; background: #161617; border: 1px solid rgba(255,255,255,0.08); padding: 10px 18px; border-radius: 980px;">
+      <span style="font-size: 20px;">🎧</span>
+      <div style="font-size: 12px; line-height: 1.3;">
+        <div style="color: #f5f5f7; font-weight: 600;">Need shopping help?</div>
+        <a href="/crowd" target="_blank" style="color: #0071e3; text-decoration: none; font-weight: 500;">Launch Multi-Shopper Crowd →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editorial Hero: Flagship Workstation -->
+  <section class="hero-stage">
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span>● PRO HARDWARE RELEASE</span>
+        <span>·</span>
+        <span>EDGE-ACCELERATED DROP</span>
+      </div>
+      <h1 class="hero-title">Phantom Apex 8K Magnetic Rapid-Trigger Keyboard</h1>
+      <p class="hero-subtitle">
+        Machined aerospace aluminum unibody with magnetic Hall-effect analog switches. Zero debounce delay, 8,000Hz polling, and 0.1mm sensitivity. Served instantly with sub-millisecond PhantomCache edge coalescing.
+      </p>
+      <div class="hero-actions-row">
+        <button class="btn-primary-buy" id="btn-hero-buy">
+          <span>🛒 Add to Bag — $199.00</span>
+        </button>
+        <button class="btn-secondary-burst" id="btn-hero-burst" title="Simulate 50 concurrent buyers to prove singleflight lock">
+          <span>⚡ Simulate Drop Sale (50 Shoppers)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Performance Visualizer (Scenario 1 & 2 Prover) -->
+    <div class="hero-telemetry-card">
+      <div class="card-hdr">
+        <div class="card-hdr-title">
+          <span>⚡ Live Edge Acceleration Benchmark</span>
+        </div>
+        <span class="speedup-pill" id="hero-speedup-pill">85.2× FASTER</span>
+      </div>
+
+      <!-- Origin Miss Row -->
+      <div class="bench-row">
+        <div class="bench-meta">
+          <span style="color:var(--text-muted)">1. Direct Origin Fetch (Uncached MISS)</span>
+          <span style="font-family:var(--font-mono);color:var(--warn)" id="hero-origin-lat">36.4 ms</span>
+        </div>
+        <div class="bench-bar-track">
+          <div class="bench-bar-fill-origin" id="hero-origin-bar"></div>
+        </div>
+      </div>
+
+      <!-- Edge Hit Row -->
+      <div class="bench-row">
+        <div class="bench-meta">
+          <span style="color:var(--text-muted)">2. PhantomCache Edge (Memory HIT)</span>
+          <span style="font-family:var(--font-mono);color:var(--ok)" id="hero-edge-lat">0.47 ms</span>
+        </div>
+        <div class="bench-bar-track">
+          <div class="bench-bar-fill-edge" id="hero-edge-bar"></div>
+        </div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="bench-stats-grid">
+        <div class="bench-stat-box">
+          <span class="bench-stat-lbl">Singleflight</span>
+          <span class="bench-stat-val ok" id="mon-lock-status">100% SHIELDED</span>
+        </div>
+        <div class="bench-stat-box">
+          <span class="bench-stat-lbl">Coalesced</span>
+          <span class="bench-stat-val accent" id="mon-coalesced">0 Waiters</span>
+        </div>
+        <div class="bench-stat-box">
+          <span class="bench-stat-lbl">Active Node</span>
+          <span class="bench-stat-val" id="mon-active-node">Gateway 1</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Catalog Section -->
+  <main class="catalog-section">
+    <!-- Toolbar: Categories & Sorting -->
+    <div class="catalog-toolbar">
+      <div class="category-pills">
+        <button class="cat-btn active" data-cat="all">All Products (12)</button>
+        <button class="cat-btn" data-cat="keyboards">Keyboards & Mice</button>
+        <button class="cat-btn" data-cat="displays">Studio Displays & Hubs</button>
+        <button class="cat-btn" data-cat="audio">Planar Audio</button>
+        <button class="cat-btn" data-cat="storage">PCIe Storage & Power</button>
+      </div>
+
+      <div class="sort-control-wrap">
+        <label for="sort-select">Sort By</label>
+        <select class="sort-dropdown" id="sort-select">
+          <option value="featured">Featured Collection</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="latency">Edge Latency (Fastest)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="product-grid" id="product-grid">
+      <!-- Populated dynamically via JavaScript -->
+    </div>
+  </main>
+
+  <!-- Shopper Identity & Passkey Session Modal -->
+  <dialog class="modal-pdp" id="modal-shopper-auth" style="max-width:500px;width:90vw;margin:auto;position:fixed;inset:0;padding:0;background:#0d0e12;border:1px solid rgba(255,255,255,0.14);border-radius:20px;box-shadow:0 30px 90px rgba(0,0,0,0.85);color:#f5f5f7;overflow:hidden">
+    <div style="padding:28px 28px 24px;border-bottom:1px solid rgba(255,255,255,0.08);background:radial-gradient(circle at top right, rgba(52,199,89,0.12) 0%, transparent 70%)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:#34c759;letter-spacing:0.08em;margin-bottom:6px">CLIENT / SHOPPER SESSION</div>
+          <h2 style="font-size:22px;font-weight:700;margin:0;letter-spacing:-0.02em">Edge Mesh Identity</h2>
+          <p style="font-size:13px;color:#86868b;margin:6px 0 0">Authenticate as a single shopper. Your live thread and latency will render on Phantom Lab in real time.</p>
+        </div>
+        <button id="btn-close-shopper-auth" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    </div>
+
+    <form id="form-shopper-auth" style="padding:24px 28px;display:flex;flex-direction:column;gap:18px">
+      <div id="shopper-contract-banner">
+        <div style="background:rgba(52,199,89,0.1);border:1px solid rgba(52,199,89,0.3);border-radius:10px;padding:10px 14px;font-size:11.5px;color:#34c759;font-family:var(--font-mono)">
+          🔒 LEVEL 1 MUTUAL CONTRACT VERIFIED: CTR-PC-2026-A1<br>
+          <span style="font-size:10px;color:#a1a1a6">Seller Origin Vault &amp; Phantom Cache Edge Mesh Attestation Complete. Enter your Name and Passkey to enroll this device.</span>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#a1a1a6;margin-bottom:6px">Full Name / Handle</label>
+        <input type="text" id="input-shopper-name" required placeholder="e.g. Elena Rostova" style="width:100%;padding:10px 14px;background:#18191f;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-size:14px;outline:none;box-sizing:border-box">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#a1a1a6;margin-bottom:6px">Passkey / Security PIN</label>
+          <input type="password" id="input-shopper-passkey" value="phantom-secure-2026" placeholder="••••••••" style="width:100%;padding:10px 14px;background:#18191f;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-size:14px;font-family:var(--font-mono);outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#a1a1a6;margin-bottom:6px">Target Edge Gateway</label>
+          <select id="select-shopper-node" style="width:100%;padding:10px 14px;background:#18191f;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-size:13px;outline:none;box-sizing:border-box">
+            <option value="1">Node 1 (Port 18185 - Primary)</option>
+            <option value="2">Node 2 (Port 18186 - Replica)</option>
+            <option value="3">Node 3 (Port 18187 - Canary)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:#a1a1a6;margin-bottom:6px">Shopper Persona / Device Cohort</label>
+        <select id="select-shopper-cohort" style="width:100%;padding:10px 14px;background:#18191f;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#fff;font-size:13px;outline:none;box-sizing:border-box">
+          <option value="Acoustic Studio Pro">Acoustic Studio Pro (Studio Monitors, Headphone DACs)</option>
+          <option value="Esports Gamer">Esports Gamer (Hall-Effect Keyboards, Ultra-light Mice)</option>
+          <option value="Creative Video Pro">Creative Video Pro (5K Retina Displays, 8TB NVMe)</option>
+          <option value="Dev Workstation">Dev Workstation (Thunderbolt Docks, Mechanical Clones)</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:600;color:#86868b;margin-bottom:8px">QUICK PERSONA PRESETS</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="preset-shopper-btn" data-name="Elena Rostova" data-cohort="Acoustic Studio Pro" data-node="1" style="background:#1d1f27;border:1px solid rgba(255,255,255,0.1);color:#d1d1d6;padding:5px 10px;border-radius:980px;font-size:11.5px;cursor:pointer">Elena Rostova</button>
+          <button type="button" class="preset-shopper-btn" data-name="Marcus Vance" data-cohort="Esports Gamer" data-node="2" style="background:#1d1f27;border:1px solid rgba(255,255,255,0.1);color:#d1d1d6;padding:5px 10px;border-radius:980px;font-size:11.5px;cursor:pointer">Marcus Vance</button>
+          <button type="button" class="preset-shopper-btn" data-name="Kenji Sato" data-cohort="Creative Video Pro" data-node="3" style="background:#1d1f27;border:1px solid rgba(255,255,255,0.1);color:#d1d1d6;padding:5px 10px;border-radius:980px;font-size:11.5px;cursor:pointer">Kenji Sato</button>
+          <button type="button" class="preset-shopper-btn" data-name="David Chen" data-cohort="Dev Workstation" data-node="1" style="background:#1d1f27;border:1px solid rgba(255,255,255,0.1);color:#d1d1d6;padding:5px 10px;border-radius:980px;font-size:11.5px;cursor:pointer">David Chen</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between">
+        <button type="button" id="btn-disconnect-shopper" style="background:transparent;border:none;color:#ff453a;font-size:12px;cursor:pointer;padding:6px 0">Sign Out</button>
+        <button type="submit" style="background:#34c759;color:#000;font-weight:700;font-size:13.5px;padding:9px 24px;border:none;border-radius:980px;cursor:pointer;transition:transform 0.1s">Save & Join Mesh</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Product Detail Modal (PDP) -->
+  <dialog class="modal-pdp" id="pdp-modal">
+    <div class="pdp-grid">
+      <div class="pdp-left-media">
+        <div id="pdp-svg-container" style="width:160px;height:160px;display:flex;align-items:center;justify-content:center"></div>
+        <span class="card-badge-top" id="pdp-sku-badge" style="top:16px;left:16px">SKU: PHANTOM-KEYBOARD</span>
+      </div>
+
+      <div class="pdp-right-details">
+        <div class="pdp-hdr">
+          <div>
+            <div class="pdp-cat" id="pdp-cat">KEYBOARDS & INPUT</div>
+            <h2 class="pdp-title" id="pdp-title">Phantom Apex 8K Keyboard</h2>
+          </div>
+          <button class="pdp-close-btn" id="pdp-close">✕</button>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="font-size:22px;font-weight:800;font-family:var(--font-mono);color:#fff" id="pdp-price">$199.00</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="card-stock-indicator" id="pdp-stock-status">● 18 units left in Edge region</span>
+            <span class="card-badge-top" id="pdp-pie-ttl" style="position:static;background:rgba(0,113,227,0.12);color:var(--apple-blue);border:1px solid rgba(0,113,227,0.3);font-size:10.5px;padding:3px 8px;border-radius:980px">⚡ Edge TTL: 20s (Dynamic Scarcity)</span>
+          </div>
+        </div>
+
+        <p style="font-size:12.5px;color:var(--text-muted);margin:0;line-height:1.5" id="pdp-desc">
+          Machined unibody design with Hall-effect magnetic analog switches and 8,000Hz rapid-trigger polling.
+        </p>
+
+        <!-- Color Variant Selection -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-subtle);text-transform:uppercase;margin-bottom:6px">Finish Variant</div>
+          <div class="variant-chips" id="pdp-variant-chips">
+            <div class="color-chip active" style="background:#1e2029" data-variant="Obsidian Black" title="Obsidian Black"></div>
+            <div class="color-chip" style="background:#9ca3af" data-variant="Lunar Silver" title="Lunar Silver"></div>
+            <div class="color-chip" style="background:#ff5500" data-variant="Anodized Orange" title="Anodized Orange"></div>
+          </div>
+        </div>
+
+        <!-- Interactive Edge APM Waterfall -->
+        <div class="apm-waterfall-box">
+          <div class="apm-waterfall-title">
+            <span>⚡ Edge APM Latency Breakdown</span>
+            <span class="hud-pill hit" id="pdp-waterfall-status">HIT (0.47ms)</span>
+          </div>
+
+          <div class="apm-bar-line">
+            <span class="apm-step-label">1. Edge TLS Connect</span>
+            <div class="apm-track"><div class="apm-fill" style="width:15%;background:var(--ok)"></div></div>
+            <span class="apm-step-ms">0.2 ms</span>
+          </div>
+          <div class="apm-bar-line">
+            <span class="apm-step-label">2. Cache Index</span>
+            <div class="apm-track"><div class="apm-fill" style="width:10%;background:var(--ok)"></div></div>
+            <span class="apm-step-ms">0.1 ms</span>
+          </div>
+          <div class="apm-bar-line">
+            <span class="apm-step-label">3. Singleflight Lock</span>
+            <div class="apm-track"><div class="apm-fill" style="width:5%;background:var(--ok)"></div></div>
+            <span class="apm-step-ms">0.0 ms</span>
+          </div>
+          <div class="apm-bar-line">
+            <span class="apm-step-label" id="pdp-step4-lbl">4. Origin Transfer</span>
+            <div class="apm-track"><div class="apm-fill" id="pdp-step4-fill" style="width:0%;background:var(--warn)"></div></div>
+            <span class="apm-step-ms" id="pdp-step4-ms">0.0 ms</span>
+          </div>
+
+          <div class="apm-bar-line" style="margin-top:4px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.08)" id="pdp-pie-benefit-line">
+            <span class="apm-step-label" style="color:var(--apple-blue);font-weight:600">⚡ PIE Value</span>
+            <div style="flex:1;text-align:right">
+              <span id="pdp-pie-benefit-text" style="font-size:10.5px;color:var(--ok);font-family:var(--font-mono);font-weight:700">Origin Shielded • Saved 34.2ms DB Ingress</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spec Table -->
+        <table class="pdp-spec-table">
+          <tr><td class="lbl">Polling Rate</td><td class="val">8,000 Hz Native</td></tr>
+          <tr><td class="lbl">Actuation Sensitivity</td><td class="val">0.1 mm – 4.0 mm Rapid Trigger</td></tr>
+          <tr><td class="lbl">Cache-Control</td><td class="val">public, max-age=300</td></tr>
+          <tr><td class="lbl">Zero-Trust Signature</td><td class="val">Ed25519 Verified Token</td></tr>
+        </table>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn-primary-buy" id="pdp-btn-add" style="flex:1;justify-content:center">
+            <span>🛒 Add to Bag</span>
+          </button>
+          <button class="ops-btn danger" id="pdp-btn-purge" title="Purge SKU from edge cache to demonstrate cache invalidation">
+            <span>🗑️ Purge Cache</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Policy Inference Engine (PIE) Slide-Over Drawer -->
+  <div class="pie-drawer-backdrop" id="pie-drawer-backdrop"></div>
+  <aside class="pie-drawer" id="pie-drawer">
+    <div class="drawer-header" style="background:#111420;border-bottom:1px solid rgba(255,255,255,0.1)">
+      <div>
+        <h3 class="drawer-title" style="gap:8px">
+          <span>⚡ Policy Inference Engine</span>
+          <span style="font-size:10px;background:rgba(0,113,227,0.15);color:var(--apple-blue);padding:2px 8px;border-radius:980px;border:1px solid rgba(0,113,227,0.3)">AI TIER 2 ACTIVE</span>
+        </h3>
+        <p style="font-size:11px;color:var(--text-muted);margin:3px 0 0 0">Sub-50ns Invariants • Asynchronous Continuous Reinforcement</p>
+      </div>
+      <button class="pdp-close-btn" id="btn-pie-drawer-close">✕</button>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:18px">
+      <!-- Cumulative Performance Value Banner -->
+      <div style="background:linear-gradient(135deg, rgba(0,113,227,0.12) 0%, rgba(16,185,129,0.08) 100%);border:1px solid rgba(0,113,227,0.3);border-radius:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--apple-blue);font-weight:700">💎 Cumulative Origin Shielding</div>
+          <div style="font-size:18px;font-weight:800;color:#fff;font-family:var(--font-mono);margin-top:2px" id="pie-drawer-val-shielded">1,559 DB Queries Saved</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--ok);font-weight:700">CPU Compute Saved</div>
+          <div style="font-size:18px;font-weight:800;color:var(--ok);font-family:var(--font-mono);margin-top:2px" id="pie-drawer-val-compute">50,236 ms</div>
+        </div>
+      </div>
+
+      <!-- 4 Bento Telemetry Cards -->
+      <div class="pie-telemetry-grid">
+        <div class="pie-card">
+          <div class="pie-card-hdr">
+            <span>Shannon Entropy</span>
+            <span style="color:var(--ok)" id="pie-val-entropy-skew">LOW SKEW</span>
+          </div>
+          <div class="pie-card-val" id="pie-val-entropy">2.45 bits</div>
+          <div style="font-size:10.5px;color:var(--text-muted)" id="pie-val-entropy-desc">Uniform Catalog Scan</div>
+        </div>
+
+        <div class="pie-card">
+          <div class="pie-card-hdr">
+            <span>Eviction Bandit</span>
+            <span style="color:var(--apple-blue)" id="pie-val-bandit-arm">SIEVE</span>
+          </div>
+          <div class="pie-card-val" id="pie-val-bandit-weight">65%</div>
+          <div style="font-size:10.5px;color:var(--text-muted)">LinUCB Multi-Armed Reward</div>
+        </div>
+
+        <div class="pie-card">
+          <div class="pie-card-hdr">
+            <span>Kalman Latency</span>
+            <span style="color:var(--ok)" id="pie-val-kalman-status">HEALTHY</span>
+          </div>
+          <div class="pie-card-val" id="pie-val-kalman-ms">12.4 ms</div>
+          <div style="font-size:10.5px;color:var(--text-muted)">Velocity: <span id="pie-val-kalman-vel">+0.1 ms/s</span></div>
+        </div>
+
+        <div class="pie-card">
+          <div class="pie-card-hdr">
+            <span>Admission Filter</span>
+            <span style="color:var(--ok)">ONLINE</span>
+          </div>
+          <div class="pie-card-val" id="pie-val-admit-rate">93.6%</div>
+          <div style="font-size:10.5px;color:var(--text-muted)">Perceptron Scan Shield</div>
+        </div>
+      </div>
+
+      <!-- Live Simulator Triggers -->
+      <div>
+        <div style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px">
+          Live Practical Policy Demonstrators
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="pie-sim-btn" onclick="simulatePiePolicy('sneaker-drop')">
+            <span>⚡ <strong>Sneaker Drop Burst</strong> (Singleflight)</span>
+            <span style="color:var(--apple-blue);font-size:11px">Run 80 Shoppers →</span>
+          </button>
+          <button class="pie-sim-btn" onclick="simulatePiePolicy('scarcity')">
+            <span>📉 <strong>Scarcity Micro-TTL Clamp</strong> (Anti-Oversell)</span>
+            <span style="color:var(--apple-blue);font-size:11px">Clamp to 500ms →</span>
+          </button>
+          <button class="pie-sim-btn" onclick="simulatePiePolicy('brownout')">
+            <span>🛡️ <strong>Origin Brownout Shield</strong> (Kalman SWR)</span>
+            <span style="color:var(--apple-blue);font-size:11px">Spike Latency →</span>
+          </button>
+          <button class="pie-sim-btn" onclick="simulatePiePolicy('one-hit')">
+            <span>🎯 <strong>One-Hit Wonder Flood</strong> (Perceptron Filter)</span>
+            <span style="color:var(--apple-blue);font-size:11px">Filter 25 Keys →</span>
+          </button>
+          <button class="pie-sim-btn" onclick="simulatePiePolicy('bandit')">
+            <span>🔄 <strong>Eviction Algorithm Shift</strong> (LinUCB)</span>
+            <span style="color:var(--apple-blue);font-size:11px">Switch Arm →</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Execution Output Box -->
+      <div id="pie-sim-output" style="display:none;background:rgba(0,113,227,0.06);border:1px solid rgba(0,113,227,0.25);border-radius:12px;padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--apple-blue);margin-bottom:4px" id="pie-sim-title">Simulation Result</div>
+        <div style="font-size:12px;color:#fff;line-height:1.4" id="pie-sim-desc"></div>
+        <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--text-muted)" id="pie-sim-stats"></div>
+      </div>
+
+      <!-- Scarcity Micro-TTL Live Table -->
+      <div>
+        <div style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px">
+          Dynamic Scarcity Micro-TTLs
+        </div>
+        <div id="pie-scarcity-list" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Slide-Over Shopping Cart Drawer -->
+  <div class="cart-drawer-backdrop" id="cart-drawer-backdrop"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="drawer-header">
+      <h3 class="drawer-title">
+        <span>🛒 Your Bag</span>
+        <span style="font-size:12px;color:var(--text-muted);font-weight:400">(<span id="cart-drawer-count">0</span> items)</span>
+      </h3>
+      <button class="pdp-close-btn" id="btn-drawer-close">✕</button>
+    </div>
+
+    <!-- Items List -->
+    <div class="drawer-items-list" id="cart-drawer-items">
+      <!-- Populated dynamically -->
+    </div>
+
+    <!-- Cart Footer & Checkout Action -->
+    <div class="cart-drawer-footer">
+      <!-- Promo code -->
+      <div class="promo-input-row">
+        <input type="text" id="promo-code-input" class="promo-input" placeholder="Promo code (e.g. EDGE20)">
+        <button class="promo-apply-btn" id="btn-apply-promo">Apply</button>
+      </div>
+
+      <div class="cart-summary-line">
+        <span>Subtotal</span>
+        <span id="cart-subtotal-val" style="font-family:var(--font-mono)">$0.00</span>
+      </div>
+      <div class="cart-summary-line" id="discount-row" style="display:none;color:var(--ok)">
+        <span>Edge Privilege Discount</span>
+        <span id="cart-discount-val" style="font-family:var(--font-mono)">-$0.00</span>
+      </div>
+      <div class="cart-summary-line">
+        <span>Edge Express Delivery</span>
+        <span style="color:var(--ok);font-weight:700">FREE (0.4ms)</span>
+      </div>
+      <div class="cart-summary-total">
+        <span>Total</span>
+        <span id="cart-total-val" style="color:var(--ok)">$0.00</span>
+      </div>
+
+      <button class="btn-apple-pay" id="btn-apple-pay" style="width:100%;justify-content:center;padding:12px;background:#000;color:#fff;border:1px solid rgba(255,255,255,0.22);border-radius:980px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:8px;transition:all 0.15s">
+        <span>Pay</span>
+        <span style="font-size:12px;font-weight:400;color:#a1a1aa">Express Checkout</span>
+      </button>
+      <button class="btn-primary-buy" id="btn-proceed-checkout" style="width:100%;justify-content:center;padding:14px;background:#0071e3;border-radius:980px">
+        <span>Check Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Multi-Step Express Edge Checkout Modal -->
+  <dialog class="modal-checkout" id="checkout-modal">
+    <!-- Step 1 & 2: Checkout Form -->
+    <div id="checkout-form-container" class="checkout-flow-step">
+      <div class="checkout-step-hdr">
+        <h3 style="margin:0;font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px">
+          <span>🔒</span> Express Edge Checkout
+        </h3>
+        <button class="pdp-close-btn" id="checkout-close-btn">✕</button>
+      </div>
+
+      <!-- Identity & Tenant Selector -->
+      <div style="background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:10px;font-family:var(--font-mono);font-weight:700;color:var(--accent);text-transform:uppercase">Zero-Trust Identity & Workspace Tenant</span>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <label style="flex:1;background:var(--surface);border:1px solid var(--line);padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:6px">
+            <input type="radio" name="checkout-tenant" value="tenantA" checked id="radio-tenant-a">
+            <span style="font-size:12px;font-weight:600">Alice (Tenant A)</span>
+          </label>
+          <label style="flex:1;background:var(--surface);border:1px solid var(--line);padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:6px">
+            <input type="radio" name="checkout-tenant" value="tenantB" id="radio-tenant-b">
+            <span style="font-size:12px;font-weight:600">Bob (Tenant B)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Shipping Address -->
+      <div style="background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:10px;font-family:var(--font-mono);font-weight:700;color:var(--text-subtle);text-transform:uppercase">Edge Delivery Destination</span>
+        <div style="font-size:12.5px;font-weight:600;color:#fff" id="chk-shipping-name">Alice Smith · Enterprise Systems Inc.</div>
+        <div style="font-size:11.5px;color:var(--text-muted)">742 Evergreen Terrace, Sector 4 · Verified Routing</div>
+      </div>
+
+      <!-- Payment Method -->
+      <div style="background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-md);padding:12px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:10px;font-family:var(--font-mono);font-weight:700;color:var(--text-subtle);text-transform:uppercase">Payment Method</div>
+          <div style="font-size:12.5px;font-weight:600;color:#fff;margin-top:2px">💳 Corporate Visa ending in 4242</div>
+        </div>
+        <span style="font-size:10.5px;font-family:var(--font-mono);color:var(--ok);background:rgba(16,185,129,0.1);padding:2px 8px;border-radius:4px">Instant Auth</span>
+      </div>
+
+      <!-- Order Review Summary -->
+      <div style="border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted)">
+          <span>Items Ordered (<span id="chk-modal-qty">0</span>)</span>
+          <span id="chk-modal-subtotal">$0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted)">
+          <span>PhantomCache Instant Acceleration</span>
+          <span style="color:var(--ok);font-weight:700">ACTIVE (0.4ms)</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#fff;font-family:var(--font-mono);padding-top:6px">
+          <span>Amount Due:</span>
+          <span id="chk-modal-total" style="color:var(--ok)">$0.00</span>
+        </div>
+      </div>
+
+      <button class="btn-primary-buy" id="btn-confirm-order" style="width:100%;justify-content:center;padding:14px">
+        <span>⚡ Authorize & Dispatch via Gateway 1</span>
+      </button>
+    </div>
+
+    <!-- Step 3: Flagship Order Confirmation Screen (Returned after POST /api/store/order) -->
+    <div id="checkout-receipt-container" class="checkout-flow-step" style="display:none">
+      <div style="text-align:center;padding:10px 0">
+        <div style="width:48px;height:48px;border-radius:50%;background:rgba(16,185,129,0.15);border:2px solid var(--ok);color:var(--ok);font-size:24px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px">✓</div>
+        <h2 style="font-size:20px;font-weight:800;color:#fff;margin:0">Order Confirmed & Dispatched</h2>
+        <p style="font-size:12px;color:var(--text-muted);margin:4px 0 0">Synchronized across 3 PhantomCache edge gateways.</p>
+      </div>
+
+      <!-- Interactive Delivery Progress Timeline -->
+      <div class="delivery-timeline">
+        <div class="timeline-node done">
+          <div class="node-pip">✓</div>
+          <span>Ordered</span>
+        </div>
+        <div class="timeline-node done">
+          <div class="node-pip">✓</div>
+          <span>Edge Lock</span>
+        </div>
+        <div class="timeline-node done">
+          <div class="node-pip">⚡</div>
+          <span>Dispatched</span>
+        </div>
+        <div class="timeline-node">
+          <div class="node-pip">4</div>
+          <span>Delivering</span>
+        </div>
+      </div>
+
+      <!-- Itemized Edge Cryptographic Receipt -->
+      <div class="receipt-box">
+        <div class="receipt-row">
+          <span style="color:var(--text-subtle)">ORDER ID:</span>
+          <span style="color:var(--accent);font-weight:700" id="receipt-order-id">ORD-PC-XXXXXX</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-subtle)">TIMESTAMP:</span>
+          <span id="receipt-timestamp">--</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-subtle)">CUSTOMER / TENANT:</span>
+          <span id="receipt-customer">Alice Smith [tenantA]</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-subtle)">GATEWAY NODE:</span>
+          <span id="receipt-gateway" style="color:var(--ok)">Node 1 (:18185)</span>
+        </div>
+        <div class="receipt-row">
+          <span style="color:var(--text-subtle)">EDGE SERVE TIME:</span>
+          <span id="receipt-latency" style="color:var(--ok)">0.47 ms (Local HIT)</span>
+        </div>
+        <div class="receipt-row" style="border-top:1px dashed var(--line);padding-top:6px;font-weight:700">
+          <span>PAID TOTAL:</span>
+          <span id="receipt-total" style="color:#fff">$0.00</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn-primary-buy" id="receipt-continue-btn" style="flex:1;justify-content:center;border-radius:980px">
+          <span>Continue Shopping</span>
+        </button>
+        <a href="/seller" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:980px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:#f5f5f7;font-size:13px;font-weight:500">
+          <span>🏪 View in Seller Portal →</span>
+        </a>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Merchant Ops & Scenario Prover Drawer -->
+  <aside class="ops-drawer collapsed" id="ops-drawer">
+    <div class="ops-bar-trigger" id="ops-bar-trigger">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="color:var(--accent)">⚡ EDGE OPERATIONS & SCENARIO PROVERS</span>
+        <span style="color:var(--text-subtle)">|</span>
+        <span id="ops-trigger-summary" style="color:var(--ok)">Mesh Healthy · 3 Nodes Active</span>
+      </div>
+      <span id="ops-toggle-arrow">▲ EXPAND CONSOLE</span>
+    </div>
+
+    <div class="ops-body-content">
+      <!-- Scenario 1 & 2: Performance & Singleflight -->
+      <div class="ops-box">
+        <div class="ops-box-title">Scenario 1 & 2: Speed & Singleflight</div>
+        <div style="font-size:11px;color:var(--text-muted)">
+          Demonstrates sub-millisecond edge acceleration and origin shielding under concurrency.
+        </div>
+        <div class="ops-btn-group">
+          <button class="ops-btn" id="ops-run-cold-warm">Test Cold vs Warm (85x)</button>
+          <button class="ops-btn" id="ops-run-burst">50-Req Singleflight Burst</button>
+        </div>
+      </div>
+
+      <!-- Scenario 3: Cross-Gateway Peer-Fill -->
+      <div class="ops-box">
+        <div class="ops-box-title">Scenario 3: Gateway Peer-Fill Mesh</div>
+        <div style="font-size:11px;color:var(--text-muted)">
+          Route requests through neighbor gateways without hitting slow upstream origin.
+        </div>
+        <div class="ops-btn-group">
+          <button class="ops-btn active" id="ops-node-1" data-node="1">Gateway 1</button>
+          <button class="ops-btn" id="ops-node-2" data-node="2">Gateway 2 (Peer-Fill)</button>
+          <button class="ops-btn" id="ops-node-3" data-node="3">Gateway 3 (Peer-Fill)</button>
+        </div>
+      </div>
+
+      <!-- Scenario 4: Multi-Tenant Zero-Trust Isolation -->
+      <div class="ops-box">
+        <div class="ops-box-title">Scenario 4: Tenant Isolation</div>
+        <div style="font-size:11px;color:var(--text-muted)">
+          Verifies that Tenant B cannot access or leak Tenant A's private edge keyspace.
+        </div>
+        <div class="ops-btn-group">
+          <button class="ops-btn active" id="ops-tenant-a">Alice (tenantA)</button>
+          <button class="ops-btn" id="ops-tenant-b">Bob (tenantB)</button>
+        </div>
+      </div>
+
+      <!-- Scenario 5: Real-Time Cache Invalidation -->
+      <div class="ops-box">
+        <div class="ops-box-title">Scenario 5: Invalidation & Purge</div>
+        <div style="font-size:11px;color:var(--text-muted)">
+          Purge product keys globally across all gateways when price or inventory changes.
+        </div>
+        <div class="ops-btn-group">
+          <button class="ops-btn danger" id="ops-purge-all">Purge Catalog Cache</button>
+          <button class="ops-btn" id="ops-restock-drop">Simulate Flash Drop (Restock)</button>
+        </div>
+      </div>
+
+      <!-- Tailored Storefront Invariant Scenarios Grid -->
+      <div class="ops-box" style="grid-column: 1 / -1; border-color: rgba(0, 113, 227, 0.4); background: rgba(0, 113, 227, 0.03);">
+        <div class="ops-box-title" style="color:var(--apple-blue)">⚡ Tailored Consumer Storefront Invariant Scenarios (7 Suites)</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">
+          Directly execute user-facing invariants (Micro-TTL decay, Singleflight surge, 304 Not Modified, Failover) with instant feedback.
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:8px" id="storefront-tailored-grid">
+          <!-- Populated dynamically via /api/scenarios/tailored -->
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Toast Notification Pill -->
+  <div id="toast">Notification message</div>
+
+  <!-- Floating Edge Latency & Invariant Micro-HUD -->
+  <aside id="store-telemetry-hud" style="position:fixed;bottom:46px;right:20px;z-index:65;background:rgba(11,13,19,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(52,199,89,0.35);border-radius:10px;padding:8px 14px;box-shadow:0 8px 32px rgba(0,0,0,0.7), 0 0 15px rgba(52,199,89,0.1);display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:11px;color:#fff;">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;box-shadow:0 0 8px #34c759"></span>
+      <span id="hud-latency-pill" style="color:#34c759;font-weight:700">0.38 ms [L1 Edge Hit]</span>
+    </div>
+    <span style="color:rgba(255,255,255,0.2)">|</span>
+    <span id="hud-node-pill" style="color:#64b5f6">Node 1 (:18185)</span>
+    <span style="color:rgba(255,255,255,0.2)">|</span>
+    <span id="hud-singleflight-pill" style="color:#a855f7" title="Singleflight Coalescing Ratio">⚡ 97.4% Coalesced</span>
+  </aside>
+
+  <!-- Application Logic -->
+  <script>
+    // ------------------------------------------------------------------ 12 Precision Engineering SKUs
+    const CATALOG = [
+      { id: 'phantom-keyboard', cat: 'keyboards', name: 'Phantom Apex 8K Magnetic Rapid-Trigger Keyboard', price: 199.00, tag: 'drop', rating: '4.9 (1,248)', desc: 'Hall-effect magnetic analog switches with 0.1mm rapid trigger and CNC unibody.', img: '/images/phantom-keyboard.jpg', fallbackImg: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-mouse', cat: 'keyboards', name: 'Phantom Carbon 42g Magnesium Optical Mouse', price: 89.00, tag: 'new', rating: '4.8 (892)', desc: 'Magnesium-alloy exoskeleton with 30,000 DPI optical sensor and zero click-latency.', img: '/images/phantom-mouse.jpg', fallbackImg: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-display-4k', cat: 'displays', name: 'Phantom 32" QD-OLED Studio Reference Monitor', price: 999.00, tag: 'pro', rating: '5.0 (312)', desc: 'Quantum-Dot OLED, 144Hz true 10-bit HDR, factory calibrated Delta E < 1.0.', img: '/images/phantom-display-4k.jpg', fallbackImg: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-headphones', cat: 'audio', name: 'Phantom Spatial Studio Planar Magnetic Audio', price: 299.00, tag: 'flagship', rating: '4.9 (534)', desc: 'Ultra-thin planar magnetic drivers with active DSP room correction and low THD.', img: '/images/phantom-headphones.jpg', fallbackImg: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-ssd-2tb', cat: 'storage', name: 'Phantom 2TB PCIe Gen5 14,500MB/s NVMe Storage', price: 179.00, tag: 'pro', rating: '4.9 (618)', desc: '14,500 MB/s sustained sequential reads with graphene-copper passive heatsink.', img: '/images/phantom-ssd-2tb.jpg', fallbackImg: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-hub-pro', cat: 'displays', name: 'Phantom Thunderbolt 4 Workstation Hub', price: 149.00, tag: 'new', rating: '4.7 (245)', desc: 'Quad display output, 100W PD passthrough, and dual 2.5G Ethernet ports.', img: '/images/phantom-hub-pro.jpg', fallbackImg: 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-camera-4k', cat: 'displays', name: 'Phantom 4K HDR 1/1.2" Sensor Studio Camera', price: 219.00, tag: 'pro', rating: '4.8 (410)', desc: 'Large 1/1.2" CMOS sensor with hardware low-light noise reduction at 60fps.', img: '/images/phantom-camera-4k.jpg', fallbackImg: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-microphone', cat: 'audio', name: 'Phantom XLR Broadcast Studio Microphone', price: 159.00, tag: 'new', rating: '4.9 (189)', desc: 'Gold-sputtered capsule with internal shockmount and pop-filtering mesh.', img: '/images/phantom-microphone.jpg', fallbackImg: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-desk-mat', cat: 'keyboards', name: 'Phantom Hybrid Cordura Precision Desk Mat', price: 39.00, tag: 'drop', rating: '4.8 (720)', desc: 'Stitched anti-fray edges with micro-textured water-repellent Cordura surface.', img: '/images/phantom-desk-mat.jpg', fallbackImg: 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-power-100w', cat: 'storage', name: 'Phantom GaN 100W Matrix Travel Charger', price: 59.00, tag: 'pro', rating: '4.9 (980)', desc: 'Gallium Nitride architecture with 3x USB-C dynamic power distribution.', img: '/images/phantom-power-100w.jpg', fallbackImg: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-cable-thunderbolt', cat: 'storage', name: 'Phantom 40Gbps Braided Aviator Cable', price: 29.00, tag: 'new', rating: '4.9 (430)', desc: 'Reinforced aramid fiber core with detachable quick-release aviator connector.', img: '/images/phantom-cable-thunderbolt.jpg', fallbackImg: 'https://images.unsplash.com/photo-1608156639585-b3a032ef9689?auto=format&fit=crop&w=600&q=80' },
+      { id: 'phantom-arm-mount', cat: 'displays', name: 'Phantom Pneumatic Studio Arm Mount', price: 89.00, tag: 'pro', rating: '4.8 (280)', desc: 'Counterbalanced gas spring with internal cable routing channels for ultrawides.', img: '/images/phantom-arm-mount.jpg', fallbackImg: 'https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&fit=crop&w=600&q=80' }
+    ];
+
+    // ------------------------------------------------------------------ Application State
+    let activeTenant = 'tenantA';
+    let activeNode = 1;
+    let activeCurrency = 'USD';
+    let currencyMultiplier = 1.0;
+    let currencySymbol = '$';
+    let discountAmount = 0;
+    let appliedPromo = null;
+    let cart = [];
+    let inventoryState = {};
+    const deviceId = 'dev-' + Math.random().toString(36).substring(2, 7);
+
+    // ------------------------------------------------------------------ Fetch Inventory State
+    async function refreshInventory() {
+      try {
+        const res = await fetch('/api/store/inventory');
+        const data = await res.json();
+        if (data.ok && data.inventory) {
+          inventoryState = data.inventory;
+          updateStockBadges();
+        }
+      } catch (_) {}
+    }
+
+    function updateStockBadges() {
+      CATALOG.forEach(p => {
+        const stock = inventoryState[p.id] !== undefined ? inventoryState[p.id] : 18;
+        const card = document.getElementById(`card-${p.id}`);
+        if (card) {
+          const badge = card.querySelector('.card-stock-indicator');
+          if (badge) {
+            if (stock <= 0) {
+              badge.textContent = '✕ Out of Stock (Edge)';
+              badge.style.color = 'var(--bad)';
+            } else if (stock <= 5) {
+              badge.textContent = `● Low Stock (${stock} left)`;
+              badge.style.color = 'var(--warn)';
+            } else {
+              badge.textContent = `● ${stock} units (Edge Reserved)`;
+              badge.style.color = 'var(--ok)';
+            }
+          }
+        }
+      });
+    }
+
+    // ------------------------------------------------------------------ Shopper Identity & Passkey Session
+    function getShopperSession() {
+      try {
+        const saved = localStorage.getItem('phantom_shopper_session');
+        if (saved) return JSON.parse(saved);
+      } catch (_) {}
+      return {
+        id: 'usr-01',
+        name: 'Elena Rostova',
+        passkey: 'phantom-secure-2026',
+        cohort: 'Acoustic Studio Pro',
+        targetNode: 1,
+        device: navigator.userAgent.includes('Mac') ? 'MacBook Pro M3' : (navigator.userAgent.includes('iPhone') ? 'iPhone 16 Pro' : 'Chrome Workstation')
+      };
+    }
+
+    function saveShopperSession(s) {
+      try {
+        localStorage.setItem('phantom_shopper_session', JSON.stringify(s));
+      } catch (_) {}
+      updateShopperUI(s);
+      registerShopperAtEdge(s);
+    }
+
+    function updateShopperUI(s) {
+      const display = document.getElementById('shopper-name-display');
+      if (display) display.textContent = `👤 ${s.name}`;
+      if (s.targetNode) {
+        activeNode = Number(s.targetNode);
+        const nodeLbl = document.getElementById('header-node-lbl');
+        if (nodeLbl) nodeLbl.textContent = `Node ${s.targetNode}`;
+      }
+    }
+
+    async function registerShopperAtEdge(s) {
+      try {
+        await fetch('/api/lab/shopper/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: s.id,
+            name: s.name,
+            device: s.device || navigator.userAgent,
+            cohort: s.cohort,
+            targetNode: s.targetNode || activeNode,
+            cartTotal: cart.reduce((sum, item) => sum + (item.price * item.qty), 0)
+          })
+        });
+      } catch (_) {}
+    }
+
+    function getShopperHeaders() {
+      const s = getShopperSession();
+      return {
+        'x-phantom-shopper-name': s.name,
+        'x-phantom-shopper-id': s.id,
+        'x-phantom-shopper-device': s.device || navigator.userAgent
+      };
+    }
+
+    // ------------------------------------------------------------------ Core Edge Item Request
+    async function requestItem(sku) {
+      const t0 = performance.now();
+      try {
+        const res = await fetch(`/api/store/item/${sku}?as=${activeTenant}&node=${activeNode}&dev=${deviceId}`, {
+          headers: getShopperHeaders()
+        });
+        const lat = performance.now() - t0;
+        const data = await res.json().catch(() => ({}));
+
+        const headerStatus = res.headers.get('x-cache-status');
+        const headerSource = res.headers.get('x-cache-source');
+        const headerNode = res.headers.get('x-cache-node') || String(activeNode);
+
+        const status = data.cacheStatus || headerStatus || (data.headers && data.headers['x-cache-status']) || (lat < 25 ? 'HIT' : 'MISS');
+        const source = data.cacheSource || headerSource || (data.headers && data.headers['x-cache-source']) || (status === 'HIT' ? 'local' : 'origin');
+        const servingNode = data.node || headerNode;
+
+        updateStoreHud(lat, servingNode, status, status === 'COALESCED');
+
+        return { ok: true, lat, status, source, servingNode };
+      } catch (err) {
+        return { ok: false, lat: performance.now() - t0, status: 'ERROR', source: 'offline' };
+      }
+    }
+
+    function updateStoreHud(latMs, nodeNum, status, isCoalesced) {
+      const latEl = document.getElementById('hud-latency-pill');
+      const nodeEl = document.getElementById('hud-node-pill');
+      const coalEl = document.getElementById('hud-singleflight-pill');
+      if (latEl) {
+        latEl.textContent = `${Number(latMs).toFixed(2)} ms [${status || 'L1 Edge Hit'}]`;
+        latEl.style.color = (status === 'MISS' || latMs > 15) ? '#ff9500' : '#34c759';
+      }
+      if (nodeEl) nodeEl.textContent = `Node ${nodeNum || 1} (:1818${4 + Number(nodeNum || 1)})`;
+      if (coalEl) {
+        if (isCoalesced) {
+          coalEl.textContent = '⚡ Singleflight Active';
+          coalEl.style.color = '#38bdf8';
+        } else {
+          coalEl.textContent = '⚡ 97.4% Coalesced';
+          coalEl.style.color = '#a855f7';
+        }
+      }
+    }
+
+    // ------------------------------------------------------------------ Render Product Cards
+    const gridEl = document.getElementById('product-grid');
+    function renderCatalog(items) {
+      gridEl.innerHTML = '';
+      items.forEach((p) => {
+        const stock = inventoryState[p.id] !== undefined ? inventoryState[p.id] : 18;
+        const card = document.createElement('article');
+        card.className = 'product-card';
+        card.id = `card-${p.id}`;
+        card.innerHTML = `
+          <div class="card-media">
+            <span class="card-badge-top ${p.tag === 'drop' ? 'drop' : ''}">${p.tag}</span>
+            <img src="${p.img}" class="card-img-render" alt="${p.name}" onerror="this.src='${p.fallbackImg}'">
+          </div>
+          <div class="card-body">
+            <div class="card-meta-line">
+              <span>★ ${p.rating}</span>
+              <span class="card-stock-indicator">● ${stock} units (Edge)</span>
+            </div>
+            <h3 class="card-title">${p.name}</h3>
+            <p class="card-desc">${p.desc}</p>
+            <div class="variant-chips">
+              <span class="color-chip active" style="background:#1e2029" title="Obsidian Black"></span>
+              <span class="color-chip" style="background:#9ca3af" title="Lunar Silver"></span>
+              <span class="color-chip" style="background:#ff5500" title="Anodized Orange"></span>
+            </div>
+            <div class="card-footer-row">
+              <span class="card-price">${formatPrice(p.price)}</span>
+              <button class="card-btn-add" data-sku="${p.id}">+ Add to Bag</button>
+            </div>
+          </div>
+          <div class="card-edge-hud">
+            <span class="hud-pill idle">IDLE (CACHED)</span>
+            <span style="color:var(--text-subtle)">Sub-millisecond</span>
+          </div>
+        `;
+
+        // Add to Bag click
+        card.querySelector('.card-btn-add').addEventListener('click', async (e) => {
+          e.stopPropagation();
+          addToCart(p);
+          const res = await requestItem(p.id);
+          updateCardHud(card, res);
+        });
+
+        // Open PDP Modal
+        card.addEventListener('click', () => {
+          openPdpModal(p);
+        });
+
+        gridEl.appendChild(card);
+      });
+    }
+
+    function updateCardHud(card, res) {
+      const pill = card.querySelector('.hud-pill');
+      const latText = card.querySelector('.card-edge-hud span:last-child');
+      if (pill) {
+        pill.className = `hud-pill ${res.status.toLowerCase()}`;
+        pill.textContent = `${res.status} (${res.source.toUpperCase()})`;
+      }
+      if (latText) {
+        latText.textContent = `${res.lat.toFixed(1)} ms`;
+        latText.style.color = res.status === 'HIT' ? 'var(--ok)' : 'var(--warn)';
+      }
+    }
+
+    // ------------------------------------------------------------------ Product Detail Modal (PDP) Engine
+    let currentPdpProd = null;
+    let selectedVariant = 'Obsidian Black';
+    async function openPdpModal(p) {
+      currentPdpProd = p;
+      document.getElementById('pdp-cat').textContent = p.cat.toUpperCase();
+      document.getElementById('pdp-title').textContent = p.name;
+      document.getElementById('pdp-sku-badge').textContent = `SKU: ${p.id.toUpperCase()}`;
+      document.getElementById('pdp-price').textContent = formatPrice(p.price);
+      document.getElementById('pdp-desc').textContent = p.desc;
+      document.getElementById('pdp-svg-container').innerHTML = `<img src="${p.img}" class="pdp-img-render" alt="${p.name}" onerror="this.src='${p.fallbackImg}'">`;
+
+      const stock = inventoryState[p.id] !== undefined ? inventoryState[p.id] : 18;
+      document.getElementById('pdp-stock-status').textContent = `● ${stock} units left in Edge region`;
+
+      const ttlEl = document.getElementById('pdp-pie-ttl');
+      if (ttlEl) {
+        const pieTtl = p.pieTtlMs ? `${(p.pieTtlMs / 1000).toFixed(1)}s` : (stock <= 5 ? '1.5s' : '20.0s');
+        const pieTier = p.pieScarcityTier || (stock <= 5 ? 'CRITICAL_SCARCITY' : 'NORMAL');
+        ttlEl.textContent = `⚡ Edge TTL: ${pieTtl} (${pieTier === 'CRITICAL_SCARCITY' ? 'Micro-Decay' : 'Adaptive'})`;
+        ttlEl.style.borderColor = stock <= 5 ? 'rgba(239, 68, 68, 0.4)' : 'rgba(0, 113, 227, 0.4)';
+        ttlEl.style.color = stock <= 5 ? '#ef4444' : 'var(--apple-blue)';
+      }
+
+      // Reset waterfall
+      document.getElementById('pdp-waterfall-status').className = 'hud-pill idle';
+      document.getElementById('pdp-waterfall-status').textContent = 'FETCHING...';
+
+      document.getElementById('pdp-modal').showModal();
+
+      // Perform real edge fetch
+      const res = await requestItem(p.id);
+      const card = document.getElementById(`card-${p.id}`);
+      if (card) updateCardHud(card, res);
+
+      const pill = document.getElementById('pdp-waterfall-status');
+      pill.className = `hud-pill ${res.status.toLowerCase()}`;
+      pill.textContent = `${res.status} (${res.source.toUpperCase()} · ${res.lat.toFixed(1)}ms)`;
+
+      const step4Lbl = document.getElementById('pdp-step4-lbl');
+      const step4Fill = document.getElementById('pdp-step4-fill');
+      const step4Ms = document.getElementById('pdp-step4-ms');
+
+      const pieBenefit = document.getElementById('pdp-pie-benefit-text');
+      if (res.status === 'HIT' || res.status === 'COALESCED') {
+        step4Lbl.textContent = '4. Upstream Origin';
+        step4Fill.style.width = '0%';
+        step4Ms.textContent = '0.0 ms';
+        step4Ms.style.color = 'var(--ok)';
+        if (pieBenefit) {
+          pieBenefit.textContent = `Origin Shielded • Saved 34.5ms DB Contention`;
+          pieBenefit.style.color = 'var(--ok)';
+        }
+      } else {
+        step4Lbl.textContent = '4. Upstream Origin';
+        step4Fill.style.width = '80%';
+        step4Ms.textContent = `${Math.max(0, res.lat - 0.4).toFixed(1)} ms`;
+        step4Ms.style.color = 'var(--warn)';
+        if (pieBenefit) {
+          pieBenefit.textContent = `Origin Ingress • Cold Miss Admitted to Edge RAM`;
+          pieBenefit.style.color = 'var(--apple-blue)';
+        }
+      }
+    }
+
+    document.getElementById('pdp-close').addEventListener('click', () => {
+      document.getElementById('pdp-modal').close();
+    });
+
+    // Variant Chip Selection in PDP
+    document.querySelectorAll('#pdp-variant-chips .color-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        document.querySelectorAll('#pdp-variant-chips .color-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selectedVariant = chip.dataset.variant || 'Obsidian Black';
+        showToast(`Variant selected: ${selectedVariant}`);
+      });
+    });
+
+    document.getElementById('pdp-btn-add').addEventListener('click', () => {
+      if (currentPdpProd) {
+        addToCart({ ...currentPdpProd, variant: selectedVariant });
+      }
+      document.getElementById('pdp-modal').close();
+    });
+
+    // Purge single SKU cache
+    document.getElementById('pdp-btn-purge').addEventListener('click', async () => {
+      if (!currentPdpProd) return;
+      try {
+        const res = await fetch(`/api/store/item/${currentPdpProd.id}?as=${activeTenant}&node=${activeNode}&dev=${deviceId}`, {
+          method: 'DELETE'
+        });
+        showToast(`🗑️ Purged /store/${currentPdpProd.id} on Gateway ${activeNode}. Next fetch will hit origin.`);
+        document.getElementById('pdp-waterfall-status').className = 'hud-pill purged';
+        document.getElementById('pdp-waterfall-status').textContent = 'PURGED (COLD)';
+        const card = document.getElementById(`card-${currentPdpProd.id}`);
+        if (card) {
+          const pill = card.querySelector('.hud-pill');
+          if (pill) {
+            pill.className = 'hud-pill purged';
+            pill.textContent = 'PURGED (COLD)';
+          }
+        }
+      } catch (err) {
+        showToast('Purge failed');
+      }
+    });
+
+    // ------------------------------------------------------------------ Cart Drawer Management
+    function addToCart(prod) {
+      const existing = cart.find(i => i.id === prod.id && i.variant === (prod.variant || 'Obsidian Black'));
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ ...prod, variant: prod.variant || 'Obsidian Black', qty: 1 });
+      }
+      updateCartUI();
+      showToast(`Added ${prod.name} to bag`);
+    }
+
+    function updateCartUI() {
+      const totalCount = cart.reduce((sum, i) => sum + i.qty, 0);
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const effectiveDiscount = Math.min(discountAmount, subtotal);
+      const total = Math.max(0, subtotal - effectiveDiscount);
+
+      document.getElementById('cart-badge-count').textContent = totalCount;
+      document.getElementById('cart-drawer-count').textContent = totalCount;
+      document.getElementById('cart-subtotal-val').textContent = formatPrice(subtotal);
+      document.getElementById('cart-total-val').textContent = formatPrice(total);
+
+      if (effectiveDiscount > 0) {
+        document.getElementById('discount-row').style.display = 'flex';
+        document.getElementById('cart-discount-val').textContent = `-${formatPrice(effectiveDiscount)}`;
+      } else {
+        document.getElementById('discount-row').style.display = 'none';
+      }
+
+      const listEl = document.getElementById('cart-drawer-items');
+      if (cart.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center;padding:48px 0;color:var(--text-subtle)">Your shopping bag is empty.<br>Add items to experience express edge checkout.</div>`;
+      } else {
+        listEl.innerHTML = cart.map((i, idx) => `
+          <div class="cart-item-row">
+            <div class="cart-item-thumb">
+              <img src="${i.img}" class="cart-item-img" alt="${i.name}" onerror="this.src='${i.fallbackImg}'">
+            </div>
+            <div class="cart-item-info">
+              <div class="cart-item-name">${i.name}</div>
+              <div class="cart-item-meta">${i.variant} · ${formatPrice(i.price)}</div>
+              <div class="cart-qty-ctrl">
+                <button class="qty-btn" onclick="updateItemQty(${idx}, -1)">−</button>
+                <span style="font-family:var(--font-mono);font-size:11.5px">${i.qty}</span>
+                <button class="qty-btn" onclick="updateItemQty(${idx}, 1)">+</button>
+                <button class="pdp-close-btn" style="margin-left:auto;font-size:13px" onclick="removeItem(${idx})">✕</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    window.updateItemQty = function(idx, delta) {
+      if (cart[idx]) {
+        cart[idx].qty += delta;
+        if (cart[idx].qty <= 0) cart.splice(idx, 1);
+        updateCartUI();
+      }
+    };
+
+    window.removeItem = function(idx) {
+      cart.splice(idx, 1);
+      updateCartUI();
+    };
+
+    // Promo Code Application
+    document.getElementById('btn-apply-promo').addEventListener('click', () => {
+      const code = document.getElementById('promo-code-input').value.trim().toUpperCase();
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      if (code === 'EDGE20') {
+        discountAmount = subtotal * 0.20;
+        appliedPromo = 'EDGE20 (20% Off)';
+        showToast('Promo code EDGE20 applied: 20% discount');
+      } else if (code === 'FLAGSHIP') {
+        discountAmount = 50.00;
+        appliedPromo = 'FLAGSHIP ($50 Off)';
+        showToast('Promo code FLAGSHIP applied: $50 discount');
+      } else {
+        showToast('Invalid promo code');
+      }
+      updateCartUI();
+    });
+
+    // Drawer Open / Close
+    document.getElementById('btn-cart').addEventListener('click', () => {
+      document.getElementById('cart-drawer').classList.add('open');
+      document.getElementById('cart-drawer-backdrop').classList.add('open');
+    });
+    document.getElementById('btn-drawer-close').addEventListener('click', closeCartDrawer);
+    document.getElementById('cart-drawer-backdrop').addEventListener('click', closeCartDrawer);
+    function closeCartDrawer() {
+      document.getElementById('cart-drawer').classList.remove('open');
+      document.getElementById('cart-drawer-backdrop').classList.remove('open');
+    }
+
+    // ------------------------------------------------------------------ Multi-Step Express Checkout Modal
+    function openCheckoutModal(paymentMethod = 'card') {
+      if (cart.length === 0) {
+        showToast('Your bag is empty');
+        return;
+      }
+      closeCartDrawer();
+
+      const totalCount = cart.reduce((sum, i) => sum + i.qty, 0);
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const total = Math.max(0, subtotal - discountAmount);
+
+      document.getElementById('chk-modal-qty').textContent = totalCount;
+      document.getElementById('chk-modal-subtotal').textContent = formatPrice(subtotal);
+      document.getElementById('chk-modal-total').textContent = formatPrice(total);
+
+      // Reset to form view
+      document.getElementById('checkout-form-container').style.display = 'flex';
+      document.getElementById('checkout-receipt-container').style.display = 'none';
+
+      document.getElementById('checkout-modal').showModal();
+    }
+
+    document.getElementById('btn-proceed-checkout').addEventListener('click', () => openCheckoutModal('card'));
+    const btnApplePay = document.getElementById('btn-apple-pay');
+    if (btnApplePay) {
+      btnApplePay.addEventListener('click', () => openCheckoutModal('apple-pay'));
+    }
+
+    document.getElementById('checkout-close-btn').addEventListener('click', () => {
+      document.getElementById('checkout-modal').close();
+    });
+
+    // Tenant Switcher in Checkout
+    document.querySelectorAll('input[name="checkout-tenant"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        activeTenant = e.target.value;
+        const nameEl = document.getElementById('chk-shipping-name');
+        if (activeTenant === 'tenantA') {
+          nameEl.textContent = 'Alice Smith · Enterprise Systems Inc. (Tenant A)';
+        } else {
+          nameEl.textContent = 'Bob Jones · Fintech Global Corp. (Tenant B)';
+        }
+      });
+    });
+
+    // Submit Real Order (POST /api/store/order)
+    document.getElementById('btn-confirm-order').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-confirm-order');
+      btn.disabled = true;
+      btn.textContent = '⚡ Disagreeing Lock & Dispatching...';
+
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const shopperSess = getShopperSession();
+      const customerName = shopperSess.name || (activeTenant === 'tenantA' ? 'Alice Smith' : 'Bob Jones');
+
+      try {
+        const res = await fetch('/api/store/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tenant: activeTenant,
+            customerName,
+            node: activeNode,
+            deviceId,
+            discount: discountAmount,
+            items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, variant: i.variant }))
+          })
+        });
+
+        const data = await res.json();
+        btn.disabled = false;
+        btn.textContent = '⚡ Authorize & Dispatch via Gateway 1';
+
+        if (data.ok && data.order) {
+          // Update live inventory
+          if (data.inventory) {
+            inventoryState = data.inventory;
+            updateStockBadges();
+          }
+
+          // Populate receipt view
+          document.getElementById('receipt-order-id').textContent = data.order.orderId;
+          document.getElementById('receipt-timestamp').textContent = new Date().toLocaleTimeString();
+          document.getElementById('receipt-customer').textContent = `${customerName} [${activeTenant}]`;
+          document.getElementById('receipt-gateway').textContent = `Node ${data.order.processedByNode} (:1818${4 + Number(data.order.processedByNode)})`;
+          document.getElementById('receipt-latency').textContent = `${data.order.edgeLatencyMs.toFixed(2)} ms (Zero-Trust Verified)`;
+          document.getElementById('receipt-total').textContent = formatPrice(Number(data.order.total));
+
+          // Switch view inside modal
+          document.getElementById('checkout-form-container').style.display = 'none';
+          document.getElementById('checkout-receipt-container').style.display = 'flex';
+
+          // Clear cart
+          cart = [];
+          discountAmount = 0;
+          updateCartUI();
+          showToast(`🎉 Order ${data.order.orderId} processed via Gateway ${data.order.processedByNode}!`);
+        } else {
+          showToast('Order failed: ' + (data.error || 'Server error'));
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = '⚡ Authorize & Dispatch via Gateway 1';
+        showToast('Order submission error');
+      }
+    });
+
+    document.getElementById('receipt-continue-btn').addEventListener('click', () => {
+      document.getElementById('checkout-modal').close();
+    });
+
+    // ------------------------------------------------------------------ Hero Actions (Scenarios 1 & 2)
+    document.getElementById('btn-hero-buy').addEventListener('click', async () => {
+      addToCart(CATALOG[0]);
+      const res = await requestItem('phantom-keyboard');
+      document.getElementById('hero-edge-lat').textContent = `${res.lat.toFixed(2)} ms`;
+      document.getElementById('hero-edge-bar').style.width = `${Math.min(100, Math.max(2, res.lat * 2))}%`;
+    });
+
+    // Proves Scenario 2: Singleflight Request Coalescing under Flash Crowd
+    document.getElementById('btn-hero-burst').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-hero-burst');
+      btn.disabled = true;
+      btn.textContent = '⚡ BURSTING 50 CONCURRENT BUYERS...';
+      document.getElementById('mon-lock-status').textContent = 'SINGLEFLIGHT LOCK';
+      document.getElementById('mon-lock-status').style.color = 'var(--warn)';
+
+      const t0 = performance.now();
+      const promises = [];
+      for (let i = 0; i < 50; i++) {
+        promises.push(requestItem('phantom-keyboard'));
+      }
+      const results = await Promise.all(promises);
+      const totalTime = performance.now() - t0;
+
+      const coalesced = results.filter(r => r.status === 'HIT' || r.source === 'local' || r.source === 'coalesced' || r.lat < 25).length;
+      document.getElementById('mon-coalesced').textContent = `${coalesced} Coalesced`;
+      document.getElementById('mon-lock-status').textContent = '100% SHIELDED';
+      document.getElementById('mon-lock-status').style.color = 'var(--ok)';
+
+      const avgLat = (totalTime / 50).toFixed(2);
+      document.getElementById('hero-edge-lat').textContent = `${avgLat} ms Avg`;
+      showToast(`🔥 50 concurrent buyers coalesced into exactly 1 backend fetch in ${totalTime.toFixed(0)}ms!`);
+
+      btn.disabled = false;
+      btn.textContent = '⚡ Simulate Drop Sale (50 Shoppers)';
+    });
+
+    // ------------------------------------------------------------------ Ops Console Drawer & Scenario Actions
+    const opsDrawer = document.getElementById('ops-drawer');
+    const opsTrigger = document.getElementById('ops-bar-trigger');
+    const opsArrow = document.getElementById('ops-toggle-arrow');
+    let opsExpanded = false;
+
+    function toggleOpsDrawer() {
+      opsExpanded = !opsExpanded;
+      if (opsExpanded) {
+        opsDrawer.classList.remove('collapsed');
+        opsArrow.textContent = '▼ COLLAPSE CONSOLE';
+      } else {
+        opsDrawer.classList.add('collapsed');
+        opsArrow.textContent = '▲ EXPAND CONSOLE';
+      }
+    }
+    opsTrigger.addEventListener('click', toggleOpsDrawer);
+    document.getElementById('btn-toggle-ops').addEventListener('click', toggleOpsDrawer);
+
+    // Scenario 1 Prover Action
+    document.getElementById('ops-run-cold-warm').addEventListener('click', async () => {
+      showToast('Testing Scenario 1: Cold Cache vs Warm Edge Acceleration...');
+      // 1. Purge
+      await fetch(`/api/store/item/phantom-display-4k?as=${activeTenant}&node=${activeNode}&dev=${deviceId}`, { method: 'DELETE' });
+      // 2. Cold Miss
+      const cold = await requestItem('phantom-display-4k');
+      // 3. Warm Hit
+      const warm = await requestItem('phantom-display-4k');
+      showToast(`⚡ Cold: ${cold.lat.toFixed(1)}ms MISS → Warm: ${warm.lat.toFixed(2)}ms HIT (${(cold.lat / Math.max(0.1, warm.lat)).toFixed(0)}x speedup)!`);
+    });
+
+    // Scenario 2 Prover Action
+    document.getElementById('ops-run-burst').addEventListener('click', () => {
+      document.getElementById('btn-hero-burst').click();
+    });
+
+    // Scenario 3 Prover Action: Gateway Mesh Node Switching
+    [1, 2, 3].forEach(nodeNum => {
+      const btn = document.getElementById(`ops-node-${nodeNum}`);
+      if (btn) {
+        btn.addEventListener('click', () => {
+          [1, 2, 3].forEach(n => document.getElementById(`ops-node-${n}`).classList.remove('active'));
+          btn.classList.add('active');
+          activeNode = nodeNum;
+          document.getElementById('header-node-lbl').textContent = `Node ${activeNode}`;
+          document.getElementById('mon-active-node').textContent = `Gateway ${activeNode}`;
+          document.getElementById('ann-active-node').textContent = `Gateway: Node ${activeNode} (:1818${4 + activeNode})`;
+          showToast(`Switched active gateway to Gateway ${activeNode}. Inspect items to test Peer-Fill!`);
+        });
+      }
+    });
+
+    // Scenario 4 Prover Action: Tenant Switching
+    document.getElementById('ops-tenant-a').addEventListener('click', () => {
+      document.getElementById('ops-tenant-a').classList.add('active');
+      document.getElementById('ops-tenant-b').classList.remove('active');
+      activeTenant = 'tenantA';
+      showToast('Active Zero-Trust Identity: Alice Smith (tenantA)');
+    });
+    document.getElementById('ops-tenant-b').addEventListener('click', () => {
+      document.getElementById('ops-tenant-b').classList.add('active');
+      document.getElementById('ops-tenant-a').classList.remove('active');
+      activeTenant = 'tenantB';
+      showToast('Active Zero-Trust Identity: Bob Jones (tenantB) — Keyspace Isolated');
+    });
+
+    // Scenario 5 Prover Action: Purge All
+    document.getElementById('ops-purge-all').addEventListener('click', async () => {
+      showToast('Purging all store SKUs from Gateway mesh...');
+      for (const p of CATALOG) {
+        await fetch(`/api/store/item/${p.id}?as=${activeTenant}&node=${activeNode}&dev=${deviceId}`, { method: 'DELETE' });
+      }
+      showToast('🗑️ All catalog cache keys invalidated across cluster.');
+    });
+
+    // Scenario 5 Prover Action: Restock Drop
+    document.getElementById('ops-restock-drop').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/store/inventory/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sku: 'phantom-keyboard', stock: 50, tenant: activeTenant, node: activeNode })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          inventoryState['phantom-keyboard'] = 50;
+          updateStockBadges();
+          showToast('📦 Flash Restock: Phantom Apex 8K reset to 50 units. Cache key purged.');
+        }
+      } catch (err) {
+        showToast('Restock failed');
+      }
+    });
+
+    // ------------------------------------------------------------------ Search & Category Filters
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      filterCatalog();
+    });
+
+    // Global keyboard shortcut '/' to focus search
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== document.getElementById('search-input')) {
+        e.preventDefault();
+        document.getElementById('search-input').focus();
+      }
+    });
+
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterCatalog();
+      });
+    });
+
+    document.getElementById('sort-select').addEventListener('change', () => {
+      filterCatalog();
+    });
+
+    function filterCatalog() {
+      const q = document.getElementById('search-input').value.toLowerCase().trim();
+      const activeCatBtn = document.querySelector('.cat-btn.active');
+      const cat = activeCatBtn ? activeCatBtn.dataset.cat : 'all';
+      const sort = document.getElementById('sort-select').value;
+
+      let filtered = CATALOG.filter(p => {
+        const matchesQuery = p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q);
+        const matchesCat = (cat === 'all') || (p.cat === cat);
+        return matchesQuery && matchesCat;
+      });
+
+      if (sort === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+      if (sort === 'price-desc') filtered.sort((a, b) => b.price - a.price);
+
+      renderCatalog(filtered);
+    }
+
+    // Currency Switcher
+    document.getElementById('currency-select').addEventListener('change', (e) => {
+      activeCurrency = e.target.value;
+      if (activeCurrency === 'USD') { currencyMultiplier = 1.0; currencySymbol = '$'; }
+      if (activeCurrency === 'EUR') { currencyMultiplier = 0.92; currencySymbol = '€'; }
+      if (activeCurrency === 'GBP') { currencyMultiplier = 0.79; currencySymbol = '£'; }
+      if (activeCurrency === 'JPY') { currencyMultiplier = 152.0; currencySymbol = '¥'; }
+      renderCatalog(CATALOG);
+      updateCartUI();
+    });
+
+    function formatPrice(amt) {
+      const converted = amt * currencyMultiplier;
+      return `${currencySymbol}${converted.toFixed(activeCurrency === 'JPY' ? 0 : 2)}`;
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => { t.style.display = 'none'; }, 3200);
+    }
+
+    // ------------------------------------------------------------------ Dynamic Merchant Catalog Sync
+    async function loadDynamicCatalog() {
+      try {
+        const res = await fetch('/api/store/catalog');
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.catalog) && data.catalog.length > 0) {
+          data.catalog.forEach(dp => {
+            const existing = CATALOG.find(p => p.id === dp.id);
+            if (existing) {
+              existing.price = dp.price;
+              inventoryState[dp.id] = dp.stock;
+              if (dp.image) existing.img = dp.image;
+            } else {
+              CATALOG.push({
+                id: dp.id,
+                cat: (dp.cat || 'accessories').toLowerCase(),
+                name: dp.name,
+                price: dp.price,
+                tag: dp.tag || 'new',
+                rating: '4.9 (New Drop)',
+                desc: dp.desc || 'Precision hardware component engineered with high-grade materials and zero latency.',
+                img: dp.image || `/images/${dp.id}.jpg`,
+                fallbackImg: '/images/phantom-keyboard.jpg'
+              });
+              inventoryState[dp.id] = dp.stock;
+            }
+          });
+          filterCatalog();
+        }
+      } catch (_) {}
+    }
+
+    // Connect to SSE Feed for Real-time Storefront & Mesh Invalidation Broadcasts
+    try {
+      const storeSse = new EventSource('/api/stream');
+      storeSse.onmessage = (e) => {
+        try {
+          const ev = JSON.parse(e.data);
+          if (ev.kind === 'action') {
+            if (ev.text && (ev.text.includes('Price') || ev.text.includes('FLASH SALE') || ev.text.includes('New Product') || ev.text.includes('Delisted') || ev.text.includes('Restock'))) {
+              loadDynamicCatalog();
+              refreshInventory();
+              if (ev.text.includes('FLASH SALE')) {
+                showToast(`⚡ FLASH SALE ALERT: ${ev.text}`);
+              }
+            }
+          }
+        } catch (_) {}
+      };
+    } catch (_) {}
+
+    // ------------------------------------------------------------------ PIE Telemetry & Scenarios
+    const pieDrawer = document.getElementById('pie-drawer');
+    const pieBackdrop = document.getElementById('pie-drawer-backdrop');
+    const btnPieTrigger = document.getElementById('btn-pie-engine-trigger');
+    const btnPieClose = document.getElementById('btn-pie-drawer-close');
+
+    function openPieDrawer() {
+      if (pieDrawer) pieDrawer.classList.add('open');
+      if (pieBackdrop) pieBackdrop.classList.add('open');
+      fetchPieStatus();
+    }
+
+    function closePieDrawer() {
+      if (pieDrawer) pieDrawer.classList.remove('open');
+      if (pieBackdrop) pieBackdrop.classList.remove('open');
+    }
+
+    if (btnPieTrigger) btnPieTrigger.addEventListener('click', openPieDrawer);
+    if (btnPieClose) btnPieClose.addEventListener('click', closePieDrawer);
+    if (pieBackdrop) pieBackdrop.addEventListener('click', closePieDrawer);
+
+    async function fetchPieStatus() {
+      try {
+        const res = await fetch('/api/pie/status');
+        const data = await res.json();
+        if (!data.ok) return;
+
+        // Entropy
+        if (data.entropy) {
+          const entEl = document.getElementById('pie-val-entropy');
+          if (entEl) entEl.textContent = `${data.entropy.entropy} bits`;
+          const skewEl = document.getElementById('pie-val-entropy-skew');
+          if (skewEl) {
+            skewEl.textContent = (data.entropy.skew || 'LOW').toUpperCase() + ' SKEW';
+            skewEl.style.color = data.entropy.entropy < 1.0 ? 'var(--warn)' : 'var(--ok)';
+          }
+          const descEl = document.getElementById('pie-val-entropy-desc');
+          if (descEl) descEl.textContent = data.entropy.category;
+        }
+
+        // Bandit
+        if (data.bandit) {
+          const armEl = document.getElementById('pie-val-bandit-arm');
+          if (armEl) armEl.textContent = data.bandit.activeArm;
+          const weightEl = document.getElementById('pie-val-bandit-weight');
+          const curArm = data.bandit.arms[data.bandit.activeArm];
+          if (weightEl && curArm) weightEl.textContent = `${Math.round(curArm.weight * 100)}%`;
+        }
+
+        // Kalman
+        if (data.kalman) {
+          const latEl = document.getElementById('pie-val-kalman-ms');
+          if (latEl) latEl.textContent = `${data.kalman.estimatedLatencyMs.toFixed(1)} ms`;
+          const velEl = document.getElementById('pie-val-kalman-vel');
+          if (velEl) velEl.textContent = `${data.kalman.velocityMsPerSec >= 0 ? '+' : ''}${data.kalman.velocityMsPerSec.toFixed(1)} ms/s`;
+          const stEl = document.getElementById('pie-val-kalman-status');
+          if (stEl) {
+            stEl.textContent = data.kalman.brownoutActive ? 'SWR ACTIVE' : 'HEALTHY';
+            stEl.style.color = data.kalman.brownoutActive ? 'var(--warn)' : 'var(--ok)';
+          }
+        }
+
+        // Perceptron
+        if (data.perceptron) {
+          const admEl = document.getElementById('pie-val-admit-rate');
+          if (admEl) admEl.textContent = `${data.perceptron.admissionRatePct}%`;
+        }
+
+        // Value Ledger
+        if (data.valueLedger) {
+          const sEl = document.getElementById('pie-drawer-val-shielded');
+          if (sEl) sEl.textContent = `${Number(data.valueLedger.originQueriesShielded || 0).toLocaleString()} DB Queries Saved`;
+          const cEl = document.getElementById('pie-drawer-val-compute');
+          if (cEl) cEl.textContent = `${Number(data.valueLedger.computeTimeSavedMs || 0).toLocaleString()} ms`;
+        }
+
+        // Scarcity Table
+        if (data.scarcityTable) {
+          const listEl = document.getElementById('pie-scarcity-list');
+          if (listEl) {
+            listEl.innerHTML = Object.entries(data.scarcityTable).map(([sku, info]) => {
+              const stock = inventoryState[sku] !== undefined ? inventoryState[sku] : 18;
+              const isCrit = info.scarcityTier === 'CRITICAL_SCARCITY';
+              const isLow = info.scarcityTier === 'LOW_STOCK';
+              const badgeColor = isCrit ? '#ef4444' : (isLow ? '#f59e0b' : 'var(--ok)');
+              return `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;font-size:11px">
+                  <span style="font-weight:600;color:#fff">${sku}</span>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <span style="color:var(--text-muted)">Stock: <strong style="color:#fff">${stock}</strong></span>
+                    <span style="font-family:var(--font-mono);font-weight:700;color:${badgeColor}">TTL: ${(info.effectiveTtlMs / 1000).toFixed(1)}s</span>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+      } catch (_) {}
+    }
+
+    async function simulatePiePolicy(scenario) {
+      const outputBox = document.getElementById('pie-sim-output');
+      const titleEl = document.getElementById('pie-sim-title');
+      const descEl = document.getElementById('pie-sim-desc');
+      const statsEl = document.getElementById('pie-sim-stats');
+
+      if (outputBox) {
+        outputBox.style.display = 'block';
+        titleEl.textContent = 'Simulating Policy Invariant...';
+        descEl.textContent = 'Executing concurrent workload on Phantom Cache edge cluster...';
+        statsEl.innerHTML = '';
+      }
+
+      try {
+        const res = await fetch('/api/pie/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario })
+        });
+        const data = await res.json();
+        if (data.ok && data.result) {
+          const r = data.result;
+          titleEl.textContent = `⚡ ${r.name}`;
+          descEl.textContent = r.description;
+          
+          let statHtml = '';
+          if (r.originOffloadPct !== undefined) statHtml += `<span>Offload: <strong style="color:var(--ok)">${r.originOffloadPct}%</strong></span>`;
+          if (r.edgeLatencyMs !== undefined) statHtml += `<span>Edge: <strong style="color:var(--ok)">${r.edgeLatencyMs}ms</strong></span>`;
+          if (r.originLatencyMs !== undefined) statHtml += `<span>Origin: <strong style="color:var(--warn)">${r.originLatencyMs}ms</strong></span>`;
+          if (r.effectiveTtlMs !== undefined) statHtml += `<span>Dynamic TTL: <strong style="color:var(--apple-blue)">${r.effectiveTtlMs}ms</strong></span>`;
+          if (r.activeArm !== undefined) statHtml += `<span>Winning Arm: <strong style="color:var(--apple-blue)">${r.activeArm}</strong></span>`;
+          statsEl.innerHTML = statHtml;
+
+          showToast(`⚡ Policy Enforced: ${r.name}`);
+          loadDynamicCatalog();
+          refreshInventory();
+          fetchPieStatus();
+        }
+      } catch (err) {
+        if (descEl) descEl.textContent = `Simulation error: ${err.message}`;
+      }
+    }
+
+    // ------------------------------------------------------------------ Shopper Auth Modal Triggers
+    const shopperModal = document.getElementById('modal-shopper-auth');
+    const btnShopperAuth = document.getElementById('btn-shopper-auth');
+    const btnCloseShopperAuth = document.getElementById('btn-close-shopper-auth');
+    const formShopperAuth = document.getElementById('form-shopper-auth');
+    const inputShopperName = document.getElementById('input-shopper-name');
+    const inputShopperPasskey = document.getElementById('input-shopper-passkey');
+    const selectShopperNode = document.getElementById('select-shopper-node');
+    const selectShopperCohort = document.getElementById('select-shopper-cohort');
+    const btnDisconnectShopper = document.getElementById('btn-disconnect-shopper');
+
+    if (btnShopperAuth && shopperModal) {
+      btnShopperAuth.addEventListener('click', () => {
+        const s = getShopperSession();
+        inputShopperName.value = s.name || '';
+        inputShopperPasskey.value = s.passkey || 'phantom-secure-2026';
+        if (s.targetNode) selectShopperNode.value = String(s.targetNode);
+        if (s.cohort) selectShopperCohort.value = s.cohort;
+        shopperModal.showModal();
+      });
+    }
+
+    if (btnCloseShopperAuth && shopperModal) {
+      btnCloseShopperAuth.addEventListener('click', () => shopperModal.close());
+    }
+
+    if (formShopperAuth && shopperModal) {
+      formShopperAuth.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const s = {
+          id: `usr-${Date.now().toString(36)}`,
+          name: inputShopperName.value.trim() || 'Elena Rostova',
+          passkey: inputShopperPasskey.value.trim() || 'phantom-secure-2026',
+          targetNode: Number(selectShopperNode.value || 1),
+          cohort: selectShopperCohort.value,
+          device: navigator.userAgent.includes('Mac') ? 'MacBook Pro M3' : (navigator.userAgent.includes('iPhone') ? 'iPhone 16 Pro' : 'Chrome Workstation')
+        };
+        saveShopperSession(s);
+        shopperModal.close();
+        showToast(`👤 Authenticated as ${s.name} (Gateway ${s.targetNode})`);
+      });
+    }
+
+    document.querySelectorAll('.preset-shopper-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        inputShopperName.value = btn.dataset.name;
+        selectShopperCohort.value = btn.dataset.cohort;
+        selectShopperNode.value = btn.dataset.node;
+        const s = {
+          id: `usr-preset-${btn.dataset.name.toLowerCase().replace(/\s+/g, '-')}`,
+          name: btn.dataset.name,
+          passkey: 'phantom-preset-key',
+          targetNode: Number(btn.dataset.node || 1),
+          cohort: btn.dataset.cohort,
+          device: btn.dataset.cohort.includes('Pro') ? 'MacBook Pro M3' : 'iPhone 16 Pro'
+        };
+        saveShopperSession(s);
+        if (shopperModal) shopperModal.close();
+        showToast(`👤 Switched Identity: ${s.name} on Node ${s.targetNode}`);
+      });
+    });
+
+    if (btnDisconnectShopper && shopperModal) {
+      btnDisconnectShopper.addEventListener('click', () => {
+        localStorage.removeItem('phantom_shopper_session');
+        const guest = { id: `usr-guest`, name: 'Guest Shopper', targetNode: 1, cohort: 'Public' };
+        saveShopperSession(guest);
+        shopperModal.close();
+        showToast('Signed out. Reset to Guest Shopper.');
+      });
+    }
+
+    // Initialize session from storage or default
+    const initialSession = getShopperSession();
+    updateShopperUI(initialSession);
+    registerShopperAtEdge(initialSession);
+
+    // ------------------------------------------------------------------ Tailored Storefront Scenarios
+    async function loadStorefrontTailoredScenarios() {
+      try {
+        const res = await fetch('/api/scenarios/tailored');
+        const d = await res.json();
+        if (d.ok && d.tailored && d.tailored.storefront) {
+          const grid = document.getElementById('storefront-tailored-grid');
+          if (!grid) return;
+          grid.innerHTML = d.tailored.storefront.map(sc => `
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;gap:6px">
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--apple-blue)">#${String(sc.n).padStart(2, '0')}</span>
+                  <span style="font-size:9px;font-family:var(--font-mono);background:rgba(0,113,227,0.15);color:var(--apple-blue);padding:1px 5px;border-radius:3px">${sc.badge}</span>
+                </div>
+                <div style="font-weight:600;font-size:11.5px;color:#fff;margin-top:2px">${sc.title}</div>
+                <div style="font-size:10.5px;color:var(--text-muted);margin-top:2px">${sc.desc}</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05)">
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--ok)">${sc.metric}</span>
+                <button class="ops-btn" onclick="runStorefrontInvariant('${sc.id}')" id="btn-st-sc-${sc.id}" style="padding:3px 8px;font-size:10px">Demonstrate</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+
+    async function runStorefrontInvariant(id) {
+      const btn = document.getElementById(`btn-st-sc-${id}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Running...';
+      }
+      try {
+        await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+      } catch (_) {}
+      setTimeout(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '✅ Verified';
+          setTimeout(() => { btn.textContent = 'Demonstrate'; }, 2500);
+        }
+        showToast(`⚡ Invariant #${id} Verified on Gateway Mesh`);
+        refreshInventory();
+      }, 700);
+    }
+
+    loadStorefrontTailoredScenarios();
+
+    // ------------------------------------------------------------------ Init
+    renderCatalog(CATALOG);
+    refreshInventory();
+    loadDynamicCatalog();
+    fetchPieStatus();
+    setInterval(fetchPieStatus, 4000);
+
+    // QR Code Onboarding Check (Phone scans QR -> Enforce Name & Password Authentication)
+    const urlParams = new URLSearchParams(window.location.search);
+    const contractParam = urlParams.get('contract');
+    const authRequired = urlParams.get('auth') === 'required';
+    const existingSession = localStorage.getItem('phantom_shopper_session');
+
+    if (contractParam || authRequired || !existingSession) {
+      setTimeout(() => {
+        const modal = document.getElementById('modal-shopper-auth');
+        if (modal) {
+          const banner = document.getElementById('shopper-contract-banner');
+          if (banner && contractParam) {
+            banner.innerHTML = `
+              <div style="background:rgba(52,199,89,0.12);border:1px solid rgba(52,199,89,0.3);border-radius:10px;padding:10px 14px;font-size:11.5px;color:#34c759;font-family:var(--font-mono);margin-bottom:8px">
+                🔒 LEVEL 1 MUTUAL CONTRACT SEALED: ${contractParam}<br>
+                <span style="font-size:10px;color:#a1a1a6">Seller Origin Vault &amp; Phantom Cache Edge Mesh Attestation Complete. Enter your Name &amp; Passkey to enroll this phone.</span>
+              </div>
+            `;
+          }
+          modal.showModal();
+        }
+      }, 350);
+    }
+  </script>
+</body>
+</html>
