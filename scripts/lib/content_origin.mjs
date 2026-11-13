@@ -109,6 +109,15 @@ export function buildCatalog() {
     add(`/page/${n}.html`, `<!doctype html><html><head><meta charset="utf-8"><title>Page ${i}</title></head><body><h1>Page ${i}</h1>${Array.from({ length: 3 + (i % 9) }, (_, k) => `<p>${WORDS[(i + k) % 12]} ${WORDS[(i * 2 + k) % 12]} paragraph ${k + 1}.</p>`).join('')}</body></html>`, 'text/html; charset=utf-8', { kind: 'html' });
   }
   for (let i = 1; i <= 10; i++) add(`/short/${String(i).padStart(3, '0')}.json`, JSON.stringify({ id: i, note: 'short-lived object, max-age 8 s' }), 'application/json', { kind: 'json', maxAge: 8 });
+  const STORE_SKUS = [
+    'phantom-keyboard', 'phantom-mouse', 'phantom-display-4k', 'phantom-headphones',
+    'phantom-ssd-2tb', 'phantom-hub-pro', 'phantom-camera-4k', 'phantom-microphone',
+    'phantom-desk-mat', 'phantom-power-100w', 'phantom-cable-thunderbolt', 'phantom-arm-mount'
+  ];
+  for (const sku of STORE_SKUS) {
+    const item = { sku, in_stock: true, price: 349.00, server: 'origin-primary', updated_at: '2026-11-05T00:00:00Z' };
+    add(`/store/${sku}`, JSON.stringify(item), 'application/json', { kind: 'json', maxAge: 300 });
+  }
   return objs;
 }
 
@@ -131,7 +140,19 @@ export function startContentOrigin({ port, host = '127.0.0.1', delayMs = 25 }) {
     stats.requests += 1;
     stats.byPath[path] = (stats.byPath[path] || 0) + 1;
     setTimeout(() => {
-      if (!o) { stats.notFound += 1; res.statusCode = 404; res.setHeader('content-type', 'text/plain'); return res.end('not found'); }
+      if (!o) {
+        if (path.startsWith('/store/')) {
+          const sku = path.replace('/store/', '');
+          const dynamicBody = Buffer.from(JSON.stringify({ sku, in_stock: true, price: 299.00, dynamic: true }));
+          res.setHeader('etag', `"store-${sku}-v1"`);
+          res.setHeader('cache-control', 'public, max-age=300');
+          res.setHeader('content-type', 'application/json');
+          res.setHeader('content-length', String(dynamicBody.length));
+          stats.bytes += dynamicBody.length;
+          return res.end(dynamicBody);
+        }
+        stats.notFound += 1; res.statusCode = 404; res.setHeader('content-type', 'text/plain'); return res.end('not found');
+      }
       res.setHeader('etag', o.etag);
       res.setHeader('cache-control', `public, max-age=${o.maxAge || 300}`);
       if (req.headers['if-none-match'] === o.etag) { stats.notModified += 1; res.statusCode = 304; return res.end(); }

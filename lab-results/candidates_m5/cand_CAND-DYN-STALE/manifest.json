@@ -78,15 +78,15 @@
   ],
   "build_profile": "debug",
   "cell_count": 128,
-  "ended_utc": "2026-10-31T05:28:44Z",
+  "ended_utc": "2026-11-11T09:04:15Z",
   "families": [
     "W-DI",
     "W-SH",
     "W-MX",
     "W-HK"
   ],
-  "git_head": "804a7b8d51d0577f67a04e3bb9fa9d2950ae8f8a",
-  "git_status_entries": 189,
+  "git_head": "c952a862b1b27004e58ef7b5a94f6c68e6d96f2b",
+  "git_status_entries": 61,
   "host_arch": "x86_64",
   "host_os": "windows",
   "interleaving": "seed -> scenario -> family -> arms rotated by (seed_index+scenario_index) mod n_arms",
@@ -196,6 +196,6 @@
     "tests/support/lab/workloads.rs": "bde5285675b82f7f1e249635b14b66277f194f846968e24aeb5f50ab07323a8a",
     "tests/support/mod.rs": "bddd22699374a400ca0cfe73b1929ee8fc8176d852dd9bc5b737b296b344551b"
   },
-  "started_utc": "2026-10-31T05:28:14Z",
+  "started_utc": "2026-11-11T09:04:12Z",
   "tier": "SIMULATED"
 }

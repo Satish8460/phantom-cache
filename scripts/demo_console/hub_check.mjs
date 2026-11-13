@@ -7,12 +7,20 @@
 // in a seeded random order (--reps times each), checks the cluster is healthy at the end, the session summary strip, a failure
 // state, the phone layout and that the page prints no token and no console errors.
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdirSync, rmSync } from 'node:fs';
+import { mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Browser, sleep } from '../../ui/scripts/cdp-lib.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+
+// Ensure Git usr/bin (openssl.exe) is in PATH on Windows if available
+if (process.platform === 'win32') {
+  const gitUsrBin = 'C:\\Program Files\\Git\\usr\\bin';
+  if (existsSync(join(gitUsrBin, 'openssl.exe')) && !process.env.PATH.includes(gitUsrBin)) {
+    process.env.PATH = gitUsrBin + ';' + process.env.PATH;
+  }
+}
 const a = process.argv.slice(2);
 const opt = (n, d) => { const i = a.indexOf(`--${n}`); return i !== -1 && a[i + 1] !== undefined ? a[i + 1] : d; };
 const EXE = opt('exe'), EVID = opt('evidence'); const PORT = Number(opt('port', 3201));
@@ -26,7 +34,7 @@ rmSync(WORK, { recursive: true, force: true }); mkdirSync(WORK, { recursive: tru
 
 let pass = 0, fail = 0; const results = [];
 const ok = (cond, name, detail = '') => { (cond ? pass++ : fail++); results.push({ name, pass: !!cond, detail }); console.log(`[${cond ? 'PASS' : 'FAIL'}] ${name}${detail ? ' :: ' + String(detail).slice(0, 240) : ''}`); return !!cond; };
-const srv = spawn(process.execPath, [join(HERE, 'server.mjs'), '--dir', WORK, '--port', String(PORT), '--exe', EXE, '--http-port-base', PB, '--cluster-port-base', CB, '--origin-port', OP, '--scenario-offset', opt('scenario-offset', '0')], { stdio: 'ignore', windowsHide: true });
+const srv = spawn(process.execPath, [join(HERE, 'server.mjs'), '--dir', WORK, '--port', String(PORT), '--exe', EXE, '--http-port-base', PB, '--cluster-port-base', CB, '--origin-port', OP, '--scenario-offset', opt('scenario-offset', '0')], { stdio: 'ignore', windowsHide: true, env: process.env });
 const b = new Browser({ evidenceDir: EVID, label: 'hub' });
 const click = (sel) => b.click(`document.querySelector(${JSON.stringify(sel)})`);
 const txt = (sel) => b.eval(`(document.querySelector(${JSON.stringify(sel)})||{}).innerText||''`);

@@ -46,6 +46,14 @@ import { fileURLToPath } from 'node:url';
 import { newSecret, mintDemoTokens } from './lib/jwt_mint.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+
+// Ensure Git usr/bin (openssl.exe) is in PATH on Windows if available
+if (process.platform === 'win32') {
+  const gitUsrBin = 'C:\\Program Files\\Git\\usr\\bin';
+  if (existsSync(join(gitUsrBin, 'openssl.exe')) && !process.env.PATH.includes(gitUsrBin)) {
+    process.env.PATH = gitUsrBin + ';' + process.env.PATH;
+  }
+}
 const argv = process.argv.slice(2);
 const cmd = argv[0];
 const opt = (name, def) => {
@@ -96,6 +104,15 @@ function sh(file, args, opts = {}) {
 function pidAlive(pid) {
   if (!pid) return false;
   try { process.kill(pid, 0); return true; } catch { return false; }
+}
+
+function killProcess(pid) {
+  if (!pid) return;
+  if (process.platform === 'win32') {
+    try { spawnSync('taskkill', ['/F', '/T', '/PID', String(pid)], { stdio: 'ignore' }); } catch { /* ignore */ }
+  } else {
+    try { process.kill(pid); } catch { /* ignore */ }
+  }
 }
 
 function loadState(dir) {
@@ -234,10 +251,11 @@ async function main() {
     const originKind = opt('origin-kind', secure ? 'content' : 'text');
     if (!['text', 'content'].includes(originKind)) die('--origin-kind must be text or content');
     const uiBase = opt('ui-base', 'http://localhost:3000');
+    const defaultCors = [uiBase, 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3201', 'http://127.0.0.1:3201'].filter((v, i, a) => a.indexOf(v) === i).join(',');
     const st = {
       dir, exe: resolve(exe), nodes, clusterId: opt('cluster-id', 'demo'),
       originPort: Number(opt('origin-port', 19099)), httpPortBase: Number(opt('http-port-base', 18185)),
-      clusterPortBase: Number(opt('cluster-port-base', 19501)), corsOrigin: opt('cors-origin', secure ? uiBase : null),
+      clusterPortBase: Number(opt('cluster-port-base', 19501)), corsOrigin: opt('cors-origin', secure ? defaultCors : null),
       secure, originKind, uiBase, pids: {}, intelligence: opt('intelligence', secure ? 'advisory' : null),
     };
     if (existsSync(join(dir, 'cluster.json'))) {
@@ -292,7 +310,7 @@ async function main() {
     const n = Number(opt('node'));
     if (!Number.isInteger(n) || n < 1 || n > st.nodes) die('--node must be a member number');
     if (cmd === 'stop-node') {
-      try { process.kill(st.pids[`node${n}`]); } catch { /* already gone */ }
+      try { killProcess(st.pids[`node${n}`]); } catch { /* already gone */ }
       log(`node ${n} stopped`);
     } else {
       if (pidAlive(st.pids[`node${n}`])) die(`node ${n} is already running`);
@@ -303,7 +321,7 @@ async function main() {
   }
   if (cmd === 'down') {
     for (const [k, pid] of Object.entries(st.pids)) {
-      try { process.kill(pid); log(`stopped ${k} (pid ${pid})`); } catch { log(`${k} (pid ${pid}) was not running`); }
+      try { killProcess(pid); log(`stopped ${k} (pid ${pid})`); } catch { log(`${k} (pid ${pid}) was not running`); }
     }
     st.pids = {};
     saveState(dir, st);
