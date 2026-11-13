@@ -33,8 +33,9 @@ export function hrefFor(id) {
 export function parseRoute({ hash = '', search = '' } = {}) {
   const view = new URLSearchParams(search).get('view');
   if (view === 'sim-demo' && !hash) return { id: 'simulation', notFound: false };
-  const m = /^#\/([a-z-]+)\/?$/.exec(hash);
-  if (!hash || hash === '#' || hash === '#/') return { id: DEFAULT_SCREEN, notFound: false };
+  const cleanHash = (hash || '').split('?')[0];
+  if (!hash || hash === '#' || hash === '#/' || cleanHash === '#/overview') return { id: DEFAULT_SCREEN, notFound: false };
+  const m = /^#\/([a-z-]+)\/?$/.exec(cleanHash);
   if (m && screenById(m[1])) return { id: m[1], notFound: false };
   // Sub-routes exist for the Lab only: #/lab/evidence/<id>, #/lab/runs/<id> ...
   const lab = parseLabSub(hash);

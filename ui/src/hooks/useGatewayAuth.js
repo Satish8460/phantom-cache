@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { createLabClient } from '../lib/labApi.js';
+import { createLabClient, fetchHubAuthToken } from '../lib/labApi.js';
 import { createTokenSession } from '../lib/tokenSession.js';
 import {
   HANDOFF_REQUEST_TYPE, chipView, decodeClaims, describeAnswer, evaluateHandoff, expiryState, normalizeTokenInput, INPUT_PROBLEM_TEXT,
@@ -96,6 +96,16 @@ export function useGatewayAuth(gatewayUrl, { windowRef = typeof window !== 'unde
       if (w.opener && !w.opener.closed && session.tokenFor(gatewayUrl) === null) w.opener.postMessage({ type: HANDOFF_REQUEST_TYPE, v: 1 }, '*');
     } catch {
       /* a closed or cross-origin-isolated opener: nothing to ask */
+    }
+
+    // Auto-bootstrap token from Demo Hub (/api/token) if no opener token is present
+    if (session.tokenFor(gatewayUrl) === null) {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      fetchHubAuthToken(controller ? controller.signal : undefined).then((token) => {
+        if (token && session.tokenFor(gatewayUrl) === null) {
+          session.set(gatewayUrl, token, { keep: false });
+        }
+      });
     }
     return () => w.removeEventListener('message', onMessage);
   }, [windowRef, gatewayUrl, session]);

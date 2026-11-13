@@ -1,0 +1,348 @@
+/* Phantom Cache Industrial Slate SRE Observability & Console Styles
+   Adheres strictly to Dieter Rams / Teenage Engineering matte slate guidelines.
+   Rules: Sizing in rem (px <= 3). Font-size >= 0.75rem. Transitions on transform/opacity only.
+   Single-source tokenized: seamlessly adapts to Warm Paper Light and Slate Dark. */
+
+/* Flight Recorder 60-Second Timeline Tape */
+.flight-recorder-tape {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.recorder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recorder-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-track-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.timeline-track {
+  height: 1.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  cursor: ew-resize;
+}
+
+.timeline-cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0.125rem;
+  background: var(--info);
+  pointer-events: none;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  width: 0.375rem;
+  border-radius: 0.125rem;
+  pointer-events: none;
+}
+
+.timeline-marker--burst {
+  background: var(--warn);
+}
+
+.timeline-marker--purge {
+  background: var(--info);
+}
+
+.timeline-marker--evict {
+  background: var(--critical);
+}
+
+.timeline-axis-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+/* Microsecond Waterfall Flame-Chart */
+.waterfall-flame-deck {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.waterfall-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.waterfall-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flame-total-readout {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ok);
+  background: var(--ok-bg);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+}
+
+.flame-track {
+  height: 2.25rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  overflow: hidden;
+}
+
+.flame-segment {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--on-primary);
+  cursor: pointer;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.flame-segment:hover {
+  opacity: 0.85;
+}
+
+.flame-segment--socket {
+  background: var(--text-3);
+}
+
+.flame-segment--auth {
+  background: var(--info);
+}
+
+.flame-segment--hrw {
+  background: var(--accent);
+}
+
+.flame-segment--sieve {
+  background: var(--ok);
+}
+
+.flame-segment--flush {
+  background: var(--prov-predicted);
+}
+
+.flame-stages-list {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.625rem;
+}
+
+@media (max-width: 960px) {
+  .flame-stages-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.flame-stage-chip {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.625rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.flame-stage-chip__name {
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+.flame-stage-chip__duration {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Invalidation Pulse Card */
+.invalidation-pulse-deck {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.invalidation-nodes-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .invalidation-nodes-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.invalidation-node-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.invalidation-node-box--pulsing {
+  border-color: var(--info);
+  background: var(--surface-raised);
+}
+
+.invalidation-node-box__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.invalidation-node-box__name {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.invalidation-node-box__badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ok);
+}
+
+/* Operator REPL Drawer */
+.operator-repl-drawer {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+.repl-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.repl-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.repl-terminal-body {
+  max-height: 12rem;
+  min-height: 7rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+}
+
+.repl-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.4;
+}
+
+.repl-line--cmd {
+  color: var(--info);
+}
+
+.repl-line--resp {
+  color: var(--text-2);
+  white-space: pre-wrap;
+}
+
+.repl-line--ok {
+  color: var(--ok);
+}
+
+.repl-prompt-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: 0.375rem 0.625rem;
+}
+
+.repl-prompt-symbol {
+  color: var(--info);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.repl-input {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  width: 100%;
+  outline: none;
+}

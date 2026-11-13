@@ -84,6 +84,56 @@ const SHAPES = {
       <path d="M8 2.2a5.8 5.8 0 0 1 0 11.6z" fill="currentColor" />
     </g>
   ),
+  dyno: <path d="M8.5 1.5 3.5 8.5h4L6.5 14.5l6-7h-4z" fill="currentColor" />,
+  cockpit: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <path d="M2.5 4h11M2.5 8h11M2.5 12h11M5 2.5v3M11 6.5v3M7 10.5v3" />
+    </g>
+  ),
+  buyer: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 5.5h10l1 8.5H2l1-8.5z" />
+      <path d="M5.5 5.5V3.8a2.5 2.5 0 0 1 5 0v1.7" />
+    </g>
+  ),
+  seller: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 6h12l-1.2-3.5H3.2L2 6z" />
+      <path d="M3 6v7.5h10V6" />
+      <path d="M6.5 13.5v-4h3v4" />
+    </g>
+  ),
+  sun: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <circle cx="8" cy="8" r="3" fill="currentColor" stroke="none" />
+      <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3" />
+    </g>
+  ),
+  moon: <path d="M12.5 9.2A5.2 5.2 0 0 1 6.8 3.5a5.2 5.2 0 1 0 5.7 5.7z" fill="currentColor" />,
+  metrics: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <path d="M2 14h12" />
+      <path d="M4.5 11.5v-4" />
+      <path d="M8 11.5v-7.5" />
+      <path d="M11.5 11.5v-5.5" />
+    </g>
+  ),
+  tunnel: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="6" />
+      <path d="M2 8h12M8 2a9 9 0 0 1 0 12M8 2a9 9 0 0 0 0 12" />
+    </g>
+  ),
+  crowd: (
+    <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="6" cy="5" r="2.5" />
+      <path d="M2 13.5v-1a3 3 0 0 1 6 0v1" />
+      <circle cx="11.5" cy="6.5" r="2" />
+      <path d="M9.5 13.5v-.5a2.5 2.5 0 0 1 5 0v.5" />
+    </g>
+  ),
+  play: <path d="M5 3.5l8 4.5-8 4.5z" fill="currentColor" />,
+  pause: <path d="M4.5 3.5h2.5v9H4.5zm4.5 0h2.5v9H9z" fill="currentColor" />,
 };
 
 /**

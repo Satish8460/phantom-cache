@@ -413,3 +413,268 @@ export async function testGatewayConnection({ baseUrl, getToken = () => null, fe
   const metrics = shape(await client.probe({ signal }));
   return { capabilities: caps, metrics };
 }
+
+export async function probeClusterHealth() {
+  const runner = globalThis.fetch;
+  if (!runner) return false;
+  try {
+    const res = await runner('http://127.0.0.1:18185/health', { method: 'GET' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function fetchHubAuthToken(signal) {
+  const runner = globalThis.fetch;
+  if (!runner) return null;
+  const urls = ['/api/token?user=tenantA', 'http://127.0.0.1:3201/api/token?user=tenantA'];
+  for (const url of urls) {
+    try {
+      const res = await runner(url, {
+        headers: { 'x-hub': '1' },
+        ...(signal ? { signal } : {}),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.token) return data.token;
+      }
+    } catch {
+      // try next url
+    }
+  }
+  return null;
+}
+
+export async function fetchPrometheusMetrics(url = 'http://127.0.0.1:18185/metrics') {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false, text: '' };
+  try {
+    const res = await runner(url);
+    if (!res.ok) return { ok: false, text: '' };
+    const text = await res.text();
+    return { ok: true, text };
+  } catch {
+    return { ok: false, text: '' };
+  }
+}
+
+export async function fetchMasterScenarioStatus(signal) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/master-scenario/status', {
+      headers: { 'x-hub': '1' },
+      ...(signal ? { signal } : {}),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, state: data.state, scenarios: data.scenarios };
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function startMasterScenario({ autoCycle = true } = {}) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/master-scenario/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ autoCycle }),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, state: data.state };
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function stopMasterScenario() {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/master-scenario/stop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, state: data.state };
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function nextMasterScenario({ index } = {}) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/master-scenario/next', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ index }),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, state: data.state };
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function fetchTunnelInfo(signal) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/tunnel', {
+      headers: { 'x-hub': '1' },
+      ...(signal ? { signal } : {}),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, data };
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function fetchValidationStatus(signal) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/validation/status', {
+      headers: { 'x-hub': '1' },
+      ...(signal ? { signal } : {}),
+    });
+    if (!res.ok) return { ok: false, status: res.status };
+    const data = await res.json();
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, error: err?.message };
+  }
+}
+
+export async function runLoadBurst({ concurrency = 20, count = 200, sku = 'phantom-headphones' } = {}) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/load-burst', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ concurrency, count, sku }),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, error: err?.message };
+  }
+}
+
+export async function fetchStoreCatalog() {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false, products: [] };
+  try {
+    const res = await runner('/api/store/catalog');
+    if (!res.ok) return { ok: false, products: [] };
+    const data = await res.json();
+    return { ok: true, products: data.products || [] };
+  } catch {
+    return { ok: false, products: [] };
+  }
+}
+
+export async function fetchStoreItem(sku, { tenant = 'tenantA', node = 1 } = {}) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner(`/api/store/item/${sku}?as=${tenant}&node=${node}`);
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, error: err?.message };
+  }
+}
+
+export async function placeStoreOrder(orderData) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/store/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, error: err?.message };
+  }
+}
+
+export async function fetchStoreOrders() {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false, orders: [] };
+  try {
+    const res = await runner('/api/store/orders');
+    if (!res.ok) return { ok: false, orders: [] };
+    const data = await res.json();
+    return { ok: true, orders: data.orders || [] };
+  } catch {
+    return { ok: false, orders: [] };
+  }
+}
+
+export async function triggerSellerFlashSale({ sku, discountPct = 40 } = {}) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/seller/flash-sale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sku, discountPct }),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, error: err?.message };
+  }
+}
+
+export async function updateSellerStock({ sku, delta = 50 } = {}) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner('/api/seller/stock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sku, delta }),
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, error: err?.message };
+  }
+}
+
+export async function broadcastInvalidateKey({ sku, node = 1 } = {}) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  try {
+    const res = await runner(`/api/store/item/${sku}?node=${node}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) return { ok: false };
+    const data = await res.json();
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, error: err?.message };
+  }
+}

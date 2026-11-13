@@ -3,7 +3,11 @@ import './styles/tokens.css';
 import './styles/app.css';
 import './styles/lab.css';
 import './styles/shell.css';
-import { Header, Nav, MENU_BUTTON_ID } from './components/Shell.jsx';
+import './styles/dyno.css';
+import './styles/cockpit.css';
+import './styles/observability.css';
+import './styles/personas.css';
+import { Header, Nav, MENU_BUTTON_ID, PersonaContext, PersonaPortalControl } from './components/Shell.jsx';
 import { SimulationBanner } from './components/States.jsx';
 import { TelemetryContext } from './hooks/TelemetryContext.js';
 import { useTelemetry } from './hooks/useTelemetry.js';
@@ -22,6 +26,10 @@ import Freshness from './screens/Freshness.jsx';
 import Origin from './screens/Origin.jsx';
 import Intelligence from './screens/Intelligence.jsx';
 import StartHere, { WelcomeBanner } from './screens/StartHere.jsx';
+import ExecutiveScreen from './screens/ExecutiveScreen.jsx';
+import SreCockpitScreen from './screens/SreCockpitScreen.jsx';
+import BuyerPersonaScreen from './screens/BuyerPersonaScreen.jsx';
+import SellerPersonaScreen from './screens/SellerPersonaScreen.jsx';
 import { resolveHub } from './lib/hub.js';
 import { markWelcomeSeen, readWelcomeSeen } from './lib/tokenSession.js';
 import Cluster from './screens/Cluster.jsx';
@@ -29,6 +37,7 @@ import Simulation from './screens/Simulation.jsx';
 import LabScreen from './screens/lab/LabScreen.jsx';
 import { ConnectionControl, GatewayNotes, LinkConfirmGate, needsLinkConfirm } from './screens/linkUi.jsx';
 import { AuthBanner, IdentityControl } from './screens/authUi.jsx';
+import { probeClusterHealth } from './lib/labApi.js';
 
 function readLocation() {
   if (typeof window === 'undefined') return { hash: '', search: '' };
@@ -81,8 +90,51 @@ export default function App() {
   const series = useHistory(state.payload, state.receivedAt, gw.url);
   // Light is the default look; a visitor's own choice (stored for this browser) still wins.
   const [theme, setTheme] = useState(() => loadTheme(getStorage(typeof window !== 'undefined' ? window : null), 'light'));
+  const [persona, setPersona] = useState(() => {
+    if (typeof window !== 'undefined' && window.location) {
+      const hash = window.location.hash || '';
+      if (hash.includes('persona=seller') || hash === '#/seller') return 'seller';
+      if (hash.includes('persona=executive') || hash === '#/executive') return 'executive';
+      if (hash.includes('persona=sre') || hash === '#/sre') return 'sre';
+      if (hash.includes('persona=buyer') || hash === '#/buyer') return 'buyer';
+      if (hash && hash !== '#/' && hash !== '#/overview') {
+        return 'sre';
+      }
+      return 'buyer';
+    }
+    return 'buyer';
+  });
+  const choosePersona = useCallback((p) => {
+    setPersona(p);
+    if (typeof window !== 'undefined' && window.location) {
+      window.location.hash = `#/overview?persona=${p}`;
+    }
+  }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const handleHash = () => {
+      const hash = window.location.hash || '';
+      if (hash.includes('persona=seller') || hash === '#/seller') setPersona('seller');
+      else if (hash.includes('persona=executive') || hash === '#/executive') setPersona('executive');
+      else if (hash.includes('persona=sre') || hash === '#/sre') setPersona('sre');
+      else if (hash.includes('persona=buyer') || hash === '#/buyer') setPersona('buyer');
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+  const [sreView, setSreView] = useState('engine');
   const mainRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Auto-detect cluster gateway: if saved address has 8085 but cluster port 18185 is alive, auto-switch
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (gw.url.includes(':8085')) {
+      probeClusterHealth().then((alive) => {
+        if (alive) store.apply('http://127.0.0.1:18185');
+      });
+    }
+  }, [gw.url, store]);
   // The key of the route last shown. Compared (not a first-render flag) so React StrictMode's double effect run cannot steal focus on load.
   const shownKey = useRef(null);
   const routeKey = route.sub ? `${route.id}/${route.sub.view}/${route.sub.id || ''}` : route.id;
@@ -102,12 +154,18 @@ export default function App() {
 
   // ---- connection indicator slot (Shell.jsx is not edited: the control is portalled into .app-header__status) ----
   const [slot, setSlot] = useState(null);
+  const [personaSlot, setPersonaSlot] = useState(null);
+  const [meshSlot, setMeshSlot] = useState(null);
+  const [tunnelSlot, setTunnelSlot] = useState(null);
   useEffect(() => {
     const el = document.querySelector('.app-header__status');
     if (el) {
       el.setAttribute('data-linked', '1');
       setSlot(el);
     }
+    setPersonaSlot(document.querySelector('.app-header__persona-slot'));
+    setMeshSlot(document.querySelector('.app-header__mesh-slot'));
+    setTunnelSlot(document.querySelector('.app-header__tunnel-slot'));
     return () => {
       if (el) el.removeAttribute('data-linked');
     };
@@ -162,31 +220,35 @@ export default function App() {
 
   const simulatedGateway = state.payload?.mode === 'simulation' && route.id !== 'simulation';
 
+  const personaCtx = useMemo(() => ({ persona, setPersona: choosePersona }), [persona, choosePersona]);
+
   return (
     <TelemetryContext.Provider value={ctx}>
-      <div
-        className="app"
-        onKeyDown={(e) => {
-          // Escape closes the phone menu and returns focus to the button that opened it (skill S7: back along the path it came).
-          if (e.key === 'Escape' && menuOpen) {
-            setMenuOpen(false);
-            document.getElementById(MENU_BUTTON_ID)?.focus();
-          }
-        }}
-      >
-        <a
-          className="skip-link"
-          href="#main"
-          onClick={(e) => {
-            // The router owns location.hash: following "#main" would be read as an unknown route. Move focus without changing the hash.
-            e.preventDefault();
-            mainRef.current?.focus();
+      <PersonaContext.Provider value={personaCtx}>
+        <div
+          className="app"
+          onKeyDown={(e) => {
+            // Escape closes the phone menu and returns focus to the button that opened it (skill S7: back along the path it came).
+            if (e.key === 'Escape' && menuOpen) {
+              setMenuOpen(false);
+              document.getElementById(MENU_BUTTON_ID)?.focus();
+            }
           }}
         >
-          Skip to main content
-        </a>
-        <Header connKind={conn.kind} theme={theme} onTheme={chooseTheme} menuOpen={menuOpen} onMenu={() => setMenuOpen((o) => !o)} />
-        <ConnectionControl slot={slot} links={links} gw={gw} store={store} onRetry={reconnect} openRequest={openRequest} />
+          <a
+            className="skip-link"
+            href="#main"
+            onClick={(e) => {
+              // The router owns location.hash: following "#main" would be read as an unknown route. Move focus without changing the hash.
+              e.preventDefault();
+              mainRef.current?.focus();
+            }}
+          >
+            Skip to main content
+          </a>
+          <Header connKind={conn.kind} theme={theme} onTheme={chooseTheme} menuOpen={menuOpen} onMenu={() => setMenuOpen((o) => !o)} />
+          <PersonaPortalControl personaSlot={personaSlot} meshSlot={meshSlot} tunnelSlot={tunnelSlot} />
+          <ConnectionControl slot={slot} links={links} gw={gw} store={store} onRetry={reconnect} openRequest={openRequest} />
         <IdentityControl slot={slot} auth={auth} gatewayUrl={gw.url} />
         <Nav
           currentId={route.id}
@@ -219,6 +281,16 @@ export default function App() {
               onConfirm={() => setConfirmedUrl(gw.url)}
               onUseDefault={() => store.reset()}
             />
+          ) : route.id !== 'overview' && route.id !== '' ? (
+            renderScreen(route.id, route.sub, gw.epoch)
+          ) : persona === 'buyer' ? (
+            <BuyerPersonaScreen />
+          ) : persona === 'seller' ? (
+            <SellerPersonaScreen />
+          ) : persona === 'executive' ? (
+            <ExecutiveScreen />
+          ) : sreView === 'engine' && typeof window !== 'undefined' ? (
+            <SreCockpitScreen onSwitchToMetrics={() => setSreView('metrics')} />
           ) : (
             renderScreen(route.id, route.sub, gw.epoch)
           )}
@@ -227,6 +299,7 @@ export default function App() {
           {footerFor(route)}
         </footer>
       </div>
-    </TelemetryContext.Provider>
-  );
+    </PersonaContext.Provider>
+  </TelemetryContext.Provider>
+);
 }

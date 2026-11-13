@@ -220,9 +220,17 @@ export function AddressForm({ gw, store, onApplied = () => {} }) {
       />
       <div className="conn-presets console-row">
         <span className="t-caption">Fill address:</span>
-        <button type="button" className="btn btn--ghost" onClick={() => { setText('http://localhost:8085'); setResult(null); }}>Node 1 (8085)</button>
-        <button type="button" className="btn btn--ghost" onClick={() => { setText('http://localhost:8086'); setResult(null); }}>Node 2 (8086)</button>
-        <button type="button" className="btn btn--ghost" onClick={() => { setText('http://localhost:8087'); setResult(null); }}>Node 3 (8087)</button>
+        {(() => {
+          const h = typeof window !== 'undefined' && window.location && window.location.hostname ? window.location.hostname : 'localhost';
+          return (
+            <>
+              <button type="button" className="btn btn--ghost" onClick={() => { setText(`http://${h}:18185`); setResult(null); }}>Node 1 (18185)</button>
+              <button type="button" className="btn btn--ghost" onClick={() => { setText(`http://${h}:18186`); setResult(null); }}>Node 2 (18186)</button>
+              <button type="button" className="btn btn--ghost" onClick={() => { setText(`http://${h}:18187`); setResult(null); }}>Node 3 (18187)</button>
+              <button type="button" className="btn btn--ghost" onClick={() => { setText(`http://${h}:8085`); setResult(null); }}>Standalone (8085)</button>
+            </>
+          );
+        })()}
       </div>
       <p id={`${id}-hint`} className="section__note">
         In use: <span className="mono">{gw.url}</span>, {gw.sourceText}.{' '}
