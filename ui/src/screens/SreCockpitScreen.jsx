@@ -123,10 +123,11 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
     : `http://${validation?.lanIp || '192.168.8.242'}:3201/crowd`;
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&margin=2&data=${encodeURIComponent(activeSwarmUrl)}`;
   const isOnline = Boolean(validation?.tunnelUrl);
-  const isSwarming = Boolean(isSimulating || validation.swarmActive || validation.devices?.some((d) => d.running));
+  const anyDeviceRunning = Boolean(validation.devices?.some((d) => d.running));
+  const isSwarming = Boolean(anyDeviceRunning || validation.swarmActive);
   const activeDeviceClients = validation.devices?.reduce((sum, d) => sum + (d.running ? (d.vusers || 500) : 0), 0) || 0;
-  const currentRps = isSwarming
-    ? Math.max(simState.measuredRps || 0, Math.round(activeDeviceClients * 1.5), 350)
+  const currentRps = (isSwarming && (activeDeviceClients > 0 || isSimulating))
+    ? Math.max(simState.measuredRps || 0, Math.round(activeDeviceClients * 1.5))
     : 0;
   const currentLatencyMs = simState.p99LatencyUs > 1000
     ? (simState.p99LatencyUs / 1000).toFixed(2)

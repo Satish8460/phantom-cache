@@ -179,7 +179,7 @@ async function runE2E() {
     const zones = await b.eval(`(() => {
       return {
         zone1Clients: Boolean(document.querySelector('.flow-zone--clients')),
-        ingressPipe: Boolean(document.querySelector('.flow-pipe')),
+        ingressConduit: Boolean(document.querySelector('.flow-connector') || document.querySelector('.flow-conduit-pill') || document.querySelector('.flow-photon-canvas')),
         zone2EdgeMesh: Boolean(document.querySelector('.flow-zone--edge')),
         gatewayNodeCards: document.querySelectorAll('.flow-node-card').length,
         originDbZone: Boolean(document.querySelector('.flow-zone--origin')),
@@ -187,7 +187,7 @@ async function runE2E() {
       };
     })()`);
     log(`  Detected Architecture Components: ${JSON.stringify(zones)}`);
-    if (!zones.zone1Clients || !zones.ingressPipe || !zones.zone2EdgeMesh || !zones.originDbZone || !zones.storyBar) {
+    if (!zones.zone1Clients || !zones.ingressConduit || !zones.zone2EdgeMesh || !zones.originDbZone || !zones.storyBar) {
       throw new Error(`FAILED: One or more flow diagram components missing: ${JSON.stringify(zones)}`);
     }
     if (zones.gatewayNodeCards < 3) {
@@ -288,9 +288,12 @@ async function runE2E() {
     })()`);
     log(`  Telemetry HUD Cards: count=${hudMetrics?.cardsCount}, preview="${hudMetrics?.text.slice(0, 100)}..."`);
 
-    // Verify animated photon dots in flow diagram
-    const photonDots = await b.eval(`document.querySelectorAll('.flow-pipe-dot').length`);
-    log(`  Active Photon Dot Emitters: count=${photonDots}`);
+    // Verify active canvas photon engine in flow diagram
+    const hasCanvasPhotons = await b.eval(`Boolean(document.querySelector('.flow-photon-canvas'))`);
+    log(`  Active Canvas Photon Particle Engine: active=${hasCanvasPhotons}`);
+    if (!hasCanvasPhotons) {
+      throw new Error('FAILED: Canvas photon particle engine not active in DOM!');
+    }
 
     // Verify that manual Next button is GONE from autonomous cockpit
     const hasNextBtn = await b.eval(`Boolean([...document.querySelectorAll('button')].find(btn => btn.textContent.includes('Next')))`);

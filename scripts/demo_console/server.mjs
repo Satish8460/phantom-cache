@@ -2688,6 +2688,7 @@ const server = createServer(async (req, res) => {
       const lan = getLanIp();
       const devices = Array.from(connectedDevices.values());
       const totalVirtualClients = devices.reduce((sum, d) => sum + (d.running ? d.vusers : 0), 0);
+      const anyDeviceRunning = devices.some(d => d.running);
       return send(res, 200, {
         ok: true,
         gatewayAlive,
@@ -2695,10 +2696,10 @@ const server = createServer(async (req, res) => {
         lanIp: lan,
         pairedDevicesCount: devices.length,
         devices,
-        totalVirtualClients: Math.max(devices.length > 0 ? totalVirtualClients : 0, masterScenarioState.running ? 500 : 0),
-        swarmActive: masterScenarioState.running || devices.some(d => d.running),
+        totalVirtualClients: anyDeviceRunning ? totalVirtualClients : 0,
+        swarmActive: anyDeviceRunning,
         totalRequests: masterScenarioState.totalRequests,
-        measuredRps: masterScenarioState.measuredRps,
+        measuredRps: anyDeviceRunning ? masterScenarioState.measuredRps : 0,
       }, 'application/json', {
         'access-control-allow-origin': '*',
         'access-control-allow-methods': 'GET, OPTIONS'

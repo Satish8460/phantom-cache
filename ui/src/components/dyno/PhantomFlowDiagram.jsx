@@ -20,15 +20,15 @@ function getBezierPoint(p0, p1, p2, p3, t) {
 
 /**
  * PhantomFlowDiagram: Interactive Visual Storytelling Architecture Diagram.
- * Shows the physical traffic flow from Clients -> Phantom 3-Node Edge Mesh -> Origin Database.
- * Runs an HTML5 Canvas Photon Particle Physics Engine with Bézier paths, glowing comet tails,
- * and expanding shockwaves on Edge RAM nodes and the Origin DB Vault.
+ * Shows the physical traffic flow from Devices -> Phantom 3-Node Edge Mesh -> Origin Database.
+ * Runs an HTML5 Canvas Photon Particle Physics Engine with individual fiber optic threads
+ * extending from each connected device to Gateway Nodes 1, 2, 3, and upstream to the Origin DB Vault.
  */
 export default function PhantomFlowDiagram({
-  rps = 25000,
+  rps = 0,
   activeAct = 1,
   isTesting = false,
-  originInFlight = 1,
+  originInFlight = 0,
   hitRatio = '99.8%',
   coalescedRatio = '1:N',
   latencyMs = '0.42',
@@ -47,7 +47,7 @@ export default function PhantomFlowDiagram({
   const node3Ref = useRef(null);
   const originDbRef = useRef(null);
 
-  // High-performance 60fps Canvas Photon Engine
+  // High-performance 60fps Canvas Photon Engine with Per-Device Threads
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -84,7 +84,41 @@ export default function PhantomFlowDiagram({
       };
     };
 
-    const spawnParticle = (forcedType) => {
+    const getEmitters = () => {
+      if (!container) return [];
+      const emitterEls = container.querySelectorAll('[data-device-emitter="true"]');
+      const origins = [];
+      const cRect = container.getBoundingClientRect();
+
+      if (emitterEls && emitterEls.length > 0) {
+        emitterEls.forEach((el) => {
+          const r = el.getBoundingClientRect();
+          origins.push({
+            x: r.right - cRect.left,
+            y: r.top - cRect.top + r.height / 2,
+            active: el.getAttribute('data-emitter-active') === 'true',
+            name: el.getAttribute('data-emitter-name') || 'Device',
+          });
+        });
+      }
+
+      if (origins.length === 0) {
+        const z1 = zone1Ref.current;
+        if (z1) {
+          const r = z1.getBoundingClientRect();
+          origins.push({
+            x: r.right - cRect.left,
+            y: r.top - cRect.top + r.height / 2,
+            active: masterRunning || isTesting || rps > 0,
+            name: 'Client Ingress',
+          });
+        }
+      }
+
+      return origins;
+    };
+
+    const spawnParticle = (forcedType, forcedEmitter) => {
       if (particles.length > 55) return;
       frameCount++;
       const pseudo = (Date.now() + frameCount * 29) % 100;
@@ -95,12 +129,18 @@ export default function PhantomFlowDiagram({
         else type = 'miss';
       }
 
+      const emitters = getEmitters();
+      const emitterIdx = typeof forcedEmitter === 'number'
+        ? forcedEmitter
+        : (frameCount % Math.max(1, emitters.length));
+
       const targetNode = (frameCount % 3) + 1; // 1, 2, or 3
       particles.push({
         type,
+        emitterIdx,
         targetNode,
         progress: 0.0,
-        speed: type === 'hit' ? 0.030 : (type === 'peer' ? 0.024 : 0.022),
+        speed: type === 'hit' ? 0.032 : (type === 'peer' ? 0.024 : 0.022),
         phase: 0, // 0: client->node, 1: node->origin, 2: origin->node, 3: node->client, 4: node->node peer
         trail: [],
         alive: true,
@@ -112,33 +152,35 @@ export default function PhantomFlowDiagram({
       const h = container.clientHeight || 180;
       ctx.clearRect(0, 0, w, h);
 
-      // Coordinates relative to stage container
-      const z1Center = getCenter(zone1Ref.current) || { x: w * 0.12, y: h * 0.5 };
-      const z1Right = {
-        x: z1Center.x + (zone1Ref.current ? zone1Ref.current.clientWidth / 2 : 75),
-        y: z1Center.y,
-      };
-
+      // Gateway Nodes and Origin positions
       const n1 = getCenter(node1Ref.current) || { x: w * 0.38, y: h * 0.28 };
       const n2 = getCenter(node2Ref.current) || { x: w * 0.50, y: h * 0.28 };
       const n3 = getCenter(node3Ref.current) || { x: w * 0.62, y: h * 0.28 };
       const nodes = [n1, n2, n3];
 
       const origin = getCenter(originDbRef.current) || { x: w * 0.87, y: h * 0.45 };
+      const emitters = getEmitters();
 
-      // 1. Draw glowing fiber optic guide splines
-      // Client -> Nodes
-      nodes.forEach((node) => {
-        ctx.beginPath();
-        const cp1x = z1Right.x + (node.x - z1Right.x) * 0.45;
-        ctx.moveTo(z1Right.x, z1Right.y);
-        ctx.bezierCurveTo(cp1x, z1Right.y, cp1x, node.y, node.x, node.y);
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.16)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+      // 1. Draw Visible Threads (Fiber Optic Splines) from each individual device to Gateway Nodes
+      emitters.forEach((emitter) => {
+        nodes.forEach((node) => {
+          ctx.beginPath();
+          const cp1x = emitter.x + (node.x - emitter.x) * 0.45;
+          ctx.moveTo(emitter.x, emitter.y);
+          ctx.bezierCurveTo(cp1x, emitter.y, cp1x, node.y, node.x, node.y);
+
+          if (emitter.active && (masterRunning || isTesting || rps > 0)) {
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+            ctx.lineWidth = 1.6;
+          } else {
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.14)';
+            ctx.lineWidth = 1.0;
+          }
+          ctx.stroke();
+        });
       });
 
-      // Gossip mesh line between nodes
+      // Gossip mesh line between nodes (Node 1 <-> Node 2 <-> Node 3)
       ctx.beginPath();
       ctx.moveTo(n1.x, n1.y);
       ctx.lineTo(n2.x, n2.y);
@@ -149,7 +191,7 @@ export default function PhantomFlowDiagram({
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Nodes -> Origin DB
+      // Nodes -> Origin DB Fiber Splines
       nodes.forEach((node) => {
         ctx.beginPath();
         const cp1x = node.x + (origin.x - node.x) * 0.5;
@@ -160,15 +202,15 @@ export default function PhantomFlowDiagram({
         ctx.stroke();
       });
 
-      // 2. Spawn photons based on traffic state
+      // 2. Spawn photons based on live traffic
       frameCount++;
       const isLiveTraffic = masterRunning || isTesting || rps > 0;
       if (isLiveTraffic) {
-        const spawnCadence = rps > 1000 ? 3 : (rps > 200 ? 5 : 7);
+        const spawnCadence = rps > 1000 ? 2 : (rps > 200 ? 4 : 6);
         if (frameCount % spawnCadence === 0) spawnParticle();
       } else {
-        // Heartbeat pulse when idle
-        if (frameCount % 40 === 0) spawnParticle('hit');
+        // Idle gentle heartbeat: 1 photon every 45 frames
+        if (frameCount % 45 === 0) spawnParticle('hit', 0);
       }
 
       // 3. Render Shockwaves
@@ -192,20 +234,21 @@ export default function PhantomFlowDiagram({
         ctx.globalAlpha = 1.0;
       }
 
-      // 4. Update & Render Photon Particles with Comet Tails
+      // 4. Update & Render Photon Particles along their Device Threads
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.progress += p.speed;
 
+        const currentEmitter = emitters[p.emitterIdx % Math.max(1, emitters.length)] || { x: w * 0.16, y: h * 0.5 };
         const targetNodePos = nodes[(p.targetNode - 1) % 3] || n1;
         let pos = null;
 
         if (p.phase === 0) {
-          // Client -> Node
-          const cp1x = z1Right.x + (targetNodePos.x - z1Right.x) * 0.45;
+          // Device Thread -> Gateway Node
+          const cp1x = currentEmitter.x + (targetNodePos.x - currentEmitter.x) * 0.45;
           pos = getBezierPoint(
-            z1Right,
-            { x: cp1x, y: z1Right.y },
+            currentEmitter,
+            { x: cp1x, y: currentEmitter.y },
             { x: cp1x, y: targetNodePos.y },
             targetNodePos,
             Math.min(1.0, p.progress)
@@ -237,7 +280,7 @@ export default function PhantomFlowDiagram({
             }
           }
         } else if (p.phase === 1) {
-          // Node -> Origin Database
+          // Node -> Origin Database Vault
           const cp1x = targetNodePos.x + (origin.x - targetNodePos.x) * 0.5;
           pos = getBezierPoint(
             targetNodePos,
@@ -277,13 +320,13 @@ export default function PhantomFlowDiagram({
             p.speed = 0.038;
           }
         } else if (p.phase === 3) {
-          // Node -> Client return
-          const cp1x = targetNodePos.x - (targetNodePos.x - z1Right.x) * 0.45;
+          // Node -> Return along thread to originating Device
+          const cp1x = targetNodePos.x - (targetNodePos.x - currentEmitter.x) * 0.45;
           pos = getBezierPoint(
             targetNodePos,
             { x: cp1x, y: targetNodePos.y },
-            { x: cp1x, y: z1Right.y },
-            z1Right,
+            { x: cp1x, y: currentEmitter.y },
+            currentEmitter,
             Math.min(1.0, p.progress)
           );
 
@@ -352,7 +395,7 @@ export default function PhantomFlowDiagram({
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
     };
-  }, [rps, masterRunning, isTesting]);
+  }, [rps, masterRunning, isTesting, devices]);
 
   return (
     <div
@@ -361,7 +404,7 @@ export default function PhantomFlowDiagram({
       aria-label="Phantom Cache Architecture Flow Diagram"
     >
       <div className="flow-stage-container" ref={containerRef}>
-        {/* Silky 60fps Photon Particle Canvas Overlay */}
+        {/* Silky 60fps Canvas Photon Particle & Fiber Thread Overlay */}
         <canvas ref={canvasRef} className="flow-photon-canvas" aria-hidden="true" />
 
         {/* Zone 1: Inbound Traffic & Clients */}
@@ -372,7 +415,7 @@ export default function PhantomFlowDiagram({
           </div>
 
           <div className="flow-clients-box">
-            {/* Live External Devices Fleet Emitter Badges */}
+            {/* Live External Devices Fleet Emitter Badges with Individual Thread Anchors */}
             {devices && devices.length > 0 ? (
               <div
                 style={{
@@ -387,6 +430,9 @@ export default function PhantomFlowDiagram({
                 {devices.map((d, i) => (
                   <div
                     key={d.id || i}
+                    data-device-emitter="true"
+                    data-emitter-active={d.running ? 'true' : 'false'}
+                    data-emitter-name={d.type || 'Phone'}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -422,6 +468,9 @@ export default function PhantomFlowDiagram({
               </div>
             ) : (
               <div
+                data-device-emitter="true"
+                data-emitter-active="false"
+                data-emitter-name="Standby Device"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -442,15 +491,33 @@ export default function PhantomFlowDiagram({
             )}
 
             <div className="flow-client-types">
-              <span className="flow-client-pill" title="Mobile Shoppers">
+              <span
+                className="flow-client-pill"
+                title="Mobile Shoppers"
+                data-device-emitter="true"
+                data-emitter-active={rps > 0 ? 'true' : 'false'}
+                data-emitter-name="Mobile Shoppers"
+              >
                 <Icon name="buyer" />
                 <span>Mobile (75%)</span>
               </span>
-              <span className="flow-client-pill" title="Crawler Scans">
+              <span
+                className="flow-client-pill"
+                title="Crawler Scans"
+                data-device-emitter="true"
+                data-emitter-active={rps > 0 ? 'true' : 'false'}
+                data-emitter-name="Crawler Scans"
+              >
                 <Icon name="trace" />
                 <span>Scans (15%)</span>
               </span>
-              <span className="flow-client-pill flow-client-pill--surge" title="Flash Sale Crowd">
+              <span
+                className="flow-client-pill flow-client-pill--surge"
+                title="Flash Sale Crowd"
+                data-device-emitter="true"
+                data-emitter-active={rps > 0 ? 'true' : 'false'}
+                data-emitter-name="Flash Crowd"
+              >
                 <Icon name="dyno" />
                 <span>Crowd (10%)</span>
               </span>
@@ -464,20 +531,24 @@ export default function PhantomFlowDiagram({
             </div>
 
             <div className="flow-stream-status">
-              <span className={`flow-pulse-indicator ${masterRunning || isTesting ? 'flow-pulse-indicator--active' : ''}`} />
-              <span>{isTesting ? 'Slamming Cluster' : masterRunning ? 'Continuous Live Stream' : 'Ready'}</span>
+              <span className={`flow-pulse-indicator ${masterRunning || isTesting || rps > 0 ? 'flow-pulse-indicator--active' : ''}`} />
+              <span>
+                {isTesting
+                  ? 'Slamming Cluster'
+                  : masterRunning || rps > 0
+                  ? 'Continuous Live Stream'
+                  : 'Fleet Standby'}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Animated Connector 1: Ingress Pipe */}
+        {/* Connector 1: Open Fiber Optic Ingress Conduit (Clean Floating Pill, No Static Grey Bar) */}
         <div className="flow-connector">
-          <div className={`flow-pipe ${isTesting || masterRunning ? 'flow-pipe--flowing' : ''}`}>
-            <span className="flow-pipe-dot flow-pipe-dot--1" />
-            <span className="flow-pipe-dot flow-pipe-dot--2" />
-            <span className="flow-pipe-dot flow-pipe-dot--3" />
-          </div>
-          <span className="flow-pipe-label">TCP / TLS Ingress</span>
+          <span className="flow-conduit-pill">
+            <span className="flow-conduit-dot" />
+            TCP / TLS Ingress
+          </span>
         </div>
 
         {/* Zone 2: Phantom 3-Node Edge Mesh (The Core Magic) */}
@@ -550,12 +621,12 @@ export default function PhantomFlowDiagram({
           </div>
         </div>
 
-        {/* Animated Connector 2: Filtered Upstream Pipe */}
+        {/* Connector 2: Open Fiber Optic Origin Conduit (Clean Floating Pill, No Static Grey Bar) */}
         <div className="flow-connector flow-connector--filtered">
-          <div className="flow-pipe flow-pipe--faint">
-            <span className="flow-pipe-dot flow-pipe-dot--trickle" />
-          </div>
-          <span className="flow-pipe-label">0.2% Filtered</span>
+          <span className="flow-conduit-pill flow-conduit-pill--filtered">
+            <span className="flow-conduit-dot flow-conduit-dot--filtered" />
+            0.2% Filtered
+          </span>
         </div>
 
         {/* Zone 3: Protected Origin Database */}
@@ -575,14 +646,14 @@ export default function PhantomFlowDiagram({
             <div className="flow-db-status-bay">
               <span className="flow-db-stat-lbl">Active Connection Pool:</span>
               <span className="flow-db-stat-val flow-db-stat-val--safe">
-                {originInFlight} conn (1.2% Saturation)
+                {originInFlight} conn ({originInFlight > 0 ? '1.2%' : '0.0%'} Saturation)
               </span>
             </div>
 
             <div className="flow-db-contrast-box">
               <div className="flow-contrast-item flow-contrast-item--good">
                 <span className="flow-contrast-tag">WITH PHANTOM</span>
-                <span className="flow-contrast-text">Calm &amp; Protected (1.2% Pool)</span>
+                <span className="flow-contrast-text">Calm &amp; Protected ({originInFlight > 0 ? '1.2%' : '0.0%'} Pool)</span>
               </div>
               <div className="flow-contrast-item flow-contrast-item--bad">
                 <span className="flow-contrast-tag">WITHOUT PHANTOM</span>
@@ -598,7 +669,7 @@ export default function PhantomFlowDiagram({
       {/* Storytelling Narrative Summary Strip */}
       <div className="flow-story-bar">
         <span className="flow-story-step">
-          <strong>Step 1:</strong> {rps.toLocaleString()} req/s enters Node 1
+          <strong>Step 1:</strong> {rps > 0 ? `${rps.toLocaleString()} req/s enters Node 1` : 'Standby for External Swarm'}
         </span>
         <span className="flow-story-divider">→</span>
         <span className="flow-story-step">

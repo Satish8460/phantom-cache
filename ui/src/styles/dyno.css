@@ -1320,22 +1320,52 @@
   font-size: 0.75rem;
 }
 
-/* Connectors */
+/* Connectors: Open Fiber Optic Conduits with Floating Pills */
 .flow-connector {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  position: relative;
+  min-height: 100%;
+}
+
+.flow-conduit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 7px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--type-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--text-2);
+  white-space: nowrap;
+  box-shadow: var(--shadow-1);
+  z-index: 6;
+}
+
+.flow-conduit-pill--filtered {
+  border-color: var(--border);
+  color: var(--text-3);
+  opacity: 0.85;
+}
+
+.flow-conduit-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+.flow-conduit-dot--filtered {
+  background: var(--warn);
 }
 
 .flow-pipe {
-  position: relative;
-  width: 100%;
-  height: 0.25rem;
-  background: var(--border-strong);
-  border-radius: var(--radius-control);
-  overflow: hidden;
+  display: none;
 }
 
 .flow-pipe--faint {
