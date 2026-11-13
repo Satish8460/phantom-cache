@@ -470,7 +470,10 @@ export function Header({ connKind, theme, onTheme, menuOpen = false, onMenu = ()
  * The registry lists Intelligence under 'Not available yet'. Only when the gateway says the Phantom Intelligence API is installed does the
  * entry move up to 'Live gateway' (right after Cluster) and lose the 'Not available' tag. The count of screens does not change.
  */
-function screensFor(intelligenceLive) {
+function screensFor(intelligenceLive, demoMode = false) {
+  if (demoMode) {
+    return SCREENS.filter((s) => s.id === 'overview' || s.id === 'traffic');
+  }
   if (!intelligenceLive) return SCREENS;
   const rest = SCREENS.filter((s) => s.id !== 'intelligence');
   const at = rest.findIndex((s) => s.id === 'cluster') + 1;
@@ -516,14 +519,28 @@ function writeFold(open) {
  * The group whose entries are all "not available yet" folds into one disclosure that shows its count (open by default; the choice is remembered per
  * viewer in localStorage inside try/catch, and nothing else is persisted). Arrow keys still walk every link; a folded group opens when the walk enters it.
  */
+let liveNavDemoMode = true;
+
 export function Nav({ currentId, open = false, onNavigate = () => {}, theme = 'system', onTheme = () => {}, mode, gatewayUrl }) {
   // Whether the gateway serves the Phantom Intelligence API comes from the telemetry context (null outside the App: then the registry default applies).
   const tctx = useContext(TelemetryContext);
   const intelligenceLive = Boolean(tctx && tctx.intelLive);
   const refs = useRef([]);
   const [foldOpen, setFoldOpen] = useState(readFold);
+
+  const [demoMode, setDemoMode] = useState(() => (typeof window !== 'undefined' ? liveNavDemoMode : false));
+
+  const toggleDemoMode = () => {
+    setDemoMode((prev) => {
+      const next = !prev;
+      liveNavDemoMode = next;
+      return next;
+    });
+  };
+
+  const currentScreens = screensFor(intelligenceLive, demoMode);
   const onKeyDown = (e, i) => {
-    const next = nextNavIndex(e.key, i, SCREENS.length);
+    const next = nextNavIndex(e.key, i, currentScreens.length);
     if (next === null) return;
     e.preventDefault();
     const el = refs.current[next];
@@ -531,7 +548,7 @@ export function Nav({ currentId, open = false, onNavigate = () => {}, theme = 's
     if (fold && !fold.open) fold.open = true;
     el?.focus();
   };
-  const groups = groupsOf(screensFor(intelligenceLive));
+  const groups = groupsOf(currentScreens);
   return (
     <nav className={`app-nav${open ? ' is-open' : ''}`} aria-label="Primary">
       <div className="app-nav__panel">
@@ -598,6 +615,17 @@ export function Nav({ currentId, open = false, onNavigate = () => {}, theme = 's
             <span className="app-nav__foot-label">Gateway</span>
             <span className="mono" title="Gateway URL">{gatewayUrl || 'unknown'}</span>
             {mode ? <span>Reports mode: {mode}</span> : null}
+          </div>
+          <div className="app-nav__foot-gateway">
+            <span className="app-nav__foot-label">Navigation</span>
+            <button
+              type="button"
+              className="app-nav__mode-btn"
+              onClick={toggleDemoMode}
+              title="Toggle between focused demo showcase and all diagnostic screens"
+            >
+              {demoMode ? 'Switch to All Screens (10)' : 'Switch to Demo Showcase (2)'}
+            </button>
           </div>
         </div>
       </div>

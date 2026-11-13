@@ -544,6 +544,25 @@ details > summary { display: flex; align-items: center; } /* the plain `details 
   padding: 2px 0.5rem;
 }
 
+.app-nav__mode-btn {
+  font-size: var(--type-caption);
+  padding: 2px 0.5rem;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.app-nav__mode-btn:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
 .generator-stat__value--ok {
   color: var(--ok);
 }
