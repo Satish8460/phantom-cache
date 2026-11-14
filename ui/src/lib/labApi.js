@@ -693,3 +693,59 @@ export async function broadcastInvalidateKey({ sku, node = 1 } = {}) {
     return { ok: false, error: err?.message };
   }
 }
+
+export async function fetchClusterNodesStatus() {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false, nodes: [] };
+  const urls = ['/api/node', 'http://127.0.0.1:3201/api/node'];
+  for (const url of urls) {
+    try {
+      const res = await runner(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.nodes) return { ok: true, nodes: data.nodes };
+      }
+    } catch {
+      // try next
+    }
+  }
+  return { ok: false, nodes: [] };
+}
+
+export async function toggleClusterNode({ action, node }) {
+  const runner = globalThis.fetch;
+  if (!runner) return { ok: false };
+  const urls = ['/api/node', 'http://127.0.0.1:3201/api/node'];
+  for (const url of urls) {
+    try {
+      const res = await runner(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, node }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return { ok: true, data };
+      }
+    } catch {
+      // try next
+    }
+  }
+  return { ok: false };
+}
+
+export async function killClusterNode(nodeNumber) {
+  return toggleClusterNode({ action: 'stop', node: nodeNumber });
+}
+
+export async function reviveClusterNode(nodeNumber) {
+  return toggleClusterNode({ action: 'start', node: nodeNumber });
+}
+
+export async function killTwoNodes() {
+  return toggleClusterNode({ action: 'kill-two' });
+}
+
+export async function reviveAllNodes() {
+  return toggleClusterNode({ action: 'revive-all' });
+}

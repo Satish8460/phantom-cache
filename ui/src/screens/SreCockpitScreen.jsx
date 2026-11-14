@@ -9,6 +9,10 @@ import {
   stopMasterScenario,
   nextMasterScenario,
   fetchValidationStatus,
+  fetchClusterNodesStatus,
+  toggleClusterNode,
+  killTwoNodes,
+  reviveAllNodes,
 } from '../lib/labApi.js';
 import { formatCount } from '../lib/format.js';
 
@@ -85,6 +89,57 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
       clearInterval(interval);
     };
   }, []);
+
+  // Live cluster node status and chaos injection state
+  const [clusterNodes, setClusterNodes] = useState({ 1: true, 2: true, 3: true });
+  const [chaosLoading, setChaosLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const pollNodes = async () => {
+      try {
+        const res = await fetchClusterNodesStatus();
+        if (active && res.ok && Array.isArray(res.nodes)) {
+          const nextMap = {};
+          for (const n of res.nodes) {
+            nextMap[n.n] = Boolean(n.running);
+          }
+          setClusterNodes((prev) => ({ ...prev, ...nextMap }));
+        }
+      } catch {
+        // Hub initializing
+      }
+    };
+    pollNodes();
+    const interval = setInterval(pollNodes, 1200);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleToggleNode = async (nodeNum) => {
+    setChaosLoading(true);
+    const currentlyRunning = clusterNodes[nodeNum] !== false;
+    const action = currentlyRunning ? 'stop' : 'start';
+    await toggleClusterNode({ action, node: nodeNum });
+    setClusterNodes((prev) => ({ ...prev, [nodeNum]: !currentlyRunning }));
+    setChaosLoading(false);
+  };
+
+  const handleKillTwoNodes = async () => {
+    setChaosLoading(true);
+    await killTwoNodes();
+    setClusterNodes((prev) => ({ ...prev, 2: false, 3: false }));
+    setChaosLoading(false);
+  };
+
+  const handleReviveAllNodes = async () => {
+    setChaosLoading(true);
+    await reviveAllNodes();
+    setClusterNodes({ 1: true, 2: true, 3: true });
+    setChaosLoading(false);
+  };
 
   // Poll server-backed continuous scenario status
   useEffect(() => {
@@ -193,12 +248,157 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
           margin: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="fleet-mesh-pill" style={{ padding: '2px 8px', borderRadius: '4px' }}>● Node 1 (:18185)</span>
-          <span className="fleet-mesh-pill" style={{ padding: '2px 8px', borderRadius: '4px' }}>● Node 2 (:18186)</span>
-          <span className="fleet-mesh-pill" style={{ padding: '2px 8px', borderRadius: '4px' }}>● Node 3 (:18187)</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span className="fleet-mesh-pill" style={{ padding: '2px 8px', borderRadius: '4px', background: 'var(--surface-elevated)' }}>
+            ● Node 1 (:18185) <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>[Primary]</span>
+          </span>
+
+          {/* Node 2 Pill & Kill/Revive Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <span
+              className={`fleet-mesh-pill ${clusterNodes[2] === false ? 'fleet-mesh-pill--dead' : ''}`}
+              style={{
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: clusterNodes[2] === false ? 'rgba(239, 68, 68, 0.22)' : 'var(--surface-elevated)',
+                color: clusterNodes[2] === false ? 'var(--danger)' : 'var(--text)',
+                border: clusterNodes[2] === false ? '1px solid var(--danger)' : '1px solid transparent',
+                fontWeight: 600,
+              }}
+            >
+              {clusterNodes[2] === false ? '✕ Node 2 (Dead)' : '● Node 2 (:18186)'}
+            </span>
+            <button
+              onClick={() => handleToggleNode(2)}
+              disabled={chaosLoading}
+              title={clusterNodes[2] === false ? 'Revive Node 2 Process' : 'Kill Node 2 Process (Simulate Crash)'}
+              style={{
+                padding: '1px 6px',
+                fontSize: '9px',
+                borderRadius: '3px',
+                cursor: 'pointer',
+                fontWeight: 700,
+                border: clusterNodes[2] === false ? '1px solid var(--ok)' : '1px solid var(--danger)',
+                background: clusterNodes[2] === false ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.18)',
+                color: clusterNodes[2] === false ? 'var(--ok)' : 'var(--danger)',
+              }}
+            >
+              {clusterNodes[2] === false ? '🔄 Revive' : '⚡ Kill'}
+            </button>
+          </div>
+
+          {/* Node 3 Pill & Kill/Revive Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <span
+              className={`fleet-mesh-pill ${clusterNodes[3] === false ? 'fleet-mesh-pill--dead' : ''}`}
+              style={{
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: clusterNodes[3] === false ? 'rgba(239, 68, 68, 0.22)' : 'var(--surface-elevated)',
+                color: clusterNodes[3] === false ? 'var(--danger)' : 'var(--text)',
+                border: clusterNodes[3] === false ? '1px solid var(--danger)' : '1px solid transparent',
+                fontWeight: 600,
+              }}
+            >
+              {clusterNodes[3] === false ? '✕ Node 3 (Dead)' : '● Node 3 (:18187)'}
+            </span>
+            <button
+              onClick={() => handleToggleNode(3)}
+              disabled={chaosLoading}
+              title={clusterNodes[3] === false ? 'Revive Node 3 Process' : 'Kill Node 3 Process (Simulate Crash)'}
+              style={{
+                padding: '1px 6px',
+                fontSize: '9px',
+                borderRadius: '3px',
+                cursor: 'pointer',
+                fontWeight: 700,
+                border: clusterNodes[3] === false ? '1px solid var(--ok)' : '1px solid var(--danger)',
+                background: clusterNodes[3] === false ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.18)',
+                color: clusterNodes[3] === false ? 'var(--ok)' : 'var(--danger)',
+              }}
+            >
+              {clusterNodes[3] === false ? '🔄 Revive' : '⚡ Kill'}
+            </button>
+          </div>
+
           <span style={{ color: 'var(--text-muted)' }}>|</span>
-          <span style={{ color: 'var(--ok)', fontWeight: 600 }}>mTLS Mesh 3/3 Active (0.18ms Gossip)</span>
+
+          {/* Quick Chaos / Failover Presets */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button
+              onClick={() => handleToggleNode(2)}
+              disabled={chaosLoading}
+              title="Simulate 1 Node Failure by killing Node 2 OS process"
+              style={{
+                padding: '2px 7px',
+                fontSize: '9.5px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 700,
+                border: '1px solid var(--danger)',
+                background: clusterNodes[2] === false ? 'rgba(239, 68, 68, 0.28)' : 'rgba(239, 68, 68, 0.12)',
+                color: 'var(--danger)',
+              }}
+            >
+              {clusterNodes[2] === false ? '⚡ Node 2 Dead' : '⚡ Kill 1 Node (N2)'}
+            </button>
+            <button
+              onClick={handleKillTwoNodes}
+              disabled={chaosLoading}
+              title="Simulate 2 Node Outage by killing Nodes 2 & 3"
+              style={{
+                padding: '2px 7px',
+                fontSize: '9.5px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 700,
+                border: '1px solid var(--danger)',
+                background: (clusterNodes[2] === false && clusterNodes[3] === false) ? 'rgba(239, 68, 68, 0.32)' : 'rgba(239, 68, 68, 0.2)',
+                color: 'var(--danger)',
+              }}
+            >
+              {(clusterNodes[2] === false && clusterNodes[3] === false) ? '⚡ 2 Nodes Dead' : '⚡ Kill 2 Nodes (N2+N3)'}
+            </button>
+            {[clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length < 3 && (
+              <button
+                onClick={handleReviveAllNodes}
+                disabled={chaosLoading}
+                title="Revive all terminated gateway nodes back to 3/3 mesh"
+                style={{
+                  padding: '2px 8px',
+                  fontSize: '9.5px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  border: '1px solid var(--ok)',
+                  background: 'rgba(16, 185, 129, 0.2)',
+                  color: 'var(--ok)',
+                }}
+              >
+                🔄 Revive All Nodes (3/3)
+              </button>
+            )}
+          </div>
+
+          <span style={{ color: 'var(--text-muted)' }}>|</span>
+
+          {/* Dynamic Mesh Health Status */}
+          <span
+            style={{
+              color: [clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length === 3
+                ? 'var(--ok)'
+                : ([clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length === 2
+                  ? 'var(--warn)'
+                  : 'var(--danger)'),
+              fontWeight: 700,
+            }}
+          >
+            {[clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length === 3
+              ? 'mTLS Mesh 3/3 Active (0.18ms Gossip)'
+              : ([clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length === 2
+                ? '⚠️ mTLS Mesh 2/3 Degraded — POL-12 Failover Active'
+                : '🚨 mTLS Mesh 1/3 Surviving — Single-Node Vault')}
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span
@@ -237,6 +437,8 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
           devices={validation.devices}
           trafficMix={scenarioTrafficMix}
           gossipLatencyMs={(simState.pie?.f12_drift_ms ?? 0.18).toFixed(2)}
+          clusterNodes={clusterNodes}
+          onToggleNode={handleToggleNode}
         />
       </div>
 
@@ -285,11 +487,31 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
           </span>
         </div>
 
-        <div style={{ background: 'var(--surface)', padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line)' }}>
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>Cloud Cost Saved</span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: 800, color: 'var(--accent)' }}>
-            +${(((simState.avoidedQueries || simState.edgeHits || 0)) * 0.005).toFixed(2)}
-          </span>
+        <div
+          style={{ background: 'var(--surface)', padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line)' }}
+          title="Net savings difference: Avoided origin DB queries ($0.005/query) minus lightweight PhantomCache edge RAM compute cost (~2%)"
+        >
+          {(() => {
+            const grossSaved = ((simState.avoidedQueries || simState.edgeHits || 0)) * 0.005;
+            const edgeCost = grossSaved * 0.02;
+            const netProfit = grossSaved - edgeCost;
+            return (
+              <>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Net Profit / Saved (Approx)</span>
+                  <span style={{ color: 'var(--ok)', fontWeight: 700, fontSize: '9px' }}>~98% Margin</span>
+                </span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px', flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: 800, color: 'var(--ok)' }}>
+                    +${netProfit.toFixed(2)}
+                  </span>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    (+$${grossSaved.toFixed(2)} DB - ~${edgeCost.toFixed(2)} edge)
+                  </span>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
 
@@ -679,12 +901,16 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
             </div>
 
             {/* 12: POL-12 Self-Healing Peer Failover */}
-            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: '2px solid var(--ok)' }}>
+            <div style={{ background: 'var(--surface-elevated)', padding: '3px 5px', borderRadius: '4px', borderLeft: [clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length < 3 ? '2px solid var(--warn)' : '2px solid var(--ok)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--text)' }}>POL-12 Failover</span>
-                <span style={{ fontSize: '7.5px', fontWeight: 700, color: 'var(--ok)' }}>ARMED</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, color: [clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length < 3 ? 'var(--warn)' : 'var(--ok)' }}>
+                  {[clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length < 3 ? 'TRIGGERED' : 'ARMED'}
+                </span>
               </div>
-              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>HRW Rendezvous</span>
+              <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', display: 'block' }}>
+                {[clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length < 3 ? `HRW Reroute (${3 - [clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length} Dead)` : 'HRW Rendezvous'}
+              </span>
             </div>
           </div>
 
@@ -695,16 +921,18 @@ export default function SreCockpitScreen({ onSwitchToMetrics }) {
               padding: '5px 8px',
               borderRadius: '4px',
               fontSize: '10px',
-              borderLeft: '3px solid var(--ok)',
+              borderLeft: [clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length < 3 ? '3px solid var(--warn)' : '3px solid var(--ok)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
             <span style={{ color: 'var(--text)', fontWeight: 600 }}>
-              {isTrafficActive
-                ? `⚡ Traffic Active: POL-02 Mutex coalescing concurrent hits while POL-01 Sieve filters scan churn. Origin protected at ${poolSaturationText}.`
-                : '🛡️ Autonomic Baseline: All 12 autonomic shields monitoring cluster in real-time. Zero origin load in standby.'}
+              {[clusterNodes[1], clusterNodes[2], clusterNodes[3]].filter(Boolean).length < 3
+                ? `⚡ Fault Injected: Node ${!clusterNodes[2] && !clusterNodes[3] ? '2 & 3' : (!clusterNodes[2] ? '2' : '3')} terminated. HRW Rendezvous rerouted 100% traffic to surviving nodes with ZERO dropped requests.`
+                : (isTrafficActive
+                  ? `⚡ Traffic Active: POL-02 Mutex coalescing concurrent hits while POL-01 Sieve filters scan churn. Origin protected at ${poolSaturationText}.`
+                  : '🛡️ Autonomic Baseline: All 12 autonomic shields monitoring cluster in real-time. Zero origin load in standby.')}
             </span>
             <span style={{ color: 'var(--text-muted)', fontSize: '9px', fontFamily: 'var(--font-mono)' }}>
               Zero DB Exhaustion

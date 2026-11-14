@@ -1206,7 +1206,14 @@ function stopMasterScenarioEngine() {
 
 // ------------------------------------------------------------------ http
 function send(res, code, body, type = 'application/json', headers = {}) {
-  res.writeHead(code, { 'content-type': type, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', ...headers });
+  res.writeHead(code, {
+    'content-type': type,
+    'cache-control': 'no-store',
+    'x-content-type-options': 'nosniff',
+    'access-control-allow-origin': '*',
+    'access-control-allow-headers': '*',
+    ...headers
+  });
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 const readBody = (req) => new Promise((ok) => { let s = ''; req.on('data', (d) => { s += d; }); req.on('end', () => { try { ok(JSON.parse(s || '{}')); } catch { ok({}); } }); });
@@ -2767,7 +2774,52 @@ const server = createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/run-all') { const bb = await readBody(req); queue = { ids: Array.isArray(bb.ids) && bb.ids.length ? bb.ids.filter((x) => ORDER_ALL.includes(x)) : ORDER_ALL.slice(), paused: false, running: true }; setTimeout(nextInQueue, 50); return send(res, 200, { started: true }); }
     if (req.method === 'POST' && url.pathname === '/api/pause') { const b = await readBody(req); queue.paused = Boolean(b.paused); return send(res, 200, { paused: queue.paused }); }
     if (req.method === 'POST' && url.pathname === '/api/stop') return send(res, 200, stopCurrent());
-    if (req.method === 'POST' && url.pathname === '/api/node') { const b = await readBody(req); const r = launcher([b.action === 'start' ? 'start-node' : 'stop-node', '--node', String(b.node)]); return send(res, 200, { out: scrub((r.stdout || r.stderr || '').trim()) }); }
+    if (url.pathname === '/api/node') {
+      const stNow = cluster();
+      const getNodeStatus = () => {
+        if (!stNow) return [];
+        const resList = [];
+        for (let i = 0; i < (stNow.nodes || 3); i++) {
+          const pid = stNow.pids[`node${i + 1}`];
+          resList.push({ n: i + 1, port: (stNow.ports && stNow.ports[i]) || (18185 + i), running: alive(pid) });
+        }
+        return resList;
+      };
+
+      if (req.method === 'GET') {
+        return send(res, 200, { ok: true, nodes: getNodeStatus() });
+      }
+
+      if (req.method === 'POST') {
+        const b = await readBody(req);
+        if (b.action === 'status') {
+          return send(res, 200, { ok: true, nodes: getNodeStatus() });
+        }
+        if (b.action === 'kill-two') {
+          launcher(['stop-node', '--node', '2']);
+          launcher(['stop-node', '--node', '3']);
+          push({ kind: 'node-toggled', action: 'kill-two', killed: [2, 3], t: new Date().toISOString() });
+          return send(res, 200, { ok: true, out: 'Nodes 2 and 3 stopped', nodes: getNodeStatus() });
+        }
+        if (b.action === 'revive-all') {
+          if (stNow) {
+            for (let n = 1; n <= stNow.nodes; n++) {
+              if (!alive(stNow.pids[`node${n}`])) {
+                launcher(['start-node', '--node', String(n)]);
+              }
+            }
+          }
+          push({ kind: 'node-toggled', action: 'revive-all', t: new Date().toISOString() });
+          return send(res, 200, { ok: true, out: 'All nodes active', nodes: getNodeStatus() });
+        }
+        if (b.action === 'start' || b.action === 'stop') {
+          const targetNode = Number(b.node || 2);
+          const r = launcher([b.action === 'start' ? 'start-node' : 'stop-node', '--node', String(targetNode)]);
+          push({ kind: 'node-toggled', node: targetNode, action: b.action, t: new Date().toISOString() });
+          return send(res, 200, { ok: true, out: scrub((r.stdout || r.stderr || '').trim()), nodes: getNodeStatus() });
+        }
+      }
+    }
     if (req.method === 'POST' && url.pathname === '/api/cluster') {
       const b = await readBody(req);
       if (b.action === 'down') { stopCurrent(); const r = launcher(['down']); manifestCache = null; return send(res, 200, { out: r.stdout.trim() }); }

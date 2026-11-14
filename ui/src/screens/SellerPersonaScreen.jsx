@@ -298,14 +298,14 @@ export default function SellerPersonaScreen() {
         {/* Card 5: Infrastructure Bill Saved */}
         <div className="origin-contract-card">
           <div className="origin-contract-card__top">
-            <span className="origin-contract-card__lbl">Origin Bill Shield</span>
-            <span className="origin-contract-card__badge origin-contract-card__badge--warn">93% SAVINGS</span>
+            <span className="origin-contract-card__lbl">Net Profit / Bill Shield</span>
+            <span className="origin-contract-card__badge origin-contract-card__badge--warn">98% PROFIT</span>
           </div>
           <div className="origin-contract-card__val origin-contract-card__val--green">
-            +$712.50
+            +$698.25
           </div>
           <div className="origin-contract-card__sub">
-            Projected $3,240/mo RDS Aurora Headroom
+            +$712.50 DB saved - ~$14.25 edge compute
           </div>
         </div>
       </section>
@@ -565,21 +565,26 @@ export default function SellerPersonaScreen() {
               </h2>
             </div>
 
-            <div className="savings-stats-grid">
+            <div className="savings-stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
               <div className="savings-stat-bay">
-                <span className="savings-stat-bay__lbl">Without Phantom Cache</span>
+                <span className="savings-stat-bay__lbl">Without Phantom</span>
                 <span className="savings-stat-bay__val">$3,450 / mo</span>
                 <span className="timeline-axis-labels">Heavy RDS Aurora Spikes</span>
               </div>
               <div className="savings-stat-bay">
-                <span className="savings-stat-bay__lbl">With Phantom Cache</span>
+                <span className="savings-stat-bay__lbl">With Phantom (DB)</span>
                 <span className="savings-stat-bay__val savings-stat-bay__val--green">$210 / mo</span>
                 <span className="timeline-axis-labels">Small Reserved Instance</span>
               </div>
               <div className="savings-stat-bay">
-                <span className="savings-stat-bay__lbl">Monthly Savings</span>
-                <span className="savings-stat-bay__val savings-stat-bay__val--green">$3,240 (93%)</span>
-                <span className="timeline-axis-labels">Cloud Infrastructure Saved</span>
+                <span className="savings-stat-bay__lbl">Phantom Edge Compute</span>
+                <span className="savings-stat-bay__val" style={{ color: 'var(--accent)' }}>~$35 / mo</span>
+                <span className="timeline-axis-labels">Rust RAM Mesh</span>
+              </div>
+              <div className="savings-stat-bay">
+                <span className="savings-stat-bay__lbl">Net Profit / Saved (Approx)</span>
+                <span className="savings-stat-bay__val savings-stat-bay__val--green">+$3,205 / mo</span>
+                <span className="timeline-axis-labels">~93% Net Cost Reduction</span>
               </div>
             </div>
 

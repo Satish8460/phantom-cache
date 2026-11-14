@@ -4,6 +4,7 @@ import {
   startMasterScenario,
   stopMasterScenario,
   fetchMasterScenarioStatus,
+  toggleClusterNode,
 } from '../../lib/labApi.js';
 
 /**
@@ -91,6 +92,8 @@ export default function MasterScenarioDeck({ targetRps, onRpsChange, onRunningCh
   const total = status.totalRequests || 0;
   const hitRatio = total > 0 ? ((status.edgeHits / total) * 100).toFixed(1) : '99.4';
   const savedDollars = (total * 0.00016).toFixed(2);
+  const edgeCostDollars = (total * 0.000004).toFixed(2);
+  const netProfitDollars = Math.max(0, (total * 0.00016) - (total * 0.000004)).toFixed(2);
 
   return (
     <section className="master-scenario-deck" aria-label="Master Stochastic Live Traffic Scenario">
@@ -156,6 +159,38 @@ export default function MasterScenarioDeck({ targetRps, onRpsChange, onRunningCh
         </button>
       </div>
 
+      {/* Hardware Chaos & Node Failure Injection */}
+      <div className="master-scenario-presets" style={{ marginTop: '4px', borderTop: '1px solid var(--line)', paddingTop: '6px' }} role="group" aria-label="Hardware Fault Injection">
+        <span className="master-presets-label" style={{ color: 'var(--danger)', fontWeight: 700 }}>Fault Injection:</span>
+        <button
+          type="button"
+          className="master-preset-btn"
+          onClick={() => toggleClusterNode({ action: 'stop', node: 2 })}
+          style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}
+          title="Kill Node 2 OS daemon to demonstrate instant HRW failover"
+        >
+          <span>⚡ Kill Node 2 (Fail 1 Node)</span>
+        </button>
+        <button
+          type="button"
+          className="master-preset-btn"
+          onClick={() => toggleClusterNode({ action: 'kill-two' })}
+          style={{ borderColor: 'var(--danger)', color: 'var(--danger)', fontWeight: 700 }}
+          title="Kill Node 2 and Node 3 to test single-node survival"
+        >
+          <span>⚡ Kill Nodes 2 &amp; 3 (Fail 2 Nodes)</span>
+        </button>
+        <button
+          type="button"
+          className="master-preset-btn"
+          onClick={() => toggleClusterNode({ action: 'revive-all' })}
+          style={{ borderColor: 'var(--ok)', color: 'var(--ok)', fontWeight: 700 }}
+          title="Restart all terminated nodes to restore 3/3 cluster"
+        >
+          <span>🔄 Restore All Nodes (3/3)</span>
+        </button>
+      </div>
+
       {/* Live Real-Time Telemetry HUD */}
       <div className="master-scenario-hud">
         <div className="master-hud-stat">
@@ -198,12 +233,14 @@ export default function MasterScenarioDeck({ targetRps, onRpsChange, onRunningCh
           <span className="master-hud-stat__sub">Real customer checkouts</span>
         </div>
 
-        <div className="master-hud-stat">
-          <span className="master-hud-stat__lbl">Cloud Bill Saved</span>
+        <div className="master-hud-stat" title={`+$${savedDollars} DB saved - ~$${edgeCostDollars} Phantom edge compute`}>
+          <span className="master-hud-stat__lbl">Net Profit (Approx)</span>
           <span className="master-hud-stat__val master-hud-stat__val--good">
-            +${savedDollars}
+            +${netProfitDollars}
           </span>
-          <span className="master-hud-stat__sub">Database ingress shielded</span>
+          <span className="master-hud-stat__sub">
+            +${savedDollars} DB - ~${edgeCostDollars} edge
+          </span>
         </div>
       </div>
     </section>

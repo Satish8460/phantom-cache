@@ -36,6 +36,8 @@ export default function PhantomFlowDiagram({
   devices = [],
   trafficMix,
   gossipLatencyMs = '0.18',
+  clusterNodes = { 1: true, 2: true, 3: true },
+  onToggleNode,
 }) {
   const isStampede = activeAct === 2 || rps >= 50000;
   const isMutexShield = activeAct === 3;
@@ -141,7 +143,8 @@ export default function PhantomFlowDiagram({
         ? forcedEmitter
         : (frameCount % Math.max(1, emitters.length));
 
-      const targetNode = (frameCount % 3) + 1; // 1, 2, or 3
+      const aliveNodeIds = [1, clusterNodes[2] !== false ? 2 : null, clusterNodes[3] !== false ? 3 : null].filter(Boolean);
+      const targetNode = aliveNodeIds[frameCount % aliveNodeIds.length] || 1;
       particles.push({
         type,
         emitterIdx,
@@ -399,7 +402,7 @@ export default function PhantomFlowDiagram({
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
     };
-  }, [rps, masterRunning, isTesting, devices]);
+  }, [rps, masterRunning, isTesting, devices, clusterNodes]);
 
   return (
     <div
@@ -576,22 +579,72 @@ export default function PhantomFlowDiagram({
               <span className="flow-node-lat">{rps > 0 ? `${latencyMs} ms HIT` : '0.00 ms (Standby)'}</span>
             </div>
 
-            <div className="flow-node-card" ref={node2Ref}>
+            <div className={`flow-node-card ${clusterNodes[2] === false ? 'flow-node-card--dead' : ''}`} ref={node2Ref}>
               <div className="flow-node-card__top">
-                <span className="flow-node-name">Node 2</span>
+                <span className="flow-node-name" style={{ color: clusterNodes[2] === false ? 'var(--danger)' : 'var(--text)' }}>
+                  {clusterNodes[2] === false ? '✕ Node 2 (Dead)' : 'Node 2'}
+                </span>
                 <span className="flow-node-port">:18186</span>
               </div>
-              <span className="flow-node-badge">Peer Gossip</span>
-              <span className="flow-node-lat">{rps > 0 ? `${gossipLatencyMs} ms Synced` : 'Synced (Standby)'}</span>
+              <span className={`flow-node-badge ${clusterNodes[2] === false ? 'flow-node-badge--dead' : ''}`}>
+                {clusterNodes[2] === false ? 'QUARANTINED (Dead)' : 'Peer Gossip'}
+              </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                <span className="flow-node-lat" style={{ color: clusterNodes[2] === false ? 'var(--danger)' : 'inherit' }}>
+                  {clusterNodes[2] === false ? 'WSAECONNREFUSED' : (rps > 0 ? `${gossipLatencyMs} ms Synced` : 'Synced (Standby)')}
+                </span>
+                {onToggleNode && (
+                  <button
+                    onClick={() => onToggleNode(2)}
+                    style={{
+                      fontSize: '8.5px',
+                      padding: '1px 5px',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      border: clusterNodes[2] === false ? '1px solid var(--ok)' : '1px solid var(--danger)',
+                      background: clusterNodes[2] === false ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.18)',
+                      color: clusterNodes[2] === false ? 'var(--ok)' : 'var(--danger)',
+                    }}
+                  >
+                    {clusterNodes[2] === false ? 'Revive' : 'Kill'}
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="flow-node-card" ref={node3Ref}>
+            <div className={`flow-node-card ${clusterNodes[3] === false ? 'flow-node-card--dead' : ''}`} ref={node3Ref}>
               <div className="flow-node-card__top">
-                <span className="flow-node-name">Node 3</span>
+                <span className="flow-node-name" style={{ color: clusterNodes[3] === false ? 'var(--danger)' : 'var(--text)' }}>
+                  {clusterNodes[3] === false ? '✕ Node 3 (Dead)' : 'Node 3'}
+                </span>
                 <span className="flow-node-port">:18187</span>
               </div>
-              <span className="flow-node-badge">Peer Gossip</span>
-              <span className="flow-node-lat">{rps > 0 ? `${gossipLatencyMs} ms Synced` : 'Synced (Standby)'}</span>
+              <span className={`flow-node-badge ${clusterNodes[3] === false ? 'flow-node-badge--dead' : ''}`}>
+                {clusterNodes[3] === false ? 'QUARANTINED (Dead)' : 'Peer Gossip'}
+              </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                <span className="flow-node-lat" style={{ color: clusterNodes[3] === false ? 'var(--danger)' : 'inherit' }}>
+                  {clusterNodes[3] === false ? 'WSAECONNREFUSED' : (rps > 0 ? `${gossipLatencyMs} ms Synced` : 'Synced (Standby)')}
+                </span>
+                {onToggleNode && (
+                  <button
+                    onClick={() => onToggleNode(3)}
+                    style={{
+                      fontSize: '8.5px',
+                      padding: '1px 5px',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      border: clusterNodes[3] === false ? '1px solid var(--ok)' : '1px solid var(--danger)',
+                      background: clusterNodes[3] === false ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.18)',
+                      color: clusterNodes[3] === false ? 'var(--ok)' : 'var(--danger)',
+                    }}
+                  >
+                    {clusterNodes[3] === false ? 'Revive' : 'Kill'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
